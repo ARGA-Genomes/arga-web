@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://nickdos.github.io/MUI-datagrid-search-demo",
+  "homepage": "https://nickdos.github.io/arga-data",
   "dependencies": {
     "-": "^0.0.1",
     "@emotion/react": "^11.9.0",

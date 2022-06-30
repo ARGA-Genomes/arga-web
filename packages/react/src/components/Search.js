@@ -47,13 +47,15 @@ const columnsDefinitions = (fqUpdate) => {
       field: 'id',
       headerName: "ID",
       width: 100,
-      sortable: false
+      sortable: false,
+      hide: true
     },
     {
       field: 'score',
       headerName: "Score",
       width: 100,
-      sortable: true
+      sortable: true,
+      hide: true
     },
     {
       field: 'dynamicProperties_ncbi_assembly_accession', 
@@ -65,6 +67,16 @@ const columnsDefinitions = (fqUpdate) => {
     { field: "raw_scientificName",
       headerName: "Scientific Name",
       minWidth: 240,
+      renderCell: (params) => (
+        <span key={params.value}>
+          { params.value?.trim().split(/\s+/).length > 1 ? <em>{params.value}</em> : params.value }
+        </span>
+      )
+    },
+    { field: "scientificName",
+      headerName: "Matched Name",
+      minWidth: 240,
+      hide: true,
       renderCell: (params) => (
         <span key={params.value}>
           { params.value?.trim().split(/\s+/).length > 1 ? <em>{params.value}</em> : params.value }
@@ -96,6 +108,28 @@ const columnsDefinitions = (fqUpdate) => {
         </Stack>
       )
     },
+    { field: "speciesSubgroup",
+      headerName: "Species Sub-Groups",
+      width: 260,
+      sortable: false,
+      hide: true,
+      // valueGetter: ({ value }) => value.join(" | ")
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+          { params.value?.map( (grp) => 
+            <Chip 
+              key={grp}
+              label={grp} 
+              color={grp in speciesGroupChipMapping ? speciesGroupChipMapping[grp] : "default" } 
+              data-fieldname="speciesSubgroup"
+              onClick={fqUpdate}
+              size="small" 
+              variant="outlined"
+            />
+          )}
+        </Stack>
+      )
+    },
     { field: "dynamicProperties_ncbi_refseq_category",
       headerName: "RefSeq Category",
       width: 200,
@@ -114,7 +148,7 @@ const columnsDefinitions = (fqUpdate) => {
       )
     },
     { field: "dynamicProperties_ncbi_genome_rep",
-      headerName: "Genome Representation",
+      headerName: "Genome Represent'n",
       width: 160,
       renderCell: (params) => (
         params.value && 
@@ -129,9 +163,16 @@ const columnsDefinitions = (fqUpdate) => {
             />
       )
     },
+    // dynamicProperties_ncbi_assembly_level
+    {
+      field: "dynamicProperties_ncbi_assembly_level",
+      headerName: "Assembly Level",
+      width: 140,
+      hide: false
+    },
     {
       field: "eventDate",
-      headerName: "Event Date",
+      headerName: "Date",
       type: 'dateTime',
       valueGetter: ({ value }) => value && new Date(value).toISOString().substring(0,10),
       width: 120
@@ -168,11 +209,11 @@ function Search() {
  // const { search } = useLocation();
   const [searchParams] = useSearchParams();
 
-  const serverUrlPrefix = "https://nectar-arga-dev-1.ala.org.au/solr/biocache";
+  const serverUrlPrefix = "https://nectar-arga-dev-1.ala.org.au/api";
   const defaultQuery = "*:*" //"taxonConceptID:urn*+OR+taxonConceptID:htt*"
 
   const fqUpdate = (e) => {
-    //console.log("fqUpdate", e.currentTarget, e.currentTarget.getAttribute('data-fieldname'))
+    // console.log("fqUpdate", e.currentTarget, e.currentTarget.getAttribute('data-fieldname'))
     const fq = `${e.currentTarget.getAttribute('data-fieldname')}:%22${e.target.textContent}%22`;
     setPageState(old => ({ ...old, fq: fq, page: 1 }));
     e.stopPropagation();
@@ -189,9 +230,9 @@ function Search() {
       const fetchRecord = async () => {
         //console.log('updateRecordData ON');
         setRecordState(old => ({ ...old, isLoading: true }));
-        const resp = await fetch(`${serverUrlPrefix}/select?q=id:${recordState.id}`);
+        const resp = await fetch(`${serverUrlPrefix}/get?id=${recordState.id}`);
         const json = await resp.json();
-        setRecordState(old => ({ ...old, isLoading: false, data: json.response?.docs[0] }));
+        setRecordState(old => ({ ...old, isLoading: false, data: json.doc }));
         setDrawerState(true);
       }
       fetchRecord()
@@ -208,6 +249,7 @@ function Search() {
       setPageState(old => ({ ...old, isLoading: false, data: json.response.docs, total: json.response.numFound }));
     }
     fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ pageState.page, pageState.pageSize, pageState.sort, pageState.order, pageState.q, pageState.fq ]);
 
   useEffect(() => {
@@ -247,7 +289,7 @@ function Search() {
       if (idList[newidPosition] !== undefined) {
         setRecordState(old => ({ ...old, id: idList[newidPosition] }));
       } else {
-        console.log("First or last record reached");
+        //console.log("First or last record reached");
         setSnackState(true);
       }
     }
@@ -323,7 +365,7 @@ function Search() {
               rowHeight={40}
               ref={datagridRef}
               style={{ backgroundColor: 'white' }}
-              //getRowId={(row) => row.id}
+              columns={columns}
               rows={pageState.data}
               rowCount={pageState.total}
               loading={pageState.isLoading}
@@ -338,15 +380,10 @@ function Search() {
               onPageSizeChange={(newPageSize) => setPageState(old => ({ ...old, pageSize: newPageSize }))}
               sortingMode="server"
               onSortModelChange={(sortModel) => {
-                console.log("onSortModelChange", sortModel);
+                //console.log("onSortModelChange", sortModel);
                 setPageState(old => ({ ...old, sort: sortModel[0]?.field || 'score', order: sortModel[0]?.sort || 'desc', page: 1}))
               }}
-              columns={columns}
-              columnVisibilityModel={{ id: false, score: false }}
               onRowClick={rowClicked}
-              //onSelectionModelChange={(ids) => { console.log("ids", ids, "e", e) }}
-              //isRowSelectable={(params) => false}
-              isColumnSelectable={(params) => {console.log("isColumnSelectable", params)}}
             />
             </div>
           {/* </Box> */}
