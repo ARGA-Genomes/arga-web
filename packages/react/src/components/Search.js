@@ -1,7 +1,7 @@
 import { AppBar, Box, Container, Toolbar, Typography, Stack, Chip, TextField, Snackbar, IconButton, GlobalStyles } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { DataGrid } from '@mui/x-data-grid'
-import { Fragment, useEffect, useState, useRef } from 'react';
+import { Fragment, useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 // import ArgaLogo from './ArgaLogo';
 import logo from "../ARGA-logo-notext.png";
@@ -15,11 +15,12 @@ import RecordDrawer from './RecordDrawer';
  * - add links to NCBI and ALA resources
  * - pull in photos from ALA BIE
  * - add DNA background image to header bar
- * - fix showing/hiding columns widget
- * - put seach stats at the top (count etc) and make bottom bar pagination use pages jumps ???
+ * x fix showing/hiding columns widget
+ * - put seach stats at the top (count etc) and make bottom bar pagination use pages jumps (see https://mui.com/x/react-data-grid/style/#custom-theme))
  * - add exception handling for AJAX calls so user knows if query is "bad", etc.
  * - add skeleton images 
  * - add an `exclude` list of fields to not show on record drawer
+ * x fix bug where user showing hidden column, resets on next render
  */
 
 const speciesGroupChipMapping = {
@@ -40,149 +41,155 @@ const speciesGroupChipMapping = {
   "Monocots": "secondary",
   "Fungi": "info"
 }
-
-const columnsDefinitions = (fqUpdate) => {
-  const columns = [
-    {
-      field: 'id',
-      headerName: "ID",
-      width: 100,
-      sortable: false,
-      hide: true
-    },
-    {
-      field: 'score',
-      headerName: "Score",
-      width: 100,
-      sortable: true,
-      hide: true
-    },
-    {
-      field: 'dynamicProperties_ncbi_assembly_accession', 
-      headerName: 'NCBI Accession', 
-      width: 145,
-      sortable: false,
-      //valueGetter: ({ value }) => ".." + value?.slice(-4)
-    },
-    { field: "raw_scientificName",
-      headerName: "Scientific Name",
-      minWidth: 240,
-      renderCell: (params) => (
-        <span key={params.value}>
-          { params.value?.trim().split(/\s+/).length > 1 ? <em>{params.value}</em> : params.value }
-        </span>
-      )
-    },
-    { field: "scientificName",
-      headerName: "Matched Name",
-      minWidth: 240,
-      hide: true,
-      renderCell: (params) => (
-        <span key={params.value}>
-          { params.value?.trim().split(/\s+/).length > 1 ? <em>{params.value}</em> : params.value }
-        </span>
-      )
-    },
-    { field: "vernacularName",
-      headerName: "Vernacular Name",
-      width: 180
-    },
-    { field: "speciesGroup",
-      headerName: "Species Groups",
-      width: 260,
-      sortable: false,
-      // valueGetter: ({ value }) => value.join(" | ")
-      renderCell: (params) => (
-        <Stack direction="row" spacing={1}>
-          { params.value?.map( (grp) => 
-            <Chip 
-              key={grp}
-              label={grp} 
-              color={grp in speciesGroupChipMapping ? speciesGroupChipMapping[grp] : "default" } 
-              data-fieldname="speciesGroup"
-              onClick={fqUpdate}
-              size="small" 
-              variant="outlined"
-            />
-          )}
-        </Stack>
-      )
-    },
-    { field: "speciesSubgroup",
-      headerName: "Species Sub-Groups",
-      width: 260,
-      sortable: false,
-      hide: true,
-      // valueGetter: ({ value }) => value.join(" | ")
-      renderCell: (params) => (
-        <Stack direction="row" spacing={1}>
-          { params.value?.map( (grp) => 
-            <Chip 
-              key={grp}
-              label={grp} 
-              color={grp in speciesGroupChipMapping ? speciesGroupChipMapping[grp] : "default" } 
-              data-fieldname="speciesSubgroup"
-              onClick={fqUpdate}
-              size="small" 
-              variant="outlined"
-            />
-          )}
-        </Stack>
-      )
-    },
-    { field: "dynamicProperties_ncbi_refseq_category",
-      headerName: "RefSeq Category",
-      width: 200,
-      valueGetter: ({ value }) => value === "na" ? '' : value,
-      renderCell: (params) => (
-        params.value && 
-            <Chip 
-              key={params.value}
-              label={params.value} 
-              color={params.value ==='reference genome' ? 'success' : 'info' } 
-              data-fieldname="dynamicProperties_ncbi_refseq_category"
-              onClick={fqUpdate}
-              size="small" 
-              variant="outlined"
-            />
-      )
-    },
-    { field: "dynamicProperties_ncbi_genome_rep",
-      headerName: "Genome Represent'n",
-      width: 160,
-      renderCell: (params) => (
-        params.value && 
-            <Chip 
-              key={params.value}
-              label={params.value} 
-              color={params.value ==='Full' ? 'error' : 'warning' } 
-              data-fieldname="dynamicProperties_ncbi_genome_rep"
-              onClick={fqUpdate}
-              size="small" 
-              variant="outlined"
-            />
-      )
-    },
-    // dynamicProperties_ncbi_assembly_level
-    {
-      field: "dynamicProperties_ncbi_assembly_level",
-      headerName: "Assembly Level",
-      width: 140,
-      hide: false
-    },
-    {
-      field: "eventDate",
-      headerName: "Date",
-      type: 'dateTime',
-      valueGetter: ({ value }) => value && new Date(value).toISOString().substring(0,10),
-      width: 120
-    }
-  ]
-
-  return columns
-}
-
+ 
 function Search() {
+
+  const fqUpdate = useCallback(
+    (e) => {
+      // console.log("fqUpdate", e.currentTarget, e.currentTarget.getAttribute('data-fieldname'))
+      const fq = `${e.currentTarget.getAttribute('data-fieldname')}:%22${e.target.textContent}%22`;
+      setPageState(old => ({ ...old, fq: fq, page: 1 }));
+      e.stopPropagation();
+      e.preventDefault();
+    },
+    [],
+  );
+
+  const columns = useMemo(
+    () => [
+      { field: 'id',
+        headerName: "ID",
+        width: 100,
+        sortable: false,
+        hide: true
+      },
+      { field: 'score',
+        headerName: "Score",
+        width: 100,
+        sortable: true,
+        hide: true
+      },
+      { field: 'dynamicProperties_ncbi_assembly_accession', 
+        headerName: 'NCBI Accession', 
+        width: 145,
+        sortable: false,
+        //valueGetter: ({ value }) => ".." + value?.slice(-4)
+      },
+      { field: "raw_scientificName",
+        headerName: "Scientific Name",
+        minWidth: 240,
+        renderCell: (params) => (
+          <span key={params.value}>
+            { params.value?.trim().split(/\s+/).length > 1 ? <em>{params.value}</em> : params.value }
+          </span>
+        )
+      },
+      { field: "scientificName",
+        headerName: "Matched Name",
+        minWidth: 240,
+        hide: true,
+        renderCell: (params) => (
+          <span key={params.value}>
+            { params.value?.trim().split(/\s+/).length > 1 ? <em>{params.value}</em> : params.value }
+          </span>
+        )
+      },
+      { field: "vernacularName",
+        headerName: "Vernacular Name",
+        width: 180
+      },
+      { field: "speciesGroup",
+        headerName: "Species Groups",
+        width: 260,
+        sortable: false,
+        // valueGetter: ({ value }) => value.join(" | ")
+        renderCell: (params) => (
+          <Stack direction="row" spacing={1}>
+            { params.value?.map( (grp) => 
+              <Chip 
+                key={grp}
+                label={grp} 
+                color={grp in speciesGroupChipMapping ? speciesGroupChipMapping[grp] : "default" } 
+                data-fieldname="speciesGroup"
+                onClick={fqUpdate}
+                size="small" 
+                variant="outlined"
+              />
+            )}
+          </Stack>
+        )
+      },
+      { field: "speciesSubgroup",
+        headerName: "Species Sub-Groups",
+        width: 260,
+        sortable: false,
+        hide: true,
+        // valueGetter: ({ value }) => value.join(" | ")
+        renderCell: (params) => (
+          <Stack direction="row" spacing={1}>
+            { params.value?.map( (grp) => 
+              <Chip 
+                key={grp}
+                label={grp} 
+                color={grp in speciesGroupChipMapping ? speciesGroupChipMapping[grp] : "default" } 
+                data-fieldname="speciesSubgroup"
+                onClick={fqUpdate}
+                size="small" 
+                variant="outlined"
+              />
+            )}
+          </Stack>
+        )
+      },
+      { field: "dynamicProperties_ncbi_refseq_category",
+        headerName: "RefSeq Category",
+        width: 200,
+        valueGetter: ({ value }) => value === "na" ? '' : value,
+        renderCell: (params) => (
+          params.value && 
+              <Chip 
+                key={params.value}
+                label={params.value} 
+                color={params.value ==='reference genome' ? 'success' : 'info' } 
+                data-fieldname="dynamicProperties_ncbi_refseq_category"
+                onClick={fqUpdate}
+                size="small" 
+                variant="outlined"
+              />
+        )
+      },
+      { field: "dynamicProperties_ncbi_genome_rep",
+        headerName: "Genome Represent'n",
+        width: 160,
+        renderCell: (params) => (
+          params.value && 
+              <Chip 
+                key={params.value}
+                label={params.value} 
+                color={params.value ==='Full' ? 'error' : 'warning' } 
+                data-fieldname="dynamicProperties_ncbi_genome_rep"
+                onClick={fqUpdate}
+                size="small" 
+                variant="outlined"
+              />
+        )
+      },
+      { field: "dynamicProperties_ncbi_assembly_level",
+        headerName: "Assembly Level",
+        width: 140,
+        hide: false
+      },
+      { field: "eventDate",
+        headerName: "Date",
+        type: 'dateTime',
+        valueGetter: ({ value }) => value && new Date(value).toISOString().substring(0,10),
+        width: 120
+      }
+    ], [fqUpdate],
+  );
+
+  const columnDataFields = useMemo(() => columns.map((el) => el.field),[columns])
+
   const [pageState, setPageState] = useState({
     isLoading: false,
     data: [],
@@ -193,7 +200,6 @@ function Search() {
     order: "asc",
     q: "",
     fq: "",
-    //columnDataFields: []
     // facet=true&facet.field=dynamicProperties_ncbi_refseq_category
   });
 
@@ -211,19 +217,7 @@ function Search() {
 
   const serverUrlPrefix = "https://nectar-arga-dev-1.ala.org.au/api";
   const defaultQuery = "*:*" //"taxonConceptID:urn*+OR+taxonConceptID:htt*"
-
-  const fqUpdate = (e) => {
-    // console.log("fqUpdate", e.currentTarget, e.currentTarget.getAttribute('data-fieldname'))
-    const fq = `${e.currentTarget.getAttribute('data-fieldname')}:%22${e.target.textContent}%22`;
-    setPageState(old => ({ ...old, fq: fq, page: 1 }));
-    e.stopPropagation();
-    e.preventDefault();
-  }
-
-  const columns = columnsDefinitions(fqUpdate)
-  const columnDataFields = columns.map((el) => el.field)
-  //setPageState(old => ({ ...old, columnDataFields: columnDataFields} ))
-  //console.log("columnDataFields", columnDataFields);
+  const defaultSort = "vernacularName"
 
   useEffect(() => {
     if (recordState.id) {
@@ -248,9 +242,8 @@ function Search() {
       const json = await response.json();
       setPageState(old => ({ ...old, isLoading: false, data: json.response.docs, total: json.response.numFound }));
     }
-    fetchData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ pageState.page, pageState.pageSize, pageState.sort, pageState.order, pageState.q, pageState.fq ]);
+    fetchData();
+  }, [ pageState.page, pageState.pageSize, pageState.sort, pageState.order, pageState.q, pageState.fq, columnDataFields ]);
 
   useEffect(() => {
     if (searchParams.get('q')) {
@@ -261,7 +254,6 @@ function Search() {
 
   const searchKeyPress = (e) => {
     if (e.key === "Enter") {
-      //console.log('Input value', e.target.value);
       setPageState(old => ({ ...old, q: e.target.value, fq:'', page: 1 }));
       datagridRef.current.focus()
       e.preventDefault();
@@ -269,27 +261,22 @@ function Search() {
   }
 
   const rowClicked = (e) => {
-    //console.log("row was clicked - id =",e.id, e.target, e.currentTarget);
     setRecordState(old => ({ ...old, id: e.id }));
   }
 
   const toggleDrawer = () => {
-    //console.log("toggleDrawer", drawerState);
     drawerState && setRecordState(old => ({ ...old, id: "" })); // so clicking on same record makeas drawer open
     setDrawerState(!drawerState);
   }
 
   const stepRecord = (id, direction) => {
-    //console.log("stepRecord", id, direction);
     if (id && direction) {
       const idList = pageState.data.map(it => it.id);
-      //console.log("idList", idList);
       const idPosition = idList.indexOf(id);
       const newidPosition = (direction === 'next') ? idPosition + 1 : idPosition - 1;
       if (idList[newidPosition] !== undefined) {
         setRecordState(old => ({ ...old, id: idList[newidPosition] }));
       } else {
-        //console.log("First or last record reached");
         setSnackState(true);
       }
     }
@@ -374,15 +361,10 @@ function Search() {
               page={pageState.page - 1}
               pageSize={pageState.pageSize}
               paginationMode="server"
-              onPageChange={(newPage) => {
-                setPageState(old => ({ ...old, page: newPage + 1 }))
-              }}
-              onPageSizeChange={(newPageSize) => setPageState(old => ({ ...old, pageSize: newPageSize }))}
               sortingMode="server"
-              onSortModelChange={(sortModel) => {
-                //console.log("onSortModelChange", sortModel);
-                setPageState(old => ({ ...old, sort: sortModel[0]?.field || 'score', order: sortModel[0]?.sort || 'desc', page: 1}))
-              }}
+              onPageChange={(newPage) => setPageState(old => ({ ...old, page: newPage + 1 }))}
+              onPageSizeChange={(newPageSize) => setPageState(old => ({ ...old, pageSize: newPageSize }))}
+              onSortModelChange={(sortModel) => setPageState(old => ({ ...old, sort: sortModel[0]?.field || defaultSort, order: sortModel[0]?.sort || 'asc', page: 1 }))}
               onRowClick={rowClicked}
             />
             </div>
