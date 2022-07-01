@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react'
 
 function ArgaLogo() {
   return (
@@ -29,7 +29,7 @@ function ArgaLogo() {
         transform="matrix(1.3333 0 0 -1.3333 0 155.01) scale(.1)"
       ></path>
     </svg>
-  );
+  )
 }
 
-export default ArgaLogo;
+export default ArgaLogo
