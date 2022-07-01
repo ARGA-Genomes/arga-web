@@ -1,5 +1,5 @@
 # Australian Reference Genome Atlas (ARGA)
-
+![example branch parameter](https://github.com/ARGA-Genomes/arga-web/actions/workflows/node.js.yml/badge.svg?branch=develop)
 ## React.js app for ARGA data demo
 
 This app is initally designed to be a simple single page app (SPA) too allow users to search and
