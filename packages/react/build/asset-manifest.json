@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/arga-data/static/css/main.638ff562.css",
-    "main.js": "/arga-data/static/js/main.9652e8c9.js",
-    "static/js/787.cda612ba.chunk.js": "/arga-data/static/js/787.cda612ba.chunk.js",
-    "static/media/ARGA-logo-notext.png": "/arga-data/static/media/ARGA-logo-notext.7b73acec692069555d65.png",
-    "index.html": "/arga-data/index.html",
-    "main.638ff562.css.map": "/arga-data/static/css/main.638ff562.css.map",
-    "main.9652e8c9.js.map": "/arga-data/static/js/main.9652e8c9.js.map",
-    "787.cda612ba.chunk.js.map": "/arga-data/static/js/787.cda612ba.chunk.js.map"
+    "main.css": "/static/css/main.638ff562.css",
+    "main.js": "/static/js/main.86d2b8d7.js",
+    "static/js/787.cda612ba.chunk.js": "/static/js/787.cda612ba.chunk.js",
+    "static/media/ARGA-logo-notext.png": "/static/media/ARGA-logo-notext.7b73acec692069555d65.png",
+    "index.html": "/index.html",
+    "main.638ff562.css.map": "/static/css/main.638ff562.css.map",
+    "main.86d2b8d7.js.map": "/static/js/main.86d2b8d7.js.map",
+    "787.cda612ba.chunk.js.map": "/static/js/787.cda612ba.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.638ff562.css",
-    "static/js/main.9652e8c9.js"
+    "static/js/main.86d2b8d7.js"
   ]
 }

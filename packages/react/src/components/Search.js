@@ -114,7 +114,6 @@ function Search() {
         field: 'dynamicProperties_ncbi_assembly_accession',
         headerName: 'NCBI Accession',
         width: 145,
-        sortable: false,
       },
       {
         field: 'raw_scientificName',

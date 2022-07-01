@@ -19,6 +19,7 @@ import { startCase, words, replace } from 'lodash'
  * @returns value for provided key
  */
 function findValueForKey(obj, key) {
+  console.log('findValueForKey', obj, key)
   let value = ''
   Object.keys(obj).forEach((k) => {
     if (k === key && Object.keys(obj[k]).length > 0) {
@@ -32,11 +33,7 @@ function findValueForKey(obj, key) {
 }
 
 function getFieldValue(field, data) {
-  let value =
-    findValueForKey(data.processed, field) ||
-    findValueForKey(data.raw, field) ||
-    findValueForKey(data, field) ||
-    undefined
+  let value = findValueForKey(data, field) || undefined
 
   if (typeof value === 'object') {
     // Misc properties - output as a formatted JSX elements
