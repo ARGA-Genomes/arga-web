@@ -19,7 +19,6 @@ import { startCase, words, replace } from 'lodash'
  * @returns value for provided key
  */
 function findValueForKey(obj, key) {
-  console.log('findValueForKey', obj, key)
   let value = ''
   Object.keys(obj).forEach((k) => {
     if (k === key && Object.keys(obj[k]).length > 0) {
