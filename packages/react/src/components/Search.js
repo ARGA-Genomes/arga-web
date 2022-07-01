@@ -15,6 +15,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import { DataGrid } from '@mui/x-data-grid'
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import stringHash from 'string-hash'
 // import ArgaLogo from './ArgaLogo';
 import logo from '../ARGA-logo-notext.png'
 import RecordDrawer from './RecordDrawer'
@@ -35,23 +36,24 @@ import RecordDrawer from './RecordDrawer'
  * x fix bug where user showing hidden column, resets on next render
  */
 
-const speciesGroupChipMapping = {
-  // available colours: default primary secondary error info success warning
-  Animals: 'primary',
-  Mammals: 'success',
-  Birds: 'error',
-  Amphibians: 'info',
-  Reptiles: 'error',
-  Insects: 'secondary',
-  Arthropods: 'success',
-  Crustaceans: 'warning',
-  Fishes: 'info',
-  Plants: 'success',
-  Angiosperms: 'error',
-  Gymnosperms: 'warning',
-  Dicots: 'secondary',
-  Monocots: 'secondary',
-  Fungi: 'info',
+const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
+const defaultQuery = '*:*'
+const defaultSort = 'vernacularName'
+const colourCategories = [
+  'default',
+  'primary',
+  'secondary',
+  'error',
+  'info',
+  'success',
+  'warning',
+]
+
+function getColourForValue(input) {
+  const hash =
+    stringHash(input + input.split('').reverse().join('*')) %
+    colourCategories.length
+  return colourCategories[hash]
 }
 
 function Search() {
@@ -79,10 +81,6 @@ function Search() {
 
   // const { search } = useLocation();
   const [searchParams] = useSearchParams()
-
-  const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
-  const defaultQuery = '*:*'
-  const defaultSort = 'vernacularName'
 
   const fqUpdate = useCallback((e) => {
     // console.log("fqUpdate", e.currentTarget, e.currentTarget.getAttribute('data-fieldname'))
@@ -157,11 +155,7 @@ function Search() {
               <Chip
                 key={grp}
                 label={grp}
-                color={
-                  grp in speciesGroupChipMapping
-                    ? speciesGroupChipMapping[grp]
-                    : 'default'
-                }
+                color={getColourForValue(grp)}
                 data-fieldname="speciesGroup"
                 onClick={fqUpdate}
                 size="small"
@@ -184,11 +178,7 @@ function Search() {
               <Chip
                 key={grp}
                 label={grp}
-                color={
-                  grp in speciesGroupChipMapping
-                    ? speciesGroupChipMapping[grp]
-                    : 'default'
-                }
+                color={getColourForValue(grp)}
                 data-fieldname="speciesSubgroup"
                 onClick={fqUpdate}
                 size="small"
@@ -208,7 +198,7 @@ function Search() {
             <Chip
               key={params.value}
               label={params.value}
-              color={params.value === 'reference genome' ? 'success' : 'info'}
+              color={getColourForValue(params.value)}
               data-fieldname="dynamicProperties_ncbi_refseq_category"
               onClick={fqUpdate}
               size="small"
@@ -225,7 +215,7 @@ function Search() {
             <Chip
               key={params.value}
               label={params.value}
-              color={params.value === 'Full' ? 'error' : 'warning'}
+              color={getColourForValue(params.value)}
               data-fieldname="dynamicProperties_ncbi_genome_rep"
               onClick={fqUpdate}
               size="small"
@@ -234,10 +224,21 @@ function Search() {
           ),
       },
       {
-        field: 'dynamicProperties_ncbi_assembly_level',
+        field: 'dynamicProperties_ncbi_assembly_level', // values: "Contig", "Scaffold", "Complete Genome", "Chromosome"
         headerName: 'Assembly Level',
-        width: 140,
-        hide: false,
+        width: 160,
+        renderCell: (params) =>
+          params.value && (
+            <Chip
+              key={params.value}
+              label={params.value}
+              color={getColourForValue(params.value)}
+              data-fieldname="dynamicProperties_ncbi_assembly_level"
+              onClick={fqUpdate}
+              size="small"
+              variant="outlined"
+            />
+          ),
       },
       {
         field: 'eventDate',
@@ -248,7 +249,7 @@ function Search() {
         width: 120,
       },
     ],
-    [fqUpdate]
+    [fqUpdate, getColourForValue]
   )
 
   const columnDataFields = useMemo(
