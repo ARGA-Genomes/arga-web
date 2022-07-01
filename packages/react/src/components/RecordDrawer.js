@@ -156,7 +156,7 @@ export default function RecordDrawer({
               primary={
                 <Typography
                   sx={{ fontSize: '1.2rem' }}
-                  component="span"
+                  component="div"
                   variant="h6"
                   color="text.primary"
                 >
@@ -166,7 +166,7 @@ export default function RecordDrawer({
               secondary={
                 <Typography
                   sx={{ fontFamily: 'Roboto Mono', fontSize: '0.9rem' }}
-                  component="span"
+                  component="div"
                   variant="p"
                   color="text.primary"
                 >
