@@ -30,7 +30,7 @@ import RecordDrawer from './RecordDrawer'
  * - add DNA background image to header bar
  * x fix showing/hiding columns widget
  * - put seach stats at the top (count etc) and make bottom bar pagination use pages jumps (see https://mui.com/x/react-data-grid/style/#custom-theme))
- * - add exception handling for AJAX calls so user knows if query is "bad", etc.
+ * x add exception handling for AJAX calls so user knows if query is "bad", etc.
  * - add skeleton images
  * - add an `exclude` list of fields to not show on record drawer
  * x fix bug where user showing hidden column, resets on next render
@@ -77,7 +77,7 @@ function Search() {
   })
 
   const [drawerState, setDrawerState] = useState(false)
-  const [snackState, setSnackState] = useState(false)
+  const [snackState, setSnackState] = useState({ status: false, message: '' })
 
   // const { search } = useLocation();
   const [searchParams] = useSearchParams()
@@ -266,7 +266,14 @@ function Search() {
         setRecordState((old) => ({ ...old, isLoading: false, data: json.doc }))
         setDrawerState(true)
       }
-      fetchRecord()
+      fetchRecord().catch((error) => {
+        setPageState((old) => ({
+          ...old,
+          isLoading: false,
+        }))
+        const msg = `Oops something went wrong. ${error.message}`
+        setSnackState({ status: true, message: msg })
+      })
     }
   }, [recordState.id])
 
@@ -292,7 +299,14 @@ function Search() {
         total: json.response.numFound,
       }))
     }
-    fetchData()
+    fetchData().catch((error) => {
+      setPageState((old) => ({
+        ...old,
+        isLoading: false,
+      }))
+      const msg = `Oops something went wrong. ${error.message}`
+      setSnackState({ status: true, message: msg })
+    })
   }, [
     pageState.page,
     pageState.pageSize,
@@ -322,7 +336,7 @@ function Search() {
   const rowClicked = (e) => setRecordState((old) => ({ ...old, id: e.id }))
 
   const toggleDrawer = () => {
-    if (drawerState) setRecordState((old) => ({ ...old, id: '' })) // so clicking on same record makeas drawer open
+    if (drawerState) setRecordState((old) => ({ ...old, id: '' })) // so clicking on same record makes drawer open
     setDrawerState(!drawerState)
   }
 
@@ -335,13 +349,19 @@ function Search() {
       if (idList[newidPosition] !== undefined) {
         setRecordState((old) => ({ ...old, id: idList[newidPosition] }))
       } else {
-        setSnackState(true)
+        setSnackState({
+          message: 'No more records to show!',
+          status: true,
+        })
       }
     }
   }
 
   const handleSnackClose = () => {
-    setSnackState(false)
+    setSnackState({
+      message: '',
+      status: false,
+    })
   }
 
   const snackbarAction = (
@@ -406,11 +426,11 @@ function Search() {
         />
         <Snackbar
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          open={snackState}
+          open={snackState.status}
           onClose={handleSnackClose}
           autoHideDuration={4000}
           action={snackbarAction}
-          message="No more records to show"
+          message={snackState.message}
         />
         {/* <Box flex={4} p={{ xs: 0, md: 2 }}> */}
         <Box
