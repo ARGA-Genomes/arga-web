@@ -24,7 +24,7 @@ import RecordDrawer from './RecordDrawer'
  * ToDo list
  * - add autocomplete to search input (http://namematching-ws.ala.org.au/api/autocomplete?q=Clitocybe%20o&max=10&includeSynonyms=true)
  * - add facet widgets on search row
- * - allow mulitple `fq` params to be set (use an array)
+ * x allow mulitple `fq` params to be set (use an array)
  * - add links to NCBI and ALA resources
  * - pull in photos from ALA BIE
  * - add DNA background image to header bar
@@ -39,7 +39,7 @@ import RecordDrawer from './RecordDrawer'
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
 const defaultQuery = '*:*'
 const defaultSort = 'vernacularName'
-const colourCategories = [
+const muiColourCategories = [
   'default',
   'primary',
   'secondary',
@@ -52,8 +52,8 @@ const colourCategories = [
 function getColourForValue(input) {
   const hash =
     stringHash(input + input.split('').reverse().join('*')) %
-    colourCategories.length
-  return colourCategories[hash]
+    muiColourCategories.length
+  return muiColourCategories[hash]
 }
 
 function Search() {
@@ -66,7 +66,7 @@ function Search() {
     sort: 'vernacularName',
     order: 'asc',
     q: '',
-    fq: '',
+    fq: [],
     // facet=true&facet.field=dynamicProperties_ncbi_refseq_category
   })
 
@@ -87,7 +87,7 @@ function Search() {
     const fq = `${e.currentTarget.getAttribute('data-fieldname')}:%22${
       e.target.textContent
     }%22`
-    setPageState((old) => ({ ...old, fq, page: 1 }))
+    setPageState((old) => ({ ...old, fq: [...old.fq, fq], page: 1 }))
     e.stopPropagation()
     e.preventDefault()
   }, [])
@@ -276,11 +276,13 @@ function Search() {
       const startIndex =
         pageState.page * pageState.pageSize - pageState.pageSize
       const response = await fetch(
-        `${serverUrlPrefix}/select?q=${pageState.q || defaultQuery}&fq=${
-          pageState.fq
-        }&fl=${columnDataFields.join(',')}&rows=${
-          pageState.pageSize
-        }&start=${startIndex}&sort=${pageState.sort}+${pageState.order}`
+        `${serverUrlPrefix}/select?q=${
+          pageState.q || defaultQuery
+        }&fq=${pageState.fq.join('&fq=')}&fl=${columnDataFields.join(
+          ','
+        )}&rows=${pageState.pageSize}&start=${startIndex}&sort=${
+          pageState.sort
+        }+${pageState.order}`
       )
       const json = await response.json()
       setPageState((old) => ({
@@ -429,7 +431,7 @@ function Search() {
               setPageState((old) => ({
                 ...old,
                 q: e.target.value,
-                fq: '',
+                fq: [],
                 page: 1,
               }))
             } // (e.target.value)}
