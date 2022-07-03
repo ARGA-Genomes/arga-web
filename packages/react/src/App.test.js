@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import App from './App'
 
-test('renders learn react link', () => {
+test('renders ncbi refseq text', () => {
   render(<App />)
-  const linkElement = screen.getByText(/ncbi refseq demo/i)
+  const linkElement = screen.getByText(/ncbi refseq/i)
   expect(linkElement).toBeInTheDocument()
 })
