@@ -118,24 +118,13 @@ export default function FacetsBar({ pageState, setPageState }) {
             size="small"
             placeholder="Search"
             label="Serch"
-            // value={pageState.q}
             value={inputState}
             onChange={(e) => setInputState(e.target.value)}
-            // onChange={}
             onKeyPress={searchKeyPress}
-            // onChange={(e) =>
-            //   setPageState((old) => ({
-            //     ...old,
-            //     q: e.target.value,
-            //     fq: [],
-            //     page: 1,
-            //   }))
-            // }
             inputProps={{ 'aria-label': 'Search' }}
           />
           {inputState && (
             <IconButton
-              // type="submit"
               sx={{ p: '10px' }}
               aria-label="search"
               onClick={clearSearch}
@@ -146,7 +135,6 @@ export default function FacetsBar({ pageState, setPageState }) {
           <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
           <IconButton
             onClick={searchClickEvent}
-            // type="submit"
             sx={{ p: '10px' }}
             aria-label="search"
           >
