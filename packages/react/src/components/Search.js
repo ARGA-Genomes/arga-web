@@ -2,11 +2,8 @@ import {
   AppBar,
   Box,
   Container,
-  Toolbar,
-  Typography,
   Stack,
   Chip,
-  TextField,
   Snackbar,
   IconButton,
   GlobalStyles,
@@ -16,9 +13,9 @@ import { DataGrid } from '@mui/x-data-grid'
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import stringHash from 'string-hash'
-// import ArgaLogo from './ArgaLogo';
-import logo from '../ARGA-logo-notext.png'
 import RecordDrawer from './RecordDrawer'
+import ArgaToolbar from './ArgaToolbar'
+import FacetsBar from './FacetsBar'
 
 /*
  * ToDo list
@@ -34,11 +31,19 @@ import RecordDrawer from './RecordDrawer'
  * - add skeleton images
  * - add an `exclude` list of fields to not show on record drawer
  * x fix bug where user showing hidden column, resets on next render
+ * - investigate hosting on AWS Amplify
  */
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
 const defaultQuery = '*:*'
 const defaultSort = 'vernacularName'
+const facetFields = [
+  'speciesGroup',
+  'speciesSubgroup',
+  'dynamicProperties_ncbi_refseq_category',
+  'dynamicProperties_ncbi_genome_rep',
+  'dynamicProperties_ncbi_assembly_level',
+]
 const muiColourCategories = [
   'default',
   'primary',
@@ -67,6 +72,7 @@ function Search() {
     order: 'asc',
     q: '',
     fq: [],
+    facetResults: [],
     // facet=true&facet.field=dynamicProperties_ncbi_refseq_category
   })
 
@@ -83,7 +89,6 @@ function Search() {
   const [searchParams] = useSearchParams()
 
   const fqUpdate = useCallback((e) => {
-    // console.log("fqUpdate", e.currentTarget, e.currentTarget.getAttribute('data-fieldname'))
     const fq = `${e.currentTarget.getAttribute('data-fieldname')}:%22${
       e.target.textContent
     }%22`
@@ -92,6 +97,7 @@ function Search() {
     e.preventDefault()
   }, [])
 
+  // DataGrid column def
   const columns = useMemo(
     () => [
       {
@@ -142,7 +148,7 @@ function Search() {
           </span>
         ),
       },
-      { field: 'vernacularName', headerName: 'Vernacular Name', width: 180 },
+      { field: 'vernacularName', headerName: 'Vernacular Name', width: 190 },
       {
         field: 'speciesGroup',
         headerName: 'Species Groups',
@@ -252,31 +258,13 @@ function Search() {
     [fqUpdate, getColourForValue]
   )
 
+  // array of fields to request from SOLR
   const columnDataFields = useMemo(
     () => columns.map((el) => el.field),
     [columns]
   )
 
-  useEffect(() => {
-    if (recordState.id) {
-      const fetchRecord = async () => {
-        setRecordState((old) => ({ ...old, isLoading: true }))
-        const resp = await fetch(`${serverUrlPrefix}/get?id=${recordState.id}`)
-        const json = await resp.json()
-        setRecordState((old) => ({ ...old, isLoading: false, data: json.doc }))
-        setDrawerState(true)
-      }
-      fetchRecord().catch((error) => {
-        setPageState((old) => ({
-          ...old,
-          isLoading: false,
-        }))
-        const msg = `Oops something went wrong. ${error.message}`
-        setSnackState({ status: true, message: msg })
-      })
-    }
-  }, [recordState.id])
-
+  // Fetch list of records - SOLR select
   useEffect(() => {
     const fetchData = async () => {
       setPageState((old) => ({ ...old, isLoading: true }))
@@ -287,9 +275,11 @@ function Search() {
           pageState.q || defaultQuery
         }&fq=${pageState.fq.join('&fq=')}&fl=${columnDataFields.join(
           ','
-        )}&rows=${pageState.pageSize}&start=${startIndex}&sort=${
-          pageState.sort
-        }+${pageState.order}`
+        )}&facet=true&facet.field=${facetFields.join(
+          '&facet.field='
+        )}&facet.mincount=1&&rows=${
+          pageState.pageSize
+        }&start=${startIndex}&sort=${pageState.sort}+${pageState.order}`
       )
       const json = await response.json()
       setPageState((old) => ({
@@ -297,6 +287,7 @@ function Search() {
         isLoading: false,
         data: json.response.docs,
         total: json.response.numFound,
+        facetResults: json.facet_counts.facet_fields,
       }))
     }
     fetchData().catch((error) => {
@@ -317,6 +308,28 @@ function Search() {
     columnDataFields,
   ])
 
+  // Fetch a single record - SOLR get
+  useEffect(() => {
+    if (recordState.id) {
+      const fetchRecord = async () => {
+        setRecordState((old) => ({ ...old, isLoading: true }))
+        const resp = await fetch(`${serverUrlPrefix}/get?id=${recordState.id}`)
+        const json = await resp.json()
+        setRecordState((old) => ({ ...old, isLoading: false, data: json.doc }))
+        setDrawerState(true)
+      }
+      fetchRecord().catch((error) => {
+        setPageState((old) => ({
+          ...old,
+          isLoading: false,
+        }))
+        const msg = `Oops something went wrong. ${error.message}`
+        setSnackState({ status: true, message: msg })
+      })
+    }
+  }, [recordState.id])
+
+  // Listen for `?q={query}` URL (linked search)
   useEffect(() => {
     if (searchParams.get('q')) {
       setPageState((old) => ({ ...old, q: searchParams.get('q') }))
@@ -380,34 +393,7 @@ function Search() {
   return (
     <Box sx={{ display: 'flex' }}>
       <AppBar>
-        <Toolbar sx={{ height: 80, fontFamily: 'Arial' }}>
-          {/* <SvgIcon style={{ height: 90, width: 282 }}> //  transform: 'scale(2.5)'
-            <ArgaLogo />
-          </SvgIcon> */}
-          <img
-            src={logo}
-            alt="ARGA logo"
-            style={{ height: 70, marginRight: 10 }}
-          />
-          <Typography
-            variant="span"
-            sx={{ fontSize: '14px', lineHeight: '16px', marginRight: 5 }}
-          >
-            Australian
-            <br />
-            Reference
-            <br />
-            Genome
-            <br />
-            Atlas
-          </Typography>
-          <Typography
-            variant="h5"
-            sx={{ fontWeight: 500, fontFamily: 'Raleway' }}
-          >
-            NCBI Refseq Demo
-          </Typography>
-        </Toolbar>
+        <ArgaToolbar />
       </AppBar>
       <Container
         style={{
@@ -442,7 +428,7 @@ function Search() {
             // height: 'calc(100% - 54px)'
           }}
         >
-          <TextField
+          {/* <TextField
             fullWidth
             label="search"
             id="fullWidth"
@@ -456,8 +442,10 @@ function Search() {
               }))
             } // (e.target.value)}
             // onKeyPress={searchKeyPress}
-          />
-          <div style={{ width: '100%', height: 'calc(100vh - 204px)' }}>
+          /> */}
+
+          <div style={{ width: '100%', height: 'calc(100vh - 174px)' }}>
+            <FacetsBar pageState={pageState} setPageState={setPageState} />
             <DataGrid
               // components={{
               //   Toolbar: GridToolbar
@@ -495,6 +483,7 @@ function Search() {
             />
           </div>
           {/* </Box> */}
+          {/* ToDo put this in a custom styled component */}
           <GlobalStyles
             styles={{
               '.MuiDataGrid-footerContainer': {
@@ -505,10 +494,6 @@ function Search() {
                 zIndex: 3,
                 position: 'fixed',
                 width: 'calc(100% - 50px)',
-
-                // '> div': {
-                //   padding: '0 24px 0 24px',
-                // },
               },
             }}
           />
