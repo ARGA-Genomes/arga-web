@@ -32,6 +32,7 @@ import FacetsBar from './FacetsBar'
  * - add an `exclude` list of fields to not show on record drawer
  * x fix bug where user showing hidden column, resets on next render
  * - investigate hosting on AWS Amplify
+ * = add `const useStyles = makeStyles((theme) => ({` to style all components
  */
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
@@ -338,13 +339,13 @@ function Search() {
 
   // keeping this in for next refactor
   // eslint-disable-next-line
-  // const searchKeyPress = (e) => {
-  //   if (e.key === 'Enter') {
-  //     setPageState((old) => ({ ...old, q: e.target.value, fq: '', page: 1 }))
-  //     datagridRef.current.focus()
-  //     e.preventDefault()
-  //   }
-  // }
+  const searchKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      setPageState((old) => ({ ...old, q: e.target.value, fq: '', page: 1 }))
+      // datagridRef.current.focus()
+      // e.preventDefault()
+    }
+  }
 
   const rowClicked = (e) => setRecordState((old) => ({ ...old, id: e.id }))
 
@@ -397,7 +398,7 @@ function Search() {
       </AppBar>
       <Container
         style={{
-          marginTop: 78,
+          marginTop: 70,
           marginBottom: 74,
           minWidth: '100%',
           height: 'calc(10vh - 74px)',
@@ -428,24 +429,18 @@ function Search() {
             // height: 'calc(100% - 54px)'
           }}
         >
-          {/* <TextField
-            fullWidth
-            label="search"
-            id="fullWidth"
-            value={pageState.q}
-            onChange={(e) =>
-              setPageState((old) => ({
-                ...old,
-                q: e.target.value,
-                fq: [],
-                page: 1,
-              }))
-            } // (e.target.value)}
-            // onKeyPress={searchKeyPress}
-          /> */}
-
-          <div style={{ width: '100%', height: 'calc(100vh - 174px)' }}>
-            <FacetsBar pageState={pageState} setPageState={setPageState} />
+          <div
+            style={{
+              width: '100%',
+              height: 'calc(100vh - 248px)',
+              background: '#E0E0E0',
+            }}
+          >
+            <FacetsBar
+              pageState={pageState}
+              setPageState={setPageState}
+              searchKeyPress={searchKeyPress}
+            />
             <DataGrid
               // components={{
               //   Toolbar: GridToolbar
@@ -488,12 +483,14 @@ function Search() {
             styles={{
               '.MuiDataGrid-footerContainer': {
                 backgroundColor: '#fff', // '#D6EFFE',
+                border: '1px solid rgba(224, 224, 224, 1)',
+                borderRadius: '4px',
                 left: '50%',
                 transform: 'translateX(-50%)',
                 bottom: 0, // <-- KEY
                 zIndex: 3,
                 position: 'fixed',
-                width: 'calc(100% - 50px)',
+                width: 'calc(100% - 48px)',
               },
             }}
           />
