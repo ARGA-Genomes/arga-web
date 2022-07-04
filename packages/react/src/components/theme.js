@@ -18,7 +18,7 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: `"Rubik", "Work Sans", "Roboto", "Helvetica", "Arial", sans-serif`,
-    fontSize: 14,
+    // fontSize: '14px',
     color: '#4a4a4a',
     fontWeightLight: 300,
     fontWeightRegular: 400,

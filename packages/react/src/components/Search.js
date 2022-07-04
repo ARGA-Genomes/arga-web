@@ -401,6 +401,7 @@ function Search() {
           marginTop: 70,
           marginBottom: 74,
           minWidth: '100%',
+          // border: '1px solid red',
           height: 'calc(10vh - 74px)',
         }}
         maxWidth="lg"
@@ -432,7 +433,7 @@ function Search() {
           <div
             style={{
               width: '100%',
-              height: 'calc(100vh - 248px)',
+              height: 'calc(100vh - 246px)',
               background: '#E0E0E0',
             }}
           >
