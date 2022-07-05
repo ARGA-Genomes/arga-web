@@ -139,3 +139,5 @@ Temporary Items
 # iCloud generated files
 *.icloud
 
+# VCS plugins
+.history
