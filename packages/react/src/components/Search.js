@@ -20,7 +20,7 @@ import FacetsBar from './FacetsBar'
 /*
  * ToDo list
  * - add autocomplete to search input (http://namematching-ws.ala.org.au/api/autocomplete?q=Clitocybe%20o&max=10&includeSynonyms=true)
- * - add facet widgets on search row
+ * x add facet widgets on search row
  * x allow mulitple `fq` params to be set (use an array)
  * - add links to NCBI and ALA resources
  * - pull in photos from ALA BIE
@@ -33,7 +33,7 @@ import FacetsBar from './FacetsBar'
  * x fix bug where user showing hidden column, resets on next render
  * - investigate hosting on AWS Amplify
  * - add `const useStyles = makeStyles((theme) => ({` to style all components
- * - refactor `pageState.fq` to be a Object of arrays and remove `useState` from FacetSlect.js
+ * x refactor `pageState.fq` to be a Object of arrays and remove `useState` from FacetSlect.js
  * - move these ToDos into GH issues
  */
 
@@ -96,9 +96,6 @@ function Search() {
   const [searchParams] = useSearchParams()
 
   const fqUpdate = useCallback((e) => {
-    // const fq = `${e.currentTarget.getAttribute('data-fieldname')}:%22${
-    //   e.target.textContent
-    // }%22`
     const fieldName = e.currentTarget.getAttribute('data-fieldname')
     const value = e.target.textContent
     const existingValues =
@@ -107,7 +104,6 @@ function Search() {
     setFqList((old) => ({ ...old, ...fq }))
     e.stopPropagation()
     e.preventDefault()
-    console.log('fqUpdate', fqRef.current, fieldName, value, existingValues)
   }, [])
 
   // DataGrid column def
@@ -293,7 +289,7 @@ function Search() {
           })
         }
       })
-      console.log('fetchData', fqList, fqParamList)
+
       // Do HTTP fetch
       const response = await fetch(
         `${serverUrlPrefix}/select?q=${
