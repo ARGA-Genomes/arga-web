@@ -15,15 +15,15 @@ import FacetSelect from './FacetSelect'
  *
  * @param {Object} pageState The useState "read" object representing SOLR params
  * @param {function(Object) : undefined} setPageState The callback to set pageState
- * @param {Object} fqList The useState "read" object representing SOLR `fq` params (only)
- * @param {function(Object) : undefined} setFqList The callback to set fqList
+ * @param {Object} fqState The useState "read" object representing SOLR `fq` params (only)
+ * @param {function(Object) : undefined} setFqState The callback to set fqState
  * @returns
  */
 export default function FacetsBar({
   pageState,
   setPageState,
-  fqList,
-  setFqList,
+  fqState,
+  setFqState,
 }) {
   const [inputState, setInputState] = useState('')
 
@@ -130,8 +130,8 @@ export default function FacetsBar({
             key={field}
             field={field}
             fieldValues={facetsDisplay[field]}
-            fqList={fqList[field] || []}
-            setFqList={setFqList}
+            fqState={fqState[field] || []}
+            setFqState={setFqState}
           />
         ))}
       </Box>

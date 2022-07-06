@@ -34,6 +34,7 @@ import FacetsBar from './FacetsBar'
  * - investigate hosting on AWS Amplify
  * - add `const useStyles = makeStyles((theme) => ({` to style all components
  * x refactor `pageState.fq` to be a Object of arrays and remove `useState` from FacetSlect.js
+ * - Add CD via GH actions - see https://zellwk.com/blog/github-actions-deploy/
  * - move these ToDos into GH issues
  */
 
@@ -74,14 +75,12 @@ function Search() {
     sort: 'vernacularName',
     order: 'asc',
     q: '',
-    // fq: {},
     facetResults: [],
-    // facet=true&facet.field=dynamicProperties_ncbi_refseq_category
   })
 
-  const [fqList, setFqList] = useState({})
+  const [fqState, setFqState] = useState({})
   const fqRef = useRef()
-  fqRef.current = fqList // so `fqList` can be read in callbacks (normally `fqList` is always empty in `fqUpdate`)
+  fqRef.current = fqState // so `fqState` can be read in callbacks (normally `fqState` is always empty in `fqUpdate`)
 
   const [recordState, setRecordState] = useState({
     isLoading: false,
@@ -101,7 +100,7 @@ function Search() {
     const existingValues =
       fqRef.current[fieldName]?.length > 0 ? fqRef.current[fieldName] : []
     const fq = { [fieldName]: [...existingValues, value] }
-    setFqList((old) => ({ ...old, ...fq }))
+    setFqState((old) => ({ ...old, ...fq }))
     e.stopPropagation()
     e.preventDefault()
   }, [])
@@ -282,9 +281,9 @@ function Search() {
         pageState.page * pageState.pageSize - pageState.pageSize
       // Build `fq` params
       const fqParamList = []
-      Object.keys(fqList).forEach((key) => {
-        if (fqList[key].length > 0) {
-          fqList[key].forEach((val) => {
+      Object.keys(fqState).forEach((key) => {
+        if (fqState[key].length > 0) {
+          fqState[key].forEach((val) => {
             fqParamList.push(`${key}:%22${val}%22`)
           })
         }
@@ -326,7 +325,7 @@ function Search() {
     pageState.sort,
     pageState.order,
     pageState.q,
-    fqList,
+    fqState,
     columnDataFields,
   ])
 
@@ -462,8 +461,8 @@ function Search() {
               pageState={pageState}
               setPageState={setPageState}
               searchKeyPress={searchKeyPress}
-              fqList={fqRef.current || {}}
-              setFqList={setFqList}
+              fqState={fqRef.current || {}}
+              setFqState={setFqState}
             />
             <DataGrid
               // components={{

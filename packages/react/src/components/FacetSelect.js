@@ -26,16 +26,19 @@ function formatLabels(label) {
 
 /**
  * Component to output a single `Select` component for filtering by `fq` param
- * State is maintained via the `[fqList, setFqList]` state vars in Search.js
+ * State is maintained via the `[fqState, setFqState]` state vars in Search.js
  *
- * @param {*} param0
+ * @param {String} field The SOLR field name for the current filter/facet
+ * @param {Array : String} fieldValues The list of values that are available to filter on for this current `field`
+ * @param {Object} fqState The useState "read" object representing SOLR `fq` params (only)
+ * @param {function(Object) : undefined} setFqState The callback to set fqState
  * @returns
  */
 export default function FacetsSelect({
   field,
   fieldValues,
-  fqList,
-  setFqList,
+  fqState,
+  setFqState,
 }) {
   const handleSelectChange = (event) => {
     const {
@@ -43,22 +46,22 @@ export default function FacetsSelect({
     } = event
     const valueArray = typeof value === 'string' ? value.split(',') : value
 
-    if (valueArray.length > fqList.length) {
+    if (valueArray.length > fqState.length) {
       // add new fq
       const fqObj = { [field]: [...valueArray] }
-      setFqList((old) => ({ ...old, ...fqObj }))
+      setFqState((old) => ({ ...old, ...fqObj }))
     } else {
       // remove an element
-      const newArray = fqList.filter((x) => valueArray.includes(x))
+      const newArray = fqState.filter((x) => valueArray.includes(x))
       const fqObj = { [field]: [...newArray] }
-      setFqList((old) => ({ ...old, ...fqObj }))
+      setFqState((old) => ({ ...old, ...fqObj }))
     }
   }
 
   const handleDelete = (chipToDelete) => () => {
-    const newArray = fqList.filter((x) => x !== chipToDelete)
+    const newArray = fqState.filter((x) => x !== chipToDelete)
     const fqObj = { [field]: [...newArray] }
-    setFqList((old) => ({ ...old, ...fqObj }))
+    setFqState((old) => ({ ...old, ...fqObj }))
   }
 
   return (
@@ -81,7 +84,7 @@ export default function FacetsSelect({
       <Select
         labelId={`${field}-input`}
         id={`${field}-input`}
-        value={fqList}
+        value={fqState}
         name={field}
         multiple
         size="small"
@@ -123,7 +126,7 @@ export default function FacetsSelect({
           >
             {/* {it.name} ({it.count}) checked={personName.indexOf(name) > -1} */}
             <Checkbox
-              checked={fqList?.indexOf(it.name) > -1}
+              checked={fqState?.indexOf(it.name) > -1}
               sx={{ '& svg': { fontSize: '18px' } }}
             />
             <ListItemText
