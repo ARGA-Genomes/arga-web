@@ -13,11 +13,24 @@ import {
 } from '@mui/material'
 import { startCase, replace } from 'lodash'
 
+/**
+ * Create a human readable label from a SOLR field name
+ *
+ * @param {*} label SOLR field name
+ * @returns formatted label
+ */
 function formatLabels(label) {
   const lab = replace(label, /dynamicProperties_ncbi_/g, '')
   return startCase(lab)
 }
 
+/**
+ * Component to output a single `Select` component for filtering by `fq` param
+ * State is maintained via the `[fqList, setFqList]` state vars in Search.js
+ *
+ * @param {*} param0
+ * @returns
+ */
 export default function FacetsSelect({
   field,
   fieldValues,

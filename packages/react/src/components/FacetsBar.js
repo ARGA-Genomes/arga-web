@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react'
 import {
   TextField,
   Box,
@@ -7,9 +8,17 @@ import {
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
-import React, { useState, useEffect } from 'react'
 import FacetSelect from './FacetSelect'
 
+/**
+ * Component to output a "filter" bar for filtering search results
+ *
+ * @param {Object} pageState The useState "read" object representing SOLR params
+ * @param {function(Object) : undefined} setPageState The callback to set pageState
+ * @param {Object} fqList The useState "read" object representing SOLR `fq` params (only)
+ * @param {function(Object) : undefined} setFqList The callback to set fqList
+ * @returns
+ */
 export default function FacetsBar({
   pageState,
   setPageState,
