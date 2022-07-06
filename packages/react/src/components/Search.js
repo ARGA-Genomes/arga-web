@@ -1,3 +1,5 @@
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   AppBar,
   Box,
@@ -10,8 +12,6 @@ import {
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import { DataGrid } from '@mui/x-data-grid'
-import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import stringHash from 'string-hash'
 import RecordDrawer from './RecordDrawer'
 import ArgaToolbar from './ArgaToolbar'
@@ -32,7 +32,9 @@ import FacetsBar from './FacetsBar'
  * - add an `exclude` list of fields to not show on record drawer
  * x fix bug where user showing hidden column, resets on next render
  * - investigate hosting on AWS Amplify
- * = add `const useStyles = makeStyles((theme) => ({` to style all components
+ * - add `const useStyles = makeStyles((theme) => ({` to style all components
+ * - refactor `pageState.fq` to be a Object of arrays and remove `useState` from FacetSlect.js
+ * - move these ToDos into GH issues
  */
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
@@ -72,10 +74,14 @@ function Search() {
     sort: 'vernacularName',
     order: 'asc',
     q: '',
-    fq: [],
+    // fq: {},
     facetResults: [],
     // facet=true&facet.field=dynamicProperties_ncbi_refseq_category
   })
+
+  const [fqList, setFqList] = useState({})
+  const fqRef = useRef()
+  fqRef.current = fqList // so `fqList` can be read in callbacks (normally `fqList` is always empty in `fqUpdate`)
 
   const [recordState, setRecordState] = useState({
     isLoading: false,
@@ -90,12 +96,18 @@ function Search() {
   const [searchParams] = useSearchParams()
 
   const fqUpdate = useCallback((e) => {
-    const fq = `${e.currentTarget.getAttribute('data-fieldname')}:%22${
-      e.target.textContent
-    }%22`
-    setPageState((old) => ({ ...old, fq: [...old.fq, fq], page: 1 }))
+    // const fq = `${e.currentTarget.getAttribute('data-fieldname')}:%22${
+    //   e.target.textContent
+    // }%22`
+    const fieldName = e.currentTarget.getAttribute('data-fieldname')
+    const value = e.target.textContent
+    const existingValues =
+      fqRef.current[fieldName]?.length > 0 ? fqRef.current[fieldName] : []
+    const fq = { [fieldName]: [...existingValues, value] }
+    setFqList((old) => ({ ...old, ...fq }))
     e.stopPropagation()
     e.preventDefault()
+    console.log('fqUpdate', fqRef.current, fieldName, value, existingValues)
   }, [])
 
   // DataGrid column def
@@ -269,12 +281,24 @@ function Search() {
   useEffect(() => {
     const fetchData = async () => {
       setPageState((old) => ({ ...old, isLoading: true }))
+      // calculate SOLR startIndex param
       const startIndex =
         pageState.page * pageState.pageSize - pageState.pageSize
+      // Build `fq` params
+      const fqParamList = []
+      Object.keys(fqList).forEach((key) => {
+        if (fqList[key].length > 0) {
+          fqList[key].forEach((val) => {
+            fqParamList.push(`${key}:%22${val}%22`)
+          })
+        }
+      })
+      console.log('fetchData', fqList, fqParamList)
+      // Do HTTP fetch
       const response = await fetch(
         `${serverUrlPrefix}/select?q=${
           pageState.q || defaultQuery
-        }&fq=${pageState.fq.join('&fq=')}&fl=${columnDataFields.join(
+        }&fq=${fqParamList.join('&fq=')}&fl=${columnDataFields.join(
           ','
         )}&facet=true&facet.field=${facetFields.join(
           '&facet.field='
@@ -282,6 +306,7 @@ function Search() {
           pageState.pageSize
         }&start=${startIndex}&sort=${pageState.sort}+${pageState.order}`
       )
+      // wait for async response
       const json = await response.json()
       setPageState((old) => ({
         ...old,
@@ -305,7 +330,7 @@ function Search() {
     pageState.sort,
     pageState.order,
     pageState.q,
-    pageState.fq,
+    fqList,
     columnDataFields,
   ])
 
@@ -441,6 +466,8 @@ function Search() {
               pageState={pageState}
               setPageState={setPageState}
               searchKeyPress={searchKeyPress}
+              fqList={fqRef.current || {}}
+              setFqList={setFqList}
             />
             <DataGrid
               // components={{

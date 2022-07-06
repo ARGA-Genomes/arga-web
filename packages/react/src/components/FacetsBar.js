@@ -10,7 +10,12 @@ import CloseIcon from '@mui/icons-material/Close'
 import React, { useState, useEffect } from 'react'
 import FacetSelect from './FacetSelect'
 
-export default function FacetsBar({ pageState, setPageState }) {
+export default function FacetsBar({
+  pageState,
+  setPageState,
+  fqList,
+  setFqList,
+}) {
   const [inputState, setInputState] = useState('')
 
   useEffect(() => {
@@ -116,8 +121,8 @@ export default function FacetsBar({ pageState, setPageState }) {
             key={field}
             field={field}
             fieldValues={facetsDisplay[field]}
-            pageState={pageState}
-            setPageState={setPageState}
+            fqList={fqList[field] || []}
+            setFqList={setFqList}
           />
         ))}
       </Box>
