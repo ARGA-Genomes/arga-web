@@ -14,9 +14,18 @@ import { startCase, words, replace } from 'lodash'
 const fieldsToSkip = [
   'geospatialIssues',
   'speciesListUid',
+  'names_and_lsid',
   'assertions',
   'lft',
   'rgt',
+  'kingdomID',
+  'phylumID',
+  'classID',
+  'orderID',
+  'familyID',
+  'genusID',
+  'speciesID',
+  'common_name_and_lsid',
 ]
 const fixedWidthFields = [
   'taxonConceptID',
@@ -29,7 +38,6 @@ const fixedWidthFields = [
   'geodeticDatum',
   'dynamicProperties_ncbi_biosample_attributes_json',
   'name_and_lsid',
-  'common_name_and_lsid',
 ]
 const bieUrl = 'https://bie.ala.org.au/species/'
 const ncbiUrl = 'https://www.ncbi.nlm.nih.gov/data-hub/genome/'
@@ -46,12 +54,16 @@ const fieldstoLink = {
   dynamicProperties_ncbi_bioproject: {
     prefix: 'https://www.ncbi.nlm.nih.gov/bioproject/',
   },
+  dynamicProperties_ncbi_biosample: {
+    prefix: 'https://www.ncbi.nlm.nih.gov/biosample/',
+  },
   kingdom: { prefix: bieUrl, valueField: 'kingdomID' },
   phylum: { prefix: bieUrl, valueField: 'phylumID' },
   class: { prefix: bieUrl, valueField: 'classID' },
   order: { prefix: bieUrl, valueField: 'orderID' },
   family: { prefix: bieUrl, valueField: 'familyID' },
   genus: { prefix: bieUrl, valueField: 'genusID' },
+  species: { prefix: bieUrl, valueField: 'speciesID' },
 }
 
 /**
@@ -88,12 +100,14 @@ function getFieldValue(field, data) {
     value = replace(value, /\]\s*$/g, '')
     const rows = value.split(/(\n)/gi)
     const newRows = []
-
     for (let i = 1; i < rows.length; i += 1) {
-      newRows.push(
-        <React.Fragment key={i}>
+      // skip lines with just a space
+      if (rows[i].length > 1) {
+        newRows.push(
+          // <React.Fragment>
           <Typography
             component="p"
+            key={i}
             sx={{
               fontFamily: 'Roboto Mono',
               fontSize: '14px',
@@ -103,8 +117,9 @@ function getFieldValue(field, data) {
           >
             {rows[i]}
           </Typography>
-        </React.Fragment>
-      )
+          // </React.Fragment>
+        )
+      }
     }
     value = <React.Fragment key={field}>{newRows}</React.Fragment>
   } else if (typeof value === 'boolean') {
@@ -139,8 +154,19 @@ function getFieldValue(field, data) {
       </a>
     )
   } else if (value && fixedWidthFields.includes(field)) {
+    // Raw JSON field...
+    if (field.toLowerCase().includes('json')) {
+      value = JSON.stringify(JSON.parse(value), null, 1)
+      value = replace(value, /\{\s*|\s*\}|"/g, '')
+      value = replace(value, /\n\s+/g, '\n')
+      // value = replace(value, /\n/g, '<br/>')
+      const lines = value.split(/\n/)
+      value = lines.map((line) => <div>{line}</div>)
+    }
+
     value = (
       <Typography
+        component="p"
         sx={{
           fontFamily: 'Roboto Mono',
           fontSize: '13px',
@@ -163,6 +189,7 @@ function mungeFieldName(field) {
 
 export default function RecordSection({ recordData, section, fieldList }) {
   const [open, setOpen] = React.useState(true)
+  const listOfFields = section === 'Misc' ? fieldList.sort() : fieldList
 
   return (
     <React.Fragment key="section">
@@ -187,7 +214,7 @@ export default function RecordSection({ recordData, section, fieldList }) {
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Table aria-label="collapsible table" sx={{ tableLayout: 'fixed' }}>
               <TableBody>
-                {fieldList.map((field) =>
+                {listOfFields.map((field) =>
                   getFieldValue(field, recordData) ? (
                     <TableRow
                       key={field}

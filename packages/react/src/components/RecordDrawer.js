@@ -62,6 +62,7 @@ const fieldListMap = {
     'order',
     'family',
     'genus',
+    'species',
     'matchType',
   ],
   Location: [
