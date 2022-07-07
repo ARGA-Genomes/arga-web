@@ -19,23 +19,7 @@ import FacetsBar from './FacetsBar'
 
 /*
  * ToDo list
- * - add autocomplete to search input (http://namematching-ws.ala.org.au/api/autocomplete?q=Clitocybe%20o&max=10&includeSynonyms=true)
- * x add facet widgets on search row
- * x allow mulitple `fq` params to be set (use an array)
- * - add links to NCBI and ALA resources
- * - pull in photos from ALA BIE
- * - add DNA background image to header bar
- * x fix showing/hiding columns widget
- * - put seach stats at the top (count etc) and make bottom bar pagination use pages jumps (see https://mui.com/x/react-data-grid/style/#custom-theme))
- * x add exception handling for AJAX calls so user knows if query is "bad", etc.
- * - add skeleton images
- * - add an `exclude` list of fields to not show on record drawer
- * x fix bug where user showing hidden column, resets on next render
- * - investigate hosting on AWS Amplify
- * - add `const useStyles = makeStyles((theme) => ({` to style all components
- * x refactor `pageState.fq` to be a Object of arrays and remove `useState` from FacetSlect.js
- * - Add CD via GH actions - see https://zellwk.com/blog/github-actions-deploy/
- * - move these ToDos into GH issues
+ * - Moved into https://github.com/ARGA-Genomes/arga-web/issues/4
  */
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
@@ -65,6 +49,19 @@ function getColourForValue(input) {
   return muiColourCategories[hash]
 }
 
+function ValueTag({ value, field, fqUpdate }) {
+  return (
+    <Chip
+      label={value}
+      color={getColourForValue(value)}
+      data-fieldname={field}
+      onClick={fqUpdate}
+      size="small"
+      variant="outlined"
+    />
+  )
+}
+
 function Search() {
   const [pageState, setPageState] = useState({
     isLoading: false,
@@ -72,9 +69,10 @@ function Search() {
     total: 0,
     page: 1,
     pageSize: 25,
-    sort: 'vernacularName',
-    order: 'asc',
+    field: 'vernacularName', // sort
+    sort: 'asc', // order
     q: '',
+    // Note: `fq` is in its own state var below (`fqState`)
     facetResults: [],
   })
 
@@ -90,6 +88,13 @@ function Search() {
 
   const [drawerState, setDrawerState] = useState(false)
   const [snackState, setSnackState] = useState({ status: false, message: '' })
+
+  // const [sortModel, setSortModel] = useState([
+  //   {
+  //     field: pageState.sort,
+  //     sort: pageState.order,
+  //   },
+  // ])
 
   // const { search } = useLocation();
   const [searchParams] = useSearchParams()
@@ -166,14 +171,11 @@ function Search() {
         renderCell: (params) => (
           <Stack direction="row" spacing={1}>
             {params.value?.map((grp) => (
-              <Chip
+              <ValueTag
                 key={grp}
-                label={grp}
-                color={getColourForValue(grp)}
-                data-fieldname="speciesGroup"
-                onClick={fqUpdate}
-                size="small"
-                variant="outlined"
+                value={grp}
+                field="speciesGroup"
+                fqUpdate={fqUpdate}
               />
             ))}
           </Stack>
@@ -189,14 +191,11 @@ function Search() {
         renderCell: (params) => (
           <Stack direction="row" spacing={1}>
             {params.value?.map((grp) => (
-              <Chip
+              <ValueTag
                 key={grp}
-                label={grp}
-                color={getColourForValue(grp)}
-                data-fieldname="speciesSubgroup"
-                onClick={fqUpdate}
-                size="small"
-                variant="outlined"
+                value={grp}
+                field="speciesSubgroup"
+                fqUpdate={fqUpdate}
               />
             ))}
           </Stack>
@@ -209,14 +208,11 @@ function Search() {
         valueGetter: ({ value }) => (value === 'na' ? '' : value),
         renderCell: (params) =>
           params.value && (
-            <Chip
+            <ValueTag
               key={params.value}
-              label={params.value}
-              color={getColourForValue(params.value)}
-              data-fieldname="dynamicProperties_ncbi_refseq_category"
-              onClick={fqUpdate}
-              size="small"
-              variant="outlined"
+              value={params.value}
+              field="dynamicProperties_ncbi_refseq_category"
+              fqUpdate={fqUpdate}
             />
           ),
       },
@@ -226,14 +222,11 @@ function Search() {
         width: 160,
         renderCell: (params) =>
           params.value && (
-            <Chip
+            <ValueTag
               key={params.value}
-              label={params.value}
-              color={getColourForValue(params.value)}
-              data-fieldname="dynamicProperties_ncbi_genome_rep"
-              onClick={fqUpdate}
-              size="small"
-              variant="outlined"
+              value={params.value}
+              field="dynamicProperties_ncbi_genome_rep"
+              fqUpdate={fqUpdate}
             />
           ),
       },
@@ -243,14 +236,11 @@ function Search() {
         width: 160,
         renderCell: (params) =>
           params.value && (
-            <Chip
+            <ValueTag
               key={params.value}
-              label={params.value}
-              color={getColourForValue(params.value)}
-              data-fieldname="dynamicProperties_ncbi_assembly_level"
-              onClick={fqUpdate}
-              size="small"
-              variant="outlined"
+              value={params.value}
+              field="dynamicProperties_ncbi_assembly_level"
+              fqUpdate={fqUpdate}
             />
           ),
       },
@@ -299,7 +289,7 @@ function Search() {
           '&facet.field='
         )}&facet.mincount=1&&rows=${
           pageState.pageSize
-        }&start=${startIndex}&sort=${pageState.sort}+${pageState.order}`
+        }&start=${startIndex}&sort=${pageState.field}+${pageState.sort}`
       )
       // wait for async response
       const json = await response.json()
@@ -322,8 +312,8 @@ function Search() {
   }, [
     pageState.page,
     pageState.pageSize,
+    pageState.field,
     pageState.sort,
-    pageState.order,
     pageState.q,
     fqState,
     columnDataFields,
@@ -361,7 +351,8 @@ function Search() {
   // eslint-disable-next-line
   const searchKeyPress = (e) => {
     if (e.key === 'Enter') {
-      setPageState((old) => ({ ...old, q: e.target.value, fq: '', page: 1 }))
+      setPageState((old) => ({ ...old, q: e.target.value, page: 1 }))
+      setFqState({})
       // datagridRef.current.focus()
       // e.preventDefault()
     }
@@ -471,6 +462,7 @@ function Search() {
               autoHeight={false}
               disableSelectionOnClick
               rowHeight={40}
+              headerHeight={42}
               ref={datagridRef}
               style={{ backgroundColor: 'white' }}
               columns={columns}
@@ -483,6 +475,8 @@ function Search() {
               pageSize={pageState.pageSize}
               paginationMode="server"
               sortingMode="server"
+              sortModel={[pageState]}
+              // onSortModelChange={(newSortModel) => setSortModel(newSortModel)}
               onPageChange={(newPage) =>
                 setPageState((old) => ({ ...old, page: newPage + 1 }))
               }
@@ -492,8 +486,8 @@ function Search() {
               onSortModelChange={(sortModel) =>
                 setPageState((old) => ({
                   ...old,
-                  sort: sortModel[0]?.field || defaultSort,
-                  order: sortModel[0]?.sort || 'asc',
+                  field: sortModel[0]?.field || defaultSort,
+                  sort: sortModel[0]?.sort || 'asc',
                   page: 1,
                 }))
               }
@@ -504,6 +498,11 @@ function Search() {
           {/* ToDo put this in a custom styled component */}
           <GlobalStyles
             styles={{
+              '& .MuiDataGrid-columnHeaders': {
+                minHeight: '45px',
+                maxHeight: '45px',
+                lineHeight: '45px',
+              },
               '.MuiDataGrid-footerContainer': {
                 backgroundColor: '#fff', // '#D6EFFE',
                 border: '1px solid rgba(224, 224, 224, 1)',

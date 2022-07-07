@@ -2,12 +2,25 @@ import { createTheme } from '@mui/material'
 
 const theme = createTheme({
   palette: {
+    type: 'light',
     primary: {
       main: '#233C4B',
+      // main: '#1C303B',
     },
-    // secondary: {
-    //   main: '#F47C2E',
-    // },
+    secondary: {
+      main: '#f96f00',
+    },
+    warning: {
+      // main: '#FEC743',
+      main: '#cb9f36',
+    },
+    error: {
+      main: '#34A59D',
+    },
+    success: {
+      // main: '#A0CA68',
+      main: '#80a253',
+    },
     background: {
       default: '#E0E0E0',
       paper: '#FFFFFF',
@@ -25,13 +38,14 @@ const theme = createTheme({
     fontWeightMedium: 500,
   },
   components: {
-    MuiAppBar: {
-      styleOverrides: {
-        colorPrimary: {
-          color: 'white',
-        },
-      },
-    },
+    // MuiAppBar: {
+    //   styleOverrides: {
+    //     colorPrimary: {
+    //       // backgroundColor: '#1b3949',
+    //       color: 'white',
+    //     },
+    //   },
+    // },
     MuiTypography: {
       h5: {
         fontWeight: 600, // not working

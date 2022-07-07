@@ -25,6 +25,8 @@ export default function FacetsBar({
   fqState,
   setFqState,
 }) {
+  // State for search input - bind it to `pageState.q`. I'm not using it directly due to it repeatedly calling
+  // SOLR when the user is typing. User has to click search icon or hit enter to bind it to the `pageState.q`
   const [inputState, setInputState] = useState('')
 
   useEffect(() => {
@@ -36,9 +38,9 @@ export default function FacetsBar({
   const searchClickEvent = () => {
     setPageState((old) => ({
       ...old,
-      fq: [],
       q: inputState,
     }))
+    setFqState({})
   }
 
   const searchKeyPress = (e) => {
@@ -50,10 +52,10 @@ export default function FacetsBar({
   const clearSearch = () => {
     setPageState((old) => ({
       ...old,
-      fq: [],
       q: '',
       page: 1,
     }))
+    setFqState({})
     setInputState('')
   }
 

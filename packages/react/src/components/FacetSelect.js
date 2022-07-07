@@ -16,7 +16,7 @@ import { startCase, replace } from 'lodash'
 /**
  * Create a human readable label from a SOLR field name
  *
- * @param {*} label SOLR field name
+ * @param {String} label SOLR field name
  * @returns formatted label
  */
 function formatLabels(label) {
