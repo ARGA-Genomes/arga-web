@@ -69,9 +69,10 @@ export default function FacetsSelect({
       key={field}
       sx={{
         // m: '10px 0 10px 10px',
-        marginTop: 1,
+        // marginTop: 1,
         marginRight: 1,
-        minWidth: 180,
+        // minWidth: 180,
+        width: '100%',
         '*': { fontSize: '14px' },
         '& .MuiOutlinedInput-input': {
           paddingTop: '8px',

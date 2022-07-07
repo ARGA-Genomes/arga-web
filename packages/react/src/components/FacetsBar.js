@@ -5,6 +5,7 @@ import {
   InputAdornment,
   IconButton,
   Divider,
+  Grid,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
@@ -87,60 +88,74 @@ export default function FacetsBar({
         backgroundColor: lighten(theme.palette.success.main, 0.7),
       }}
     >
-      <TextField
-        size="small"
-        label="Search"
-        value={inputState}
-        onChange={(e) => setInputState(e.target.value)}
-        onKeyPress={searchKeyPress}
-        // style={{ width: '50ch' }}
-        sx={{
-          // fontSize: '14px',
-          width: '50ch',
-          '& .MuiInputLabel-root, .MuiOutlinedInput-root': {
-            fontSize: '14px',
-            paddingTop: '2px',
-            paddingBottom: '2px',
-            paddingRight: '5px',
-            bgcolor: 'white',
-          },
-        }}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              {inputState && (
-                <IconButton
-                  sx={{ padding: 1 }}
-                  aria-label="search"
-                  onClick={clearSearch}
-                >
-                  <CloseIcon />
-                </IconButton>
-              )}
-              <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-              <IconButton
-                onClick={searchClickEvent}
-                sx={{ padding: 1 }}
-                aria-label="search"
-              >
-                <SearchIcon />
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-        variant="outlined"
-      />
-      <Box>
-        {Object.keys(facetsDisplay).map((field) => (
-          <FacetSelect
-            key={field}
-            field={field}
-            fieldValues={facetsDisplay[field]}
-            fqState={fqState[field] || []}
-            setFqState={setFqState}
+      <Grid container spacing={1}>
+        <Grid item xs={12} sm={8} md={6} lg={5} xl={5}>
+          <TextField
+            size="small"
+            label="Search"
+            value={inputState}
+            onChange={(e) => setInputState(e.target.value)}
+            onKeyPress={searchKeyPress}
+            // style={{ width: '50ch' }}
+            sx={{
+              // fontSize: '14px',
+              // width: '50ch',
+              width: '100%',
+              '& .MuiInputLabel-root, .MuiOutlinedInput-root': {
+                fontSize: '14px',
+                paddingTop: '2px',
+                paddingBottom: '2px',
+                paddingRight: '5px',
+                bgcolor: 'white',
+              },
+            }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  {inputState && (
+                    <IconButton
+                      sx={{ padding: 1 }}
+                      aria-label="search"
+                      onClick={clearSearch}
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  )}
+                  <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+                  <IconButton
+                    onClick={searchClickEvent}
+                    sx={{ padding: 1 }}
+                    aria-label="search"
+                  >
+                    <SearchIcon />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+            variant="outlined"
           />
+        </Grid>
+      </Grid>
+      <Grid container spacing={1}>
+        {Object.keys(facetsDisplay).map((field) => (
+          <Grid
+            item
+            xs={12}
+            sm={6}
+            md={3}
+            lg={2}
+            key={field}
+            sx={{ marginTop: 1 }}
+          >
+            <FacetSelect
+              field={field}
+              fieldValues={facetsDisplay[field]}
+              fqState={fqState[field] || []}
+              setFqState={setFqState}
+            />
+          </Grid>
         ))}
-      </Box>
+      </Grid>
     </Box>
   )
 }
