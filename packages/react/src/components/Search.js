@@ -3,16 +3,18 @@ import { useSearchParams } from 'react-router-dom'
 import {
   AppBar,
   Box,
-  Container,
   Stack,
   Chip,
   Snackbar,
   IconButton,
   GlobalStyles,
+  Grid,
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import { DataGrid } from '@mui/x-data-grid'
+import { lighten } from '@mui/material/styles'
 import stringHash from 'string-hash'
+import theme from './theme'
 import RecordDrawer from './RecordDrawer'
 import ArgaToolbar from './ArgaToolbar'
 import FacetsBar from './FacetsBar'
@@ -89,13 +91,6 @@ function Search() {
 
   const [drawerState, setDrawerState] = useState(false)
   const [snackState, setSnackState] = useState({ status: false, message: '' })
-
-  // const [sortModel, setSortModel] = useState([
-  //   {
-  //     field: pageState.sort,
-  //     sort: pageState.order,
-  //   },
-  // ])
 
   // const { search } = useLocation();
   const [searchParams] = useSearchParams()
@@ -359,8 +354,6 @@ function Search() {
     }
   }
 
-  const rowClicked = (e) => setRecordState((old) => ({ ...old, id: e.id }))
-
   const toggleDrawer = () => {
     if (drawerState) setRecordState((old) => ({ ...old, id: '' })) // so clicking on same record makes drawer open
     setDrawerState(!drawerState)
@@ -401,22 +394,22 @@ function Search() {
     </IconButton>
   )
 
-  const datagridRef = useRef(null)
+  const datagridRef = useRef(null) // Not sure this is needed?
 
   return (
     <Box sx={{ display: 'flex' }}>
       <AppBar>
         <ArgaToolbar />
       </AppBar>
-      <Container
+      <Grid
         style={{
-          marginTop: 70,
+          marginTop: 66,
           marginBottom: 74,
           minWidth: '100%',
           // border: '1px solid red',
           height: 'calc(10vh - 74px)',
         }}
-        maxWidth="lg"
+        // maxWidth="lg"
       >
         <RecordDrawer
           drawerState={drawerState}
@@ -438,6 +431,7 @@ function Search() {
             // width: 500,
             margin: '15px 0',
             maxWidth: '100%',
+            width: '100%',
             backgroundColor: 'white',
             // height: 'calc(100% - 54px)'
           }}
@@ -445,7 +439,7 @@ function Search() {
           <div
             style={{
               width: '100%',
-              height: 'calc(100vh - 246px)',
+              height: 'calc(100vh - 240px)',
               background: '#E0E0E0',
             }}
           >
@@ -491,7 +485,9 @@ function Search() {
                   page: 1,
                 }))
               }
-              onRowClick={rowClicked}
+              onRowClick={(e) =>
+                setRecordState((old) => ({ ...old, id: e.id }))
+              }
             />
           </div>
           {/* </Box> */}
@@ -499,7 +495,8 @@ function Search() {
           <GlobalStyles
             styles={{
               '.MuiDataGrid-footerContainer': {
-                backgroundColor: '#fff', // '#D6EFFE',
+                // backgroundColor: '#fff', // '#D6EFFE',
+                backgroundColor: lighten(theme.palette.success.main, 0.7),
                 border: '1px solid rgba(224, 224, 224, 1)',
                 borderRadius: '4px',
                 left: '50%',
@@ -507,12 +504,12 @@ function Search() {
                 bottom: 0, // <-- KEY
                 zIndex: 3,
                 position: 'fixed',
-                width: 'calc(100% - 48px)',
+                width: '100%',
               },
             }}
           />
         </Box>
-      </Container>
+      </Grid>
     </Box>
   )
 }

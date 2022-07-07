@@ -113,6 +113,7 @@ export default function FacetsSelect({
         )}
         label={formatLabels(field)}
         sx={{
+          backgroundColor: 'white',
           '&  .MuiTypography-root': {
             fontSize: '12px',
           },

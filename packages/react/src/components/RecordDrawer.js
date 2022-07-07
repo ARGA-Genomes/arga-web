@@ -200,7 +200,12 @@ export default function RecordDrawer({
           </Paper>
         </List>
         <Paper
-          sx={{ position: 'fixed', bottom: 0, right: 0, width: drawerWidth }}
+          sx={{
+            position: 'fixed',
+            bottom: 0,
+            right: 0,
+            width: drawerWidth,
+          }}
           elevation={3}
         >
           <BottomNavigation showLabels>

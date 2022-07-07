@@ -8,7 +8,9 @@ import {
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
+import { lighten } from '@mui/material/styles'
 import FacetSelect from './FacetSelect'
+import theme from './theme'
 
 /**
  * Component to output a "filter" bar for filtering search results
@@ -80,8 +82,9 @@ export default function FacetsBar({
       sx={{
         border: '1px solid rgba(224, 224, 224, 1)',
         borderRadius: '4px',
-        backgroundColor: 'white',
         padding: 1,
+        // backgroundColor: 'white',
+        backgroundColor: lighten(theme.palette.success.main, 0.7),
       }}
     >
       <TextField
@@ -99,6 +102,7 @@ export default function FacetsBar({
             paddingTop: '2px',
             paddingBottom: '2px',
             paddingRight: '5px',
+            bgcolor: 'white',
           },
         }}
         InputProps={{
