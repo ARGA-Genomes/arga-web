@@ -127,7 +127,6 @@ function getFieldValue(field, data) {
     const helper = fieldstoLink[field]
     const suffix =
       'valueField' in helper ? data[helper.valueField] || '' : data[field] || ''
-    console.log('fieldstoLink', field, value, helper, suffix)
     value = (
       <a href={`${helper.prefix}${suffix}`} target="partner">
         {'decoration' in helper &&
