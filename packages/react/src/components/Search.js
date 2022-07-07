@@ -44,7 +44,8 @@ const muiColourCategories = [
 
 function getColourForValue(input) {
   const hash =
-    stringHash(input + input.split('').reverse().join('*')) %
+    // change the character inside `join()` to expirement with which colours look better
+    stringHash(input + input.split('').reverse().join('=')) %
     muiColourCategories.length
   return muiColourCategories[hash]
 }
@@ -476,7 +477,6 @@ function Search() {
               paginationMode="server"
               sortingMode="server"
               sortModel={[pageState]}
-              // onSortModelChange={(newSortModel) => setSortModel(newSortModel)}
               onPageChange={(newPage) =>
                 setPageState((old) => ({ ...old, page: newPage + 1 }))
               }
@@ -498,11 +498,6 @@ function Search() {
           {/* ToDo put this in a custom styled component */}
           <GlobalStyles
             styles={{
-              '& .MuiDataGrid-columnHeaders': {
-                minHeight: '45px',
-                maxHeight: '45px',
-                lineHeight: '45px',
-              },
               '.MuiDataGrid-footerContainer': {
                 backgroundColor: '#fff', // '#D6EFFE',
                 border: '1px solid rgba(224, 224, 224, 1)',

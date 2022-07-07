@@ -11,6 +11,49 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import { startCase, words, replace } from 'lodash'
 
+const fieldsToSkip = [
+  'geospatialIssues',
+  'speciesListUid',
+  'assertions',
+  'lft',
+  'rgt',
+]
+const fixedWidthFields = [
+  'taxonConceptID',
+  'basisOfRecord',
+  'catalogNumber',
+  'occurrenceStatus',
+  'countryCode',
+  'decimalLatitude',
+  'decimalLongitude',
+  'geodeticDatum',
+  'dynamicProperties_ncbi_biosample_attributes_json',
+  'name_and_lsid',
+  'common_name_and_lsid',
+]
+const bieUrl = 'https://bie.ala.org.au/species/'
+const ncbiUrl = 'https://www.ncbi.nlm.nih.gov/data-hub/genome/'
+const fieldstoLink = {
+  scientificName: {
+    prefix: bieUrl,
+    valueField: 'taxonConceptID',
+    decoration: 'italic',
+  },
+  occurrenceID: { prefix: ncbiUrl },
+  dynamicProperties_ncbi_assembly_accession: {
+    prefix: ncbiUrl,
+  },
+  dynamicProperties_ncbi_bioproject: {
+    prefix: 'https://www.ncbi.nlm.nih.gov/bioproject/',
+  },
+  kingdom: { prefix: bieUrl, valueField: 'kingdomID' },
+  phylum: { prefix: bieUrl, valueField: 'phylumID' },
+  class: { prefix: bieUrl, valueField: 'classID' },
+  order: { prefix: bieUrl, valueField: 'orderID' },
+  family: { prefix: bieUrl, valueField: 'familyID' },
+  genus: { prefix: bieUrl, valueField: 'genusID' },
+}
+
 /**
  * Do a deep search for a key in a nested object (JSON doc)
  *
@@ -32,6 +75,10 @@ function findValueForKey(obj, key) {
 }
 
 function getFieldValue(field, data) {
+  if (fieldsToSkip.includes(field)) {
+    return ''
+  }
+
   let value = findValueForKey(data, field) || undefined
 
   if (typeof value === 'object') {
@@ -74,21 +121,24 @@ function getFieldValue(field, data) {
     value = value.substring(0, 10)
   }
 
-  const fixedWidthFields = [
-    'taxonConceptID',
-    'basisOfRecord',
-    'catalogNumber',
-    'occurrenceStatus',
-    'countryCode',
-    'decimalLatitude',
-    'decimalLongitude',
-    'geodeticDatum',
-    'dynamicProperties_ncbi_biosample_attributes_json',
-    'name_and_lsid',
-    'common_name_and_lsid',
-  ]
-  if (field.endsWith('scientificName') && words(value).length > 1) {
-    value = <em>{value}</em>
+  // if (field.endsWith('scientificName') && words(value).length > 1) {
+  //   value = <em>{value}</em>
+  if (field in fieldstoLink) {
+    const helper = fieldstoLink[field]
+    const suffix =
+      'valueField' in helper ? data[helper.valueField] || '' : data[field] || ''
+    console.log('fieldstoLink', field, value, helper, suffix)
+    value = (
+      <a href={`${helper.prefix}${suffix}`} target="partner">
+        {'decoration' in helper &&
+        helper.decoration.length > 0 &&
+        words(value).length > 1 ? (
+          <em>{value}</em>
+        ) : (
+          <span>{value}</span>
+        )}
+      </a>
+    )
   } else if (value && fixedWidthFields.includes(field)) {
     value = (
       <Typography
