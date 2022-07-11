@@ -21,7 +21,8 @@ import { startCase, replace } from 'lodash'
  */
 function formatLabels(label) {
   const lab = replace(label, /dynamicProperties_ncbi_/g, '')
-  return startCase(lab)
+  const lab1 = replace(lab, /dataResourceName/g, 'dataset')
+  return startCase(lab1)
 }
 
 /**

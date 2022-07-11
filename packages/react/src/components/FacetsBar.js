@@ -136,13 +136,13 @@ export default function FacetsBar({
           />
         </Grid>
       </Grid>
-      <Grid container spacing={1}>
+      <Grid container spacing={0} columnSpacing={1}>
         {Object.keys(facetsDisplay).map((field) => (
           <Grid
             item
             xs={12}
-            sm={6}
-            md={3}
+            sm={4}
+            md={2}
             lg={2}
             key={field}
             sx={{ marginTop: 1 }}

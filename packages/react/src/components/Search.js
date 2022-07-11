@@ -28,6 +28,7 @@ const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
 const defaultQuery = '*:*'
 const defaultSort = 'vernacularName'
 const facetFields = [
+  'dataResourceName',
   'speciesGroup',
   'speciesSubgroup',
   'dynamicProperties_ncbi_refseq_category',
@@ -127,6 +128,12 @@ function Search() {
         field: 'dynamicProperties_ncbi_assembly_accession',
         headerName: 'NCBI Accession',
         width: 145,
+      },
+      {
+        field: 'dataResourceName',
+        headerName: 'Dataset',
+        valueGetter: ({ value }) => value && value.replace('NCBI Genome ', ''),
+        width: 90,
       },
       {
         field: 'raw_scientificName',
