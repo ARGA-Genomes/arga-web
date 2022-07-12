@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/static/css/main.638ff562.css",
-    "main.js": "/static/js/main.d6cf248f.js",
+    "main.js": "/static/js/main.d719f255.js",
     "static/js/787.cda612ba.chunk.js": "/static/js/787.cda612ba.chunk.js",
     "static/media/ARGA-logo-notext.png": "/static/media/ARGA-logo-notext.7b73acec692069555d65.png",
     "index.html": "/index.html",
     "main.638ff562.css.map": "/static/css/main.638ff562.css.map",
-    "main.d6cf248f.js.map": "/static/js/main.d6cf248f.js.map",
+    "main.d719f255.js.map": "/static/js/main.d719f255.js.map",
     "787.cda612ba.chunk.js.map": "/static/js/787.cda612ba.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.638ff562.css",
-    "static/js/main.d6cf248f.js"
+    "static/js/main.d719f255.js"
   ]
 }

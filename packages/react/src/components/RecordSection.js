@@ -9,7 +9,7 @@ import {
 } from '@mui/material'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
-import { startCase, words, replace } from 'lodash'
+import { startCase, words, replace, uniqueId } from 'lodash'
 
 const fieldsToSkip = [
   'geospatialIssues',
@@ -47,6 +47,7 @@ const fieldstoLink = {
     valueField: 'taxonConceptID',
     decoration: 'italic',
   },
+  raw_scientificName: { decoration: 'italic' },
   occurrenceID: { prefix: ncbiUrl },
   dynamicProperties_ncbi_assembly_accession: {
     prefix: ncbiUrl,
@@ -63,7 +64,7 @@ const fieldstoLink = {
   order: { prefix: bieUrl, valueField: 'orderID' },
   family: { prefix: bieUrl, valueField: 'familyID' },
   genus: { prefix: bieUrl, valueField: 'genusID' },
-  species: { prefix: bieUrl, valueField: 'speciesID' },
+  species: { prefix: bieUrl, valueField: 'speciesID', decoration: 'italic' },
 }
 
 /**
@@ -142,17 +143,21 @@ function getFieldValue(field, data) {
     const helper = fieldstoLink[field]
     const suffix =
       'valueField' in helper ? data[helper.valueField] || '' : data[field] || ''
-    value = (
-      <a href={`${helper.prefix}${suffix}`} target="partner">
-        {'decoration' in helper &&
-        helper.decoration.length > 0 &&
-        words(value).length > 1 ? (
-          <em>{value}</em>
-        ) : (
-          <span>{value}</span>
-        )}
-      </a>
-    )
+    if ('prefix' in helper) {
+      value = (
+        <a href={`${helper.prefix}${suffix}`} target="partner">
+          {'decoration' in helper &&
+          helper.decoration.length > 0 &&
+          words(value).length > 1 ? (
+            <em>{value}</em>
+          ) : (
+            <span>{value}</span>
+          )}
+        </a>
+      )
+    } else if ('decoration' in helper) {
+      value = <em>{value}</em>
+    }
   } else if (value && fixedWidthFields.includes(field)) {
     // Raw JSON field...
     if (field.toLowerCase().includes('json')) {
@@ -161,7 +166,14 @@ function getFieldValue(field, data) {
       value = replace(value, /\n\s+/g, '\n')
       // value = replace(value, /\n/g, '<br/>')
       const lines = value.split(/\n/)
-      value = lines.map((line) => <div>{line}</div>)
+      value = lines.map((line) => (
+        <span
+          style={{ display: 'inline-block' }}
+          key={uniqueId(line.substring(0, 6))}
+        >
+          {line}
+        </span>
+      ))
     }
 
     value = (
@@ -217,7 +229,7 @@ export default function RecordSection({ recordData, section, fieldList }) {
                 {listOfFields.map((field) =>
                   getFieldValue(field, recordData) ? (
                     <TableRow
-                      key={field}
+                      key={uniqueId(field)}
                       sx={{ ':last-child td': { borderBottom: 0 } }}
                     >
                       <TableCell
@@ -246,7 +258,7 @@ export default function RecordSection({ recordData, section, fieldList }) {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    <React.Fragment key={field} />
+                    <React.Fragment key={uniqueId(field)} />
                   )
                 )}
               </TableBody>

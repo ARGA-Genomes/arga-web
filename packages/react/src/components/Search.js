@@ -212,7 +212,6 @@ function Search() {
         renderCell: (params) =>
           params.value && (
             <ValueTag
-              key={params.value}
               value={params.value}
               field="dynamicProperties_ncbi_refseq_category"
               fqUpdate={fqUpdate}
@@ -226,7 +225,6 @@ function Search() {
         renderCell: (params) =>
           params.value && (
             <ValueTag
-              key={params.value}
               value={params.value}
               field="dynamicProperties_ncbi_genome_rep"
               fqUpdate={fqUpdate}
@@ -240,7 +238,6 @@ function Search() {
         renderCell: (params) =>
           params.value && (
             <ValueTag
-              key={params.value}
               value={params.value}
               field="dynamicProperties_ncbi_assembly_level"
               fqUpdate={fqUpdate}
