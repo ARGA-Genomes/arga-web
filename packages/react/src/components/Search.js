@@ -323,6 +323,7 @@ function Search() {
   ])
 
   // Fetch a single record - SOLR get
+  // ToDo move to RecordDrawer component along with state vars
   useEffect(() => {
     if (recordState.id) {
       const fetchRecord = async () => {

@@ -10,6 +10,7 @@ import {
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
 import { lighten } from '@mui/material/styles'
+import { useSearchParams } from 'react-router-dom'
 import FacetSelect from './FacetSelect'
 import theme from './theme'
 
@@ -31,6 +32,7 @@ export default function FacetsBar({
   // State for search input - bind it to `pageState.q`. I'm not using it directly due to it repeatedly calling
   // SOLR when the user is typing. User has to click search icon or hit enter to bind it to the `pageState.q`
   const [inputState, setInputState] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
 
   useEffect(() => {
     if ((!inputState && pageState.q) || inputState !== pageState.q) {
@@ -60,6 +62,8 @@ export default function FacetsBar({
     }))
     setFqState({})
     setInputState('')
+    searchParams.delete('q')
+    setSearchParams(searchParams)
   }
 
   const facetsDisplay = {}
