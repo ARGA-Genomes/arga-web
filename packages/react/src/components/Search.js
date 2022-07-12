@@ -413,7 +413,6 @@ function Search() {
           marginTop: 66,
           marginBottom: 74,
           minWidth: '100%',
-          // border: '1px solid red',
           height: 'calc(10vh - 74px)',
         }}
         // maxWidth="lg"
