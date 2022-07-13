@@ -48,17 +48,19 @@ const muiColourCategories = [
 function getColourForValue(input) {
   const hash =
     // change the character inside `join()` to expirement with which colours look better
-    stringHash(input + input.split('').reverse().join('=')) %
+    stringHash(input + input.split('').reverse().join('/')) %
     muiColourCategories.length
   return muiColourCategories[hash]
 }
 
-function ValueTag({ value, field, fqUpdate }) {
+function ValueTag({ value, label, field, fqUpdate }) {
+  const chipLabel = label || value
   return (
     <Chip
-      label={value}
-      color={getColourForValue(value)}
+      label={chipLabel}
+      color={getColourForValue(chipLabel)}
       data-fieldname={field}
+      data-value={value}
       onClick={fqUpdate}
       size="small"
       variant="outlined"
@@ -96,9 +98,13 @@ function Search() {
   // const { search } = useLocation();
   const [searchParams] = useSearchParams()
 
+  /**
+   * Callback attached to Chip elements in the results table of datagrid.
+   * Triggers new search with `fq` param added for given Chip.
+   */
   const fqUpdate = useCallback((e) => {
     const fieldName = e.currentTarget.getAttribute('data-fieldname')
-    const value = e.target.textContent
+    const value = e.currentTarget.getAttribute('data-value')
     const existingValues =
       fqRef.current[fieldName]?.length > 0 ? fqRef.current[fieldName] : []
     const fq = { [fieldName]: [...existingValues, value] }
@@ -132,8 +138,17 @@ function Search() {
       {
         field: 'dataResourceName',
         headerName: 'Dataset',
-        valueGetter: ({ value }) => value && value.replace('NCBI Genome ', ''),
-        width: 90,
+        // valueGetter: ({ value }) => value && value.replace('NCBI Genome ', ''),
+        width: 100,
+        renderCell: (params) =>
+          params.value && (
+            <ValueTag
+              value={params.value}
+              label={params.value?.replace('NCBI Genome ', '')}
+              field="dataResourceName"
+              fqUpdate={fqUpdate}
+            />
+          ),
       },
       {
         field: 'raw_scientificName',
