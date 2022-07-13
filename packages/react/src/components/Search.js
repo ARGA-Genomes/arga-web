@@ -265,7 +265,7 @@ function Search() {
   // Fetch list of records - SOLR select
   useEffect(() => {
     const fetchData = async () => {
-      setPageState((old) => ({ ...old, isLoading: true }))
+      setPageState((old) => ({ ...old, isLoading: true, data: [] }))
       // calculate SOLR startIndex param
       const startIndex =
         pageState.page * pageState.pageSize - pageState.pageSize
