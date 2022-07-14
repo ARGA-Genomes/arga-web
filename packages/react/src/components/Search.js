@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
-  AppBar,
   Box,
   Stack,
   Chip,
@@ -418,9 +417,7 @@ function Search() {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <AppBar>
-        <ArgaToolbar />
-      </AppBar>
+      <ArgaToolbar />
       <Grid
         style={{
           marginTop: 66,
