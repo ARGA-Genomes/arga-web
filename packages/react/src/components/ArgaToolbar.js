@@ -29,7 +29,7 @@ export default function ArgaToolbar() {
         />
         <Typography
           variant="span"
-          sx={{ fontSize: '14px', lineHeight: '15px', marginRight: 5 }}
+          sx={{ fontSize: '14px', lineHeight: '15px', marginRight: 4 }}
         >
           <span style={{ fontWeight: 700 }}>A</span>
           <span style={{ fontWeight: 400 }}>ustralian</span>
@@ -44,8 +44,12 @@ export default function ArgaToolbar() {
           <span style={{ fontWeight: 400 }}>tlas</span>
         </Typography>
         <Typography
-          variant="h5"
-          sx={{ fontWeight: 500, fontFamily: 'Raleway', flexGrow: 1 }}
+          sx={{
+            fontWeight: 500,
+            fontFamily: 'Raleway',
+            flexGrow: 1,
+            typography: { sm: 'h5', xs: 'h6' },
+          }}
         >
           <span style={{ fontWeight: 700 }}>Data Brwsr</span>{' '}
           <span style={{ fontWeight: 400 }}>Demo</span>
