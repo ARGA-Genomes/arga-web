@@ -9,10 +9,10 @@ import {
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
-import { lighten } from '@mui/material/styles'
+import { lighten, useTheme } from '@mui/material/styles'
 import { useSearchParams } from 'react-router-dom'
 import FacetSelect from './FacetSelect'
-import theme from './theme'
+// import theme from './theme'
 
 /**
  * Component to output a "filter" bar for filtering search results
@@ -33,6 +33,7 @@ export default function FacetsBar({
   // SOLR when the user is typing. User has to click search icon or hit enter to bind it to the `pageState.q`
   const [inputState, setInputState] = useState('')
   const [searchParams, setSearchParams] = useSearchParams()
+  const theme = useTheme()
 
   useEffect(() => {
     if ((!inputState && pageState.q) || inputState !== pageState.q) {

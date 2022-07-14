@@ -22,7 +22,8 @@ import {
   ChevronLeft,
 } from '@mui/icons-material/'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import theme from './theme'
+import { useTheme } from '@mui/material/styles'
+// import theme from './theme'
 import RecordSection from './RecordSection'
 
 function getMiscFields(data, fieldListMap) {
@@ -119,6 +120,7 @@ export default function RecordDrawer({
   stepRecord,
 }) {
   const anchor = 'right'
+  const theme = useTheme()
   const largeScreen = useMediaQuery(theme.breakpoints.up('sm'))
   const drawerWidth = largeScreen ? '50%' : '95%'
   // console.log('drawerWidth', drawerWidth, largeScreen)

@@ -11,9 +11,9 @@ import {
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import { DataGrid } from '@mui/x-data-grid'
-import { lighten } from '@mui/material/styles'
+import { lighten, useTheme } from '@mui/material/styles'
 import stringHash from 'string-hash'
-import theme from './theme'
+// import theme from './theme'
 import RecordDrawer from './RecordDrawer'
 import ArgaToolbar from './ArgaToolbar'
 import FacetsBar from './FacetsBar'
@@ -275,6 +275,8 @@ function Search() {
     () => columns.map((el) => el.field),
     [columns]
   )
+
+  const theme = useTheme()
 
   // Fetch list of records - SOLR select
   useEffect(() => {

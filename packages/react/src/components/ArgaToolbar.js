@@ -9,15 +9,20 @@ import {
   DialogContentText,
   DialogActions,
   IconButton,
+  useTheme,
 } from '@mui/material'
-import InfoOutlined from '@mui/icons-material/InfoOutlined'
+import { InfoOutlined, Brightness4, Brightness7 } from '@mui/icons-material'
 import React from 'react'
 import logo from '../ARGA-logo-notext.png'
+
+const ColorModeContext = React.createContext({ toggleColorMode: () => {} })
 
 export default function ArgaToolbar() {
   const [openAbout, setOpenAbout] = React.useState(false)
   const handleAboutOpen = () => setOpenAbout(true)
   const handleAboutClose = () => setOpenAbout(false)
+  const theme = useTheme()
+  const colorMode = React.useContext(ColorModeContext)
 
   return (
     <AppBar position="fixed">
@@ -62,6 +67,13 @@ export default function ArgaToolbar() {
         >
           <InfoOutlined fontSize="large" />
         </IconButton>
+        <IconButton
+          sx={{ ml: 1 }}
+          onClick={colorMode.toggleColorMode}
+          color="inherit"
+        >
+          {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+        </IconButton>
         <Dialog open={openAbout} onClose={handleAboutClose}>
           <DialogTitle>About ARGA</DialogTitle>
           <DialogContent>
@@ -103,7 +115,7 @@ export default function ArgaToolbar() {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleAboutClose} autoFocus>
+            <Button variant="contained" onClick={handleAboutClose} autoFocus>
               Close
             </Button>
           </DialogActions>
