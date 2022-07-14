@@ -8,7 +8,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  IconButton,
 } from '@mui/material'
+import InfoOutlined from '@mui/icons-material/InfoOutlined'
 import React from 'react'
 import logo from '../ARGA-logo-notext.png'
 
@@ -19,15 +21,15 @@ export default function ArgaToolbar() {
 
   return (
     <AppBar position="fixed">
-      <Toolbar sx={{ height: 80, fontFamily: 'Raleway' }}>
+      <Toolbar sx={{ height: 76, fontFamily: 'Raleway' }}>
         <img
           src={logo}
           alt="ARGA logo"
-          style={{ height: 70, marginRight: 8 }}
+          style={{ height: 68, marginRight: 8 }}
         />
         <Typography
           variant="span"
-          sx={{ fontSize: '14px', lineHeight: '16px', marginRight: 5 }}
+          sx={{ fontSize: '14px', lineHeight: '15px', marginRight: 5 }}
         >
           <span style={{ fontWeight: 700 }}>A</span>
           <span style={{ fontWeight: 400 }}>ustralian</span>
@@ -46,15 +48,16 @@ export default function ArgaToolbar() {
           sx={{ fontWeight: 500, fontFamily: 'Raleway', flexGrow: 1 }}
         >
           <span style={{ fontWeight: 700 }}>Data Brwsr</span>{' '}
-          <span style={{ fontWeight: 300 }}>Demo</span>
+          <span style={{ fontWeight: 400 }}>Demo</span>
         </Typography>
-        <Button
-          color="inherit"
-          sx={{ fontFamily: 'Raleway' }}
+        <IconButton
+          size="medium"
+          aria-label="about-arga"
           onClick={handleAboutOpen}
+          color="inherit"
         >
-          About
-        </Button>
+          <InfoOutlined fontSize="large" />
+        </IconButton>
         <Dialog open={openAbout} onClose={handleAboutClose}>
           <DialogTitle>About ARGA</DialogTitle>
           <DialogContent>
