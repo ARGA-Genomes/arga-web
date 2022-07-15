@@ -64,7 +64,7 @@ export default function ArgaToolbar() {
         </IconButton>
         <Dialog open={openAbout} onClose={handleAboutClose}>
           <DialogTitle>About ARGA</DialogTitle>
-          <DialogContent>
+          <DialogContent sx={{ padding: '0 24px 10px 24px' }}>
             <DialogContentText>
               ARGA is the Australian Reference Genome Atlas. It is an indexing
               service for aggregating, discovering, filtering and accessing
@@ -103,7 +103,7 @@ export default function ArgaToolbar() {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleAboutClose} autoFocus>
+            <Button onClick={handleAboutClose} autoFocus variant="outlined">
               Close
             </Button>
           </DialogActions>

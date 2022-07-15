@@ -420,10 +420,10 @@ function Search() {
       <ArgaToolbar />
       <Grid
         style={{
-          marginTop: 66,
-          marginBottom: 74,
+          marginTop: 62,
+          marginBottom: 72,
           minWidth: '100%',
-          height: 'calc(10vh - 74px)',
+          height: 'calc(10vh - 72px)',
         }}
         // maxWidth="lg"
       >
@@ -455,7 +455,7 @@ function Search() {
           <div
             style={{
               width: '100%',
-              height: 'calc(100vh - 240px)',
+              height: 'calc(100vh - 236px)',
               background: '#E0E0E0',
             }}
           >
