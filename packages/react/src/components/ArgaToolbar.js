@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import InfoOutlined from '@mui/icons-material/InfoOutlined'
 import React from 'react'
-import logo from '../ARGA-logo-notext.png'
+import logo from '../assets/ARGA-logo-notext.png'
 
 export default function ArgaToolbar() {
   const [openAbout, setOpenAbout] = React.useState(false)

@@ -67,6 +67,11 @@ function ValueTag({ value, label, field, fqUpdate }) {
   )
 }
 
+/**
+ * Search component
+ *
+ * @returns JSX
+ */
 function Search() {
   const [pageState, setPageState] = useState({
     isLoading: false,
