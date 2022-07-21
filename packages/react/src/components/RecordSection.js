@@ -172,7 +172,9 @@ function getFieldValue(field, data) {
     } else if ('decoration' in helper && helper.decoration === 'italic') {
       value = <em>{value}</em>
     } else if ('decoration' in helper && helper.decoration === 'md') {
-      value = <ReactMarkdown>{value}</ReactMarkdown>
+      // Fix broken MD from BPA where headings are missing whitespace
+      const mdVal = replace(value, /(#{1,3})(\S)/g, '$1 $2')
+      value = <ReactMarkdown>{mdVal}</ReactMarkdown>
     }
   } else if (value && fixedWidthFields.includes(field)) {
     // Raw JSON field...
