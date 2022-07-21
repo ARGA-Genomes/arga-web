@@ -51,6 +51,7 @@ const fixedWidthFields = [
 ]
 const bieUrl = 'https://bie.ala.org.au/species/'
 const ncbiUrl = 'https://www.ncbi.nlm.nih.gov/data-hub/genome/'
+const bpaUrl = 'https://data.bioplatforms.com/dataset/'
 const fieldsToDecorate = {
   scientificName: {
     prefix: bieUrl,
@@ -59,6 +60,7 @@ const fieldsToDecorate = {
   },
   raw_scientificName: { decoration: 'italic' },
   // occurrenceID: { prefix: ncbiUrl },
+  dynamicProperties_bpa_id: { prefix: bpaUrl },
   dynamicProperties_ncbi_assembly_accession: {
     prefix: ncbiUrl,
   },
@@ -99,11 +101,11 @@ function findValueForKey(obj, key) {
 }
 
 function getFieldValue(field, data) {
-  if (fieldsToSkip.includes(field)) {
+  let value = findValueForKey(data, field) || undefined
+
+  if (fieldsToSkip.includes(field) || !value) {
     return ''
   }
-
-  let value = findValueForKey(data, field) || undefined
 
   if (typeof value === 'object') {
     // Misc properties - output as a formatted JSX elements
@@ -208,9 +210,11 @@ function getFieldValue(field, data) {
 }
 
 function mungeFieldName(field) {
+  // Fix this code so its performant and not code-smelly
   const field1 = replace(field, 'dynamicProperties_', '')
   const field2 = replace(field1, 'ncbi_', 'NCBI_')
-  return field2
+  const field3 = replace(field2, 'bpa_', 'BPA_')
+  return field3
 }
 
 export default function RecordSection({ recordData, section, fieldList }) {

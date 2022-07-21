@@ -43,6 +43,8 @@ const fieldListMap = {
     'eventDate',
   ],
   Record: [
+    'dynamicProperties_ncbi_assembly_accession',
+    'dynamicProperties_bpa_id',
     'institutionName',
     'collectionName',
     'dataResourceName',
