@@ -135,8 +135,8 @@ function Search() {
         hide: true,
       },
       {
-        field: 'dynamicProperties_ncbi_assembly_accession',
-        headerName: 'NCBI Accession',
+        field: 'occurrenceID',
+        headerName: 'Accession',
         width: 145,
       },
       {

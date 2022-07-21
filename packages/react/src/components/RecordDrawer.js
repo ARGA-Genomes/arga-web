@@ -38,7 +38,7 @@ const fieldListMap = {
   Summary: [
     'scientificName',
     'dataResourceName',
-    'dynamicProperties_ncbi_assembly_accession',
+    'occurrenceID',
     'basisOfRecord',
     'eventDate',
   ],
@@ -73,6 +73,7 @@ const fieldListMap = {
     'verbatimLocality',
     'decimalLatitude',
     'decimalLongitude',
+    'lat_long',
     'geodeticDatum',
     'terrestrial',
   ],

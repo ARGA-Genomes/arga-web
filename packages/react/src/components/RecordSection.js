@@ -10,6 +10,7 @@ import {
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import { startCase, words, replace, uniqueId } from 'lodash'
+import ReactMarkdown from 'react-markdown'
 
 const fieldsToSkip = [
   'geospatialIssues',
@@ -26,6 +27,12 @@ const fieldsToSkip = [
   'genusID',
   'speciesID',
   'common_name_and_lsid',
+  'point-0.0001',
+  'point-0.001',
+  'point-0.01',
+  'point-0.02',
+  'point-0.1',
+  'point-1',
 ]
 const fixedWidthFields = [
   'taxonConceptID',
@@ -38,17 +45,20 @@ const fixedWidthFields = [
   'geodeticDatum',
   'dynamicProperties_ncbi_biosample_attributes_json',
   'name_and_lsid',
+  'associatedSequences',
+  'dynamicProperties_bpa_tags',
+  'dynamicProperties_bpa_spatial',
 ]
 const bieUrl = 'https://bie.ala.org.au/species/'
 const ncbiUrl = 'https://www.ncbi.nlm.nih.gov/data-hub/genome/'
-const fieldstoLink = {
+const fieldsToDecorate = {
   scientificName: {
     prefix: bieUrl,
     valueField: 'taxonConceptID',
     decoration: 'italic',
   },
   raw_scientificName: { decoration: 'italic' },
-  occurrenceID: { prefix: ncbiUrl },
+  // occurrenceID: { prefix: ncbiUrl },
   dynamicProperties_ncbi_assembly_accession: {
     prefix: ncbiUrl,
   },
@@ -58,6 +68,7 @@ const fieldstoLink = {
   dynamicProperties_ncbi_biosample: {
     prefix: 'https://www.ncbi.nlm.nih.gov/biosample/',
   },
+  dynamicProperties_bpa_organization_description: { decoration: 'md' },
   kingdom: { prefix: bieUrl, valueField: 'kingdomID' },
   phylum: { prefix: bieUrl, valueField: 'phylumID' },
   class: { prefix: bieUrl, valueField: 'classID' },
@@ -71,7 +82,7 @@ const fieldstoLink = {
  * Do a deep search for a key in a nested object (JSON doc)
  *
  * @param {*} obj - nested object
- * @param {*} key = key to find value of (first instance found is returned)
+ * @param {*} key - key to find value of (first instance found is returned)
  * @returns value for provided key
  */
 function findValueForKey(obj, key) {
@@ -127,6 +138,7 @@ function getFieldValue(field, data) {
     // print out boolean values as String (otherwise `false` values will be excluded from output)
     value = value.toString()
   } else if (
+    // check for long ISO date strings and shorten to remove time portion
     typeof value === 'string' &&
     value.length > 15 &&
     /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)((-(\d{2}):(\d{2})|Z)?)$/.test(
@@ -139,8 +151,8 @@ function getFieldValue(field, data) {
 
   // if (field.endsWith('scientificName') && words(value).length > 1) {
   //   value = <em>{value}</em>
-  if (field in fieldstoLink) {
-    const helper = fieldstoLink[field]
+  if (field in fieldsToDecorate) {
+    const helper = fieldsToDecorate[field]
     const suffix =
       'valueField' in helper ? data[helper.valueField] || '' : data[field] || ''
     if ('prefix' in helper) {
@@ -155,8 +167,10 @@ function getFieldValue(field, data) {
           )}
         </a>
       )
-    } else if ('decoration' in helper) {
+    } else if ('decoration' in helper && helper.decoration === 'italic') {
       value = <em>{value}</em>
+    } else if ('decoration' in helper && helper.decoration === 'md') {
+      value = <ReactMarkdown>{value}</ReactMarkdown>
     }
   } else if (value && fixedWidthFields.includes(field)) {
     // Raw JSON field...
