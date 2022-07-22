@@ -142,7 +142,6 @@ function Search() {
       {
         field: 'dataResourceName',
         headerName: 'Dataset',
-        // valueGetter: ({ value }) => value && value.replace('NCBI Genome ', ''),
         width: 100,
         renderCell: (params) =>
           params.value && (
@@ -189,7 +188,6 @@ function Search() {
         headerName: 'Species Groups',
         width: 260,
         sortable: false,
-        // valueGetter: ({ value }) => value.join(" | ")
         renderCell: (params) => (
           <Stack direction="row" spacing={1}>
             {params.value?.map((grp) => (
@@ -209,7 +207,6 @@ function Search() {
         width: 260,
         sortable: false,
         hide: true,
-        // valueGetter: ({ value }) => value.join(" | ")
         renderCell: (params) => (
           <Stack direction="row" spacing={1}>
             {params.value?.map((grp) => (
