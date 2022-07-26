@@ -8,6 +8,8 @@ import {
   IconButton,
   GlobalStyles,
   Grid,
+  Tab,
+  Tabs,
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import { DataGrid } from '@mui/x-data-grid'
@@ -17,6 +19,7 @@ import theme from './theme'
 import RecordDrawer from './RecordDrawer'
 import ArgaToolbar from './ArgaToolbar'
 import FacetsBar from './FacetsBar'
+import GridView from './GridView'
 
 /*
  * ToDo list
@@ -43,6 +46,7 @@ const muiColourCategories = [
   'success',
   'warning',
 ]
+const additionalFields = ['taxonConceptID', 'matchType']
 
 function getColourForValue(input) {
   const hash =
@@ -67,6 +71,19 @@ function ValueTag({ value, label, field, fqUpdate }) {
   )
 }
 
+function TabPanel({ children, value, index }) {
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`results-tabpanel-${index}`}
+      aria-labelledby={`results-tab-${index}`}
+    >
+      {value === index && <Box sx={{ p: 0 }}>{children}</Box>}
+    </div>
+  )
+}
+
 /**
  * Search component
  *
@@ -83,6 +100,7 @@ function Search() {
     sort: 'asc', // order
     q: '',
     // Note: `fq` is in its own state var below (`fqState`)
+    groupResults: false,
     facetResults: [],
   })
 
@@ -98,6 +116,12 @@ function Search() {
 
   const [drawerState, setDrawerState] = useState(false)
   const [snackState, setSnackState] = useState({ status: false, message: '' })
+
+  // Tabs state
+  const [tabValue, setTabValue] = useState(0)
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue)
+  }
 
   // const { search } = useLocation();
   const [searchParams] = useSearchParams()
@@ -274,7 +298,7 @@ function Search() {
 
   // array of fields to request from SOLR
   const columnDataFields = useMemo(
-    () => columns.map((el) => el.field),
+    () => columns.map((el) => el.field).concat(additionalFields),
     [columns]
   )
 
@@ -294,6 +318,9 @@ function Search() {
           })
         }
       })
+      const groupParams = pageState.groupResults
+        ? '&group=true&group.field=raw_scientificName&group.main=true'
+        : ''
 
       // Do HTTP fetch
       const response = await fetch(
@@ -305,7 +332,9 @@ function Search() {
           '&facet.field='
         )}&facet.mincount=1&&rows=${
           pageState.pageSize
-        }&start=${startIndex}&sort=${pageState.field}+${pageState.sort}`
+        }&start=${startIndex}&sort=${pageState.field}+${
+          pageState.sort
+        }${groupParams}`
       )
       // wait for async response
       const json = await response.json()
@@ -331,6 +360,7 @@ function Search() {
     pageState.field,
     pageState.sort,
     pageState.q,
+    pageState.groupResults,
     fqState,
     columnDataFields,
   ])
@@ -457,7 +487,7 @@ function Search() {
           <div
             style={{
               width: '100%',
-              height: 'calc(100vh - 236px)',
+              height: 'calc(100vh - 284px)',
               background: '#E0E0E0',
             }}
           >
@@ -468,64 +498,104 @@ function Search() {
               fqState={fqRef.current || {}}
               setFqState={setFqState}
             />
-            <DataGrid
-              // components={{
-              //   Toolbar: GridToolbar
-              // }}
-              autoHeight={false}
-              disableSelectionOnClick
-              rowHeight={40}
-              headerHeight={42}
-              ref={datagridRef}
-              style={{ backgroundColor: 'white' }}
-              columns={columns}
-              rows={pageState.data}
-              rowCount={pageState.total}
-              loading={pageState.isLoading}
-              rowsPerPageOptions={[10, 25, 50, 70, 100]}
-              // pagination
-              page={pageState.page - 1}
-              pageSize={pageState.pageSize}
-              paginationMode="server"
-              sortingMode="server"
-              sortModel={[pageState]}
-              onPageChange={(newPage) =>
-                setPageState((old) => ({ ...old, page: newPage + 1 }))
-              }
-              onPageSizeChange={(newPageSize) =>
-                setPageState((old) => ({ ...old, pageSize: newPageSize }))
-              }
-              onSortModelChange={(sortModel) =>
-                setPageState((old) => ({
-                  ...old,
-                  field: sortModel[0]?.field || defaultSort,
-                  sort: sortModel[0]?.sort || 'asc',
-                  page: 1,
-                }))
-              }
-              onRowClick={(e) =>
-                setRecordState((old) => ({ ...old, id: e.id }))
-              }
-            />
+            <Box sx={{ width: '100%', background: 'white' }}>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs
+                  value={tabValue}
+                  onChange={handleTabChange}
+                  textColor="secondary"
+                  indicatorColor="secondary"
+                  aria-label="Navigation tabs for search results"
+                >
+                  <Tab
+                    label="Table"
+                    id="results-tab-0"
+                    aria-controls="results-tabpanel-0"
+                  />
+                  <Tab
+                    label="Grid"
+                    id="results-tab-1"
+                    aria-controls="results-tabpanel-1"
+                  />
+                  <Tab
+                    label="Map"
+                    id="results-tab-2"
+                    aria-controls="results-tabpanel-2"
+                  />
+                </Tabs>
+              </Box>
+              <TabPanel value={tabValue} index={0}>
+                <DataGrid
+                  // components={{
+                  //   Toolbar: GridToolbar
+                  // }}
+                  autoHeight={false}
+                  disableSelectionOnClick
+                  rowHeight={40}
+                  headerHeight={42}
+                  ref={datagridRef}
+                  style={{ backgroundColor: 'white' }}
+                  columns={columns}
+                  rows={pageState.data}
+                  rowCount={pageState.total}
+                  loading={pageState.isLoading}
+                  rowsPerPageOptions={[10, 25, 50, 70, 100]}
+                  // pagination
+                  page={pageState.page - 1}
+                  pageSize={pageState.pageSize}
+                  paginationMode="server"
+                  sortingMode="server"
+                  sortModel={[pageState]}
+                  onPageChange={(newPage) =>
+                    setPageState((old) => ({ ...old, page: newPage + 1 }))
+                  }
+                  onPageSizeChange={(newPageSize) =>
+                    setPageState((old) => ({ ...old, pageSize: newPageSize }))
+                  }
+                  onSortModelChange={(sortModel) =>
+                    setPageState((old) => ({
+                      ...old,
+                      field: sortModel[0]?.field || defaultSort,
+                      sort: sortModel[0]?.sort || 'asc',
+                      page: 1,
+                    }))
+                  }
+                  onRowClick={(e) =>
+                    setRecordState((old) => ({ ...old, id: e.id }))
+                  }
+                />
+                {/* ToDo put this in a custom styled component */}
+                <GlobalStyles
+                  styles={{
+                    '#results-tabpanel-0 .MuiDataGrid-root': {
+                      height: 'calc(100vh - 284px)',
+                    },
+                    '.MuiDataGrid-footerContainer': {
+                      // backgroundColor: '#fff', // '#D6EFFE',
+                      backgroundColor: lighten(theme.palette.success.main, 0.7),
+                      border: '1px solid rgba(224, 224, 224, 1)',
+                      borderRadius: '4px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      bottom: 0, // <-- KEY
+                      zIndex: 3,
+                      position: 'fixed',
+                      width: '100%',
+                    },
+                  }}
+                />
+              </TabPanel>
+              <TabPanel value={tabValue} index={1}>
+                <Box sx={{ p: 1 }}>
+                  <GridView pageState={pageState} setPageState={setPageState} />
+                </Box>
+              </TabPanel>
+              <TabPanel value={tabValue} index={2}>
+                <Box sx={{ p: 3 }}>Map view goes here</Box>
+              </TabPanel>
+            </Box>
           </div>
           {/* </Box> */}
-          {/* ToDo put this in a custom styled component */}
-          <GlobalStyles
-            styles={{
-              '.MuiDataGrid-footerContainer': {
-                // backgroundColor: '#fff', // '#D6EFFE',
-                backgroundColor: lighten(theme.palette.success.main, 0.7),
-                border: '1px solid rgba(224, 224, 224, 1)',
-                borderRadius: '4px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                bottom: 0, // <-- KEY
-                zIndex: 3,
-                position: 'fixed',
-                width: '100%',
-              },
-            }}
-          />
         </Box>
       </Grid>
     </Box>
