@@ -1,5 +1,6 @@
 import React from 'react'
 import {
+  Button,
   Card,
   CardHeader,
   CardMedia,
@@ -13,7 +14,11 @@ import {
 } from '@mui/material'
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import ShareIcon from '@mui/icons-material/Share'
-import { ExpandMore, ExpandLess } from '@mui/icons-material'
+import {
+  // ExpandMore,
+  // ExpandLess,
+  Article,
+} from '@mui/icons-material'
 import logoimage from '../assets/ARGA-logo-notext.png'
 
 const bieUrlPrefix = 'https://bie-ws.ala.org.au/ws/species/'
@@ -26,8 +31,8 @@ function getImageUrl(imageId) {
   return `https://images.ala.org.au/store/${idArr[3]}/${idArr[2]}/${idArr[1]}/${idArr[0]}/${imageId}/thumbnail_square_darkGray`
 }
 
-function SpeciesCard({ record }) {
-  const [expanded, setExpanded] = React.useState(false)
+function SpeciesCard({ record, index, setRecordState }) {
+  const [expanded] = React.useState(false)
   const [imageState, setImageState] = React.useState({
     url: logoimage,
     isLoading: false,
@@ -121,9 +126,9 @@ function SpeciesCard({ record }) {
     }
   }, [imageState.bieChecked])
 
-  const handleExpandClick = () => {
-    setExpanded(!expanded)
-  }
+  // const handleExpandClick = () => {
+  //   setExpanded(!expanded)
+  // }
 
   // if (pageState.isLoading) {
   //   return <CircularProgress />
@@ -168,8 +173,9 @@ function SpeciesCard({ record }) {
 
       <CardContent>
         <Typography variant="body2" color="textSecondary" component="p">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          {record.doclist.docs.length} sequence record
+          {record.doclist.docs.length > 1 ? `s are` : ' is'} available — expand
+          to see details
         </Typography>
       </CardContent>
       <CardActions disableSpacing>
@@ -179,48 +185,82 @@ function SpeciesCard({ record }) {
         <IconButton aria-label="share">
           <ShareIcon />
         </IconButton>
-        <IconButton
+        {/* <IconButton
           onClick={handleExpandClick}
           aria-expanded={expanded}
           aria-label="show more"
           style={{ marginLeft: 'auto' }}
         >
           {expanded ? <ExpandLess /> : <ExpandMore />}
+        </IconButton> */}
+        <IconButton
+          sx={{ textTransform: 'none', marginLeft: 'auto' }}
+          onClick={() =>
+            setRecordState((old) => ({
+              ...old,
+              id: record.doclist.docs[0].id,
+              speciesIndex: index,
+            }))
+          }
+        >
+          {' '}
+          <Button size="small" variant="outlined" endIcon={<Article />}>
+            {' '}
+            View {record.doclist.docs.length}
+          </Button>
         </IconButton>
       </CardActions>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent>
-          <Typography component="h4">Details</Typography>
-          <Typography
-            Typography
-            variant="body2"
-            color="textSecondary"
-            component="p"
-          >
-            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
-            nisi ut aliquip ex ea commodo consequat.
+          <Typography component="h4" sx={{ borderBottom: '1px solid gray' }}>
+            Sequences
           </Typography>
-          <Typography
-            Typography
-            variant="body2"
-            color="textSecondary"
-            component="p"
-          >
-            Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-            accusantium doloremque laudantium, totam rem aperiam, eaque ipsa
-            quae ab illo inventore veritatis et quasi architecto beatae vitae
-            dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit
-            aspernatur aut odit aut fugit, sed quia consequuntur magni dolores
-            eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est,
-            qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit,
-            sed quia non numquam eius modi tempora incidunt ut labore et dolore
-            magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis
-            nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut
-            aliquid ex ea commodi consequatur? Quis autem vel eum iure
-            reprehenderit qui in ea voluptate velit esse quam nihil molestiae
-            consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla
-            pariatur?
-          </Typography>
+          {record.doclist.docs.map((sequence, idx) => (
+            <Typography
+              sx={{ borderTop: '1px' }}
+              variant="body2"
+              color="textSecondary"
+              component="div"
+            >
+              {' '}
+              <Typography
+                component="h6"
+                variant="body2"
+                sx={{ paddingTop: '5px' }}
+              >
+                {index + 1}. {sequence.occurrenceID}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ padding: '5px 0', borderBottom: '1px solid gray' }}
+              >
+                Dataset: {sequence.dataResourceName}
+                <br />
+                Date: {sequence.eventDate && sequence.eventDate.slice(0, 10)}
+                <Button
+                  variant="outlined"
+                  size="small"
+                  endIcon={<Article />}
+                  sx={{ textTransform: 'none' }}
+                  onClick={() =>
+                    setRecordState((old) => ({
+                      ...old,
+                      id: sequence.id,
+                      speciesIndex: idx,
+                    }))
+                  }
+                >
+                  {' '}
+                  View Record
+                </Button>
+              </Typography>{' '}
+              {/* {Object.keys(sequence).map((item) => (
+                <div>
+                  <strong>{item}</strong> | {sequence[item]}
+                </div>
+              ))} */}
+            </Typography>
+          ))}
         </CardContent>
       </Collapse>
     </Card>

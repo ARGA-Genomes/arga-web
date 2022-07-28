@@ -112,6 +112,7 @@ function Search() {
     isLoading: false,
     data: [],
     id: '',
+    speciesIndex: 0,
   })
 
   const [drawerState, setDrawerState] = useState(false)
@@ -437,7 +438,11 @@ function Search() {
 
   const stepRecord = (id, direction) => {
     if (id && direction) {
-      const idList = pageState.data.map((it) => it.id)
+      const idList = pageState.groupResults
+        ? pageState.species[recordState.speciesIndex].doclist.docs.map(
+            (it) => it.id
+          )
+        : pageState.data.map((it) => it.id)
       const idPosition = idList.indexOf(id)
       const newidPosition =
         direction === 'next' ? idPosition + 1 : idPosition - 1
@@ -565,7 +570,11 @@ function Search() {
                     backgroundColor: lighten(theme.palette.warning.main, 0.75),
                   }}
                 >
-                  <GridView pageState={pageState} setPageState={setPageState} />
+                  <GridView
+                    pageState={pageState}
+                    setPageState={setPageState}
+                    setRecordState={setRecordState}
+                  />
                 </Box>
               </TabPanel>
               <TabPanel value={tabValue} index={2}>
