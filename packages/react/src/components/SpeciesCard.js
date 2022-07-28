@@ -6,8 +6,10 @@ import {
   CardContent,
   CardActions,
   Collapse,
+  Grid,
   IconButton,
   Typography,
+  CircularProgress,
 } from '@mui/material'
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import ShareIcon from '@mui/icons-material/Share'
@@ -31,36 +33,46 @@ function SpeciesCard({ record }) {
     isLoading: false,
     hasImage: false,
   })
-  // https://biocache-ws.ala.org.au/ws/occurrences/search?q=lsid:https://biodiversity.org.au/afd/taxa/25b7606b-0b61-4f2d-967e-9c5c210fe332&fq=multimedia:%22Image%22&pageSize=1&facet=off&start=0&fq=-type_status:*&fq=-basis_of_record:PreservedSpecimen&fq=-identification_qualifier_s:%22Uncertain%22&fq=geospatial_kosher:true&fq=-user_assertions:50001&fq=-user_assertions:50005&sort=identification_qualifier_s
+  // console.log('record', record)
+  // eslint-disable-next-line
+  // const { taxonConceptID } = record.doclist.docs[0].taxonConceptID
+  // eslint-disable-next-line
+  const taxonConceptID = record.taxonConceptID
+
   React.useEffect(() => {
-    if (record.taxonConceptID) {
+    if (taxonConceptID) {
       const fetchBieImage = async () => {
         setImageState((old) => ({ ...old, isLoading: true }))
-        const resp = await fetch(`${bieUrlPrefix}/${record.taxonConceptID}`)
+        const resp = await fetch(`${bieUrlPrefix}/${taxonConceptID}`)
         const json = await resp.json()
         if (json.imageIdentifier) {
+          // console.log('first call', taxonConceptID.slice(-4))
           setImageState((old) => ({
             ...old,
             isLoading: false,
             hasImage: true,
             url: getImageUrl(json.imageIdentifier),
-            // `https://images.ala.org.au/store/${idArr[3]}/${idArr[2]}/${idArr[1]}/${idArr[0]}/${id}/thumbnail_square_darkGray`,
-            // `https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=${json.imageIdentifier}`
-            // https://images.ala.org.au/store/d/9/2/b/12a90844-9df8-4945-9217-49e7930fb29d/thumbnail_square_darkGray
           }))
-        } else {
+        } else if (json) {
           // try biocache API as fallback
           const fetchBiocacheImage = async () => {
             setImageState((old) => ({ ...old, isLoading: true }))
             const resp2 = await fetch(
-              `${biocacheUrlPrefix}?q=lsid:${record.taxonConceptID}${biocacheUrlPostfix}`
+              `${biocacheUrlPrefix}?q=lsid:${taxonConceptID}${biocacheUrlPostfix}`
             )
             const json2 = await resp2.json()
             if (json2.occurrences && json2.occurrences.length === 1) {
+              // console.log('second call YES', taxonConceptID.slice(-4))
               setImageState((old) => ({
                 ...old,
                 url: getImageUrl(json2.occurrences[0].image),
                 hasImage: true,
+                isLoading: false,
+              }))
+            } else {
+              // console.log('second call NO', taxonConceptID.slice(-4))
+              setImageState((old) => ({
+                ...old,
                 isLoading: false,
               }))
             }
@@ -102,26 +114,31 @@ function SpeciesCard({ record }) {
         sx={{ height: '5vw', overflow: 'hidden' }}
         title={
           <Typography sx={{ fontWeight: 600, fontStyle: 'italic' }}>
-            {record.scientificName}
+            {record.groupValue}
           </Typography>
         }
-        subheader={record.vernacularName}
+        // subheader={record?.groupValue[0]?.vernacularName}
+        subheader={record?.vernacularName}
         subheaderTypographyProps={{
           // overflow: 'hidden',
           fontSize: '0.8rem',
           // height: '2vw',
         }}
       />
-      <CardMedia
-        image={imageState.url}
-        style={
-          imageState.hasImage ? { opacity: 1 } : { filter: 'grayscale(90%)' }
-        }
-        title="Taxon Image"
-        component="img"
-        height="200"
-        alt={`Image of ${record.vernacularName || record.raw_scientificName}`}
-      />
+      <Grid container justifyContent="center" height={200}>
+        <CardMedia
+          image={imageState.url}
+          style={
+            imageState.hasImage ? { opacity: 1 } : { filter: 'grayscale(90%)' }
+          }
+          // sx={{ display: 'flex', justifyContent: 'center' }}
+          title="Taxon Image"
+          component={imageState.isLoading ? CircularProgress : 'img'}
+          height="200"
+          alt={`Image of ${record.vernacularName || record.raw_scientificName}`}
+        />
+      </Grid>
+
       <CardContent>
         <Typography variant="body2" color="textSecondary" component="p">
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do

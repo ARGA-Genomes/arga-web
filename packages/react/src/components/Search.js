@@ -319,7 +319,7 @@ function Search() {
         }
       })
       const groupParams = pageState.groupResults
-        ? '&group=true&group.field=raw_scientificName&group.main=true'
+        ? '&group=true&group.field=scientificName&group.limit=99'
         : ''
 
       // Do HTTP fetch
@@ -341,8 +341,12 @@ function Search() {
       setPageState((old) => ({
         ...old,
         isLoading: false,
-        data: json.response.docs,
-        total: json.response.numFound,
+        data: pageState.groupResults
+          ? json.grouped.scientificName.groups
+          : json.response.docs,
+        total: pageState.groupResults
+          ? json.grouped.scientificName.matches
+          : json.response.numFound,
         facetResults: json.facet_counts.facet_fields,
       }))
     }
