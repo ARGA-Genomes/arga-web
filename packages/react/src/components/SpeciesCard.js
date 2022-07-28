@@ -32,18 +32,24 @@ function SpeciesCard({ record }) {
     url: logoimage,
     isLoading: false,
     hasImage: false,
+    bieChecked: false,
   })
   // console.log('record', record)
   // eslint-disable-next-line
-  // const { taxonConceptID } = record.doclist.docs[0].taxonConceptID
+  // const { recordOne } = record?.doclist?.docs[0] ?? recordOne
   // eslint-disable-next-line
-  const taxonConceptID = record.taxonConceptID
+  // const taxonConceptID = record.taxonConceptID
 
+  // Try getting an image from BIE
   React.useEffect(() => {
-    if (taxonConceptID) {
+    // const { taxonConceptID } = recordOne?.taxonConceptID
+    if (!imageState.hasImage && !imageState.bieChecked) {
+      console.log('BIE: taxonConceptID', record.doclist.docs[0].taxonConceptID)
       const fetchBieImage = async () => {
         setImageState((old) => ({ ...old, isLoading: true }))
-        const resp = await fetch(`${bieUrlPrefix}/${taxonConceptID}`)
+        const resp = await fetch(
+          `${bieUrlPrefix}${record.doclist.docs[0].taxonConceptID}`
+        )
         const json = await resp.json()
         if (json.imageIdentifier) {
           // console.log('first call', taxonConceptID.slice(-4))
@@ -51,56 +57,77 @@ function SpeciesCard({ record }) {
             ...old,
             isLoading: false,
             hasImage: true,
+            bieChecked: true,
             url: getImageUrl(json.imageIdentifier),
           }))
-        } else if (json) {
-          // try biocache API as fallback
-          const fetchBiocacheImage = async () => {
-            setImageState((old) => ({ ...old, isLoading: true }))
-            const resp2 = await fetch(
-              `${biocacheUrlPrefix}?q=lsid:${taxonConceptID}${biocacheUrlPostfix}`
-            )
-            const json2 = await resp2.json()
-            if (json2.occurrences && json2.occurrences.length === 1) {
-              // console.log('second call YES', taxonConceptID.slice(-4))
-              setImageState((old) => ({
-                ...old,
-                url: getImageUrl(json2.occurrences[0].image),
-                hasImage: true,
-                isLoading: false,
-              }))
-            } else {
-              // console.log('second call NO', taxonConceptID.slice(-4))
-              setImageState((old) => ({
-                ...old,
-                isLoading: false,
-              }))
-            }
-          }
-          fetchBiocacheImage().catch((error) => {
-            setImageState((old) => ({
-              ...old,
-              isLoading: false,
-              message: error,
-            }))
-          })
+        } else {
+          setImageState((old) => ({
+            ...old,
+            isLoading: false,
+            hasImage: false,
+            bieChecked: true,
+          }))
         }
       }
       fetchBieImage().catch((error) => {
         setImageState((old) => ({
           ...old,
           isLoading: false,
+          bieChecked: true,
           message: error,
         }))
         // const msg = `Oops something went wrong. ${error.message}`
         // setSnackState({ status: true, message: msg })
       })
     }
-  }, [record.taxonConceptID])
+  }, [imageState.url])
+
+  // Fallback try getting an image from Biocache
+  React.useEffect(() => {
+    if (!imageState.hasImage && imageState.bieChecked) {
+      console.log(
+        'Biocache: taxonConceptID',
+        record.doclist.docs[0].taxonConceptID
+      )
+      const fetchBiocacheImage = async () => {
+        setImageState((old) => ({ ...old, isLoading: true }))
+        const resp2 = await fetch(
+          `${biocacheUrlPrefix}?q=lsid:${record.doclist.docs[0].taxonConceptID}${biocacheUrlPostfix}`
+        )
+        const json2 = await resp2.json()
+        if (json2.occurrences && json2.occurrences.length === 1) {
+          // console.log('second call YES', taxonConceptID.slice(-4))
+          setImageState((old) => ({
+            ...old,
+            url: getImageUrl(json2.occurrences[0].image),
+            hasImage: true,
+            isLoading: false,
+          }))
+        } else {
+          // console.log('second call NO', taxonConceptID.slice(-4))
+          setImageState((old) => ({
+            ...old,
+            isLoading: false,
+          }))
+        }
+      }
+      fetchBiocacheImage().catch((error) => {
+        setImageState((old) => ({
+          ...old,
+          isLoading: false,
+          message: error,
+        }))
+      })
+    }
+  }, [imageState.bieChecked])
 
   const handleExpandClick = () => {
     setExpanded(!expanded)
   }
+
+  // if (pageState.isLoading) {
+  //   return <CircularProgress />
+  // }
 
   return (
     <Card style={{}}>
@@ -118,7 +145,7 @@ function SpeciesCard({ record }) {
           </Typography>
         }
         // subheader={record?.groupValue[0]?.vernacularName}
-        subheader={record?.vernacularName}
+        subheader={record.doclist.docs[0].vernacularName}
         subheaderTypographyProps={{
           // overflow: 'hidden',
           fontSize: '0.8rem',

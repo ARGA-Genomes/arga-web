@@ -141,3 +141,4 @@ Temporary Items
 
 # VCS plugins
 .history
+*.code-workspace

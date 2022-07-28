@@ -6,20 +6,19 @@ import {
   Chip,
   Snackbar,
   IconButton,
-  GlobalStyles,
   Grid,
   Tab,
   Tabs,
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
-import { DataGrid } from '@mui/x-data-grid'
 import { lighten } from '@mui/material/styles'
 import stringHash from 'string-hash'
-import theme from './theme'
 import RecordDrawer from './RecordDrawer'
 import ArgaToolbar from './ArgaToolbar'
 import FacetsBar from './FacetsBar'
 import GridView from './GridView'
+import DataTable from './DataTable'
+import theme from './theme'
 
 /*
  * ToDo list
@@ -28,7 +27,7 @@ import GridView from './GridView'
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
 const defaultQuery = '*:*'
-const defaultSort = 'vernacularName'
+// const defaultSort = 'vernacularName'
 const facetFields = [
   'dataResourceName',
   'speciesGroup',
@@ -93,6 +92,7 @@ function Search() {
   const [pageState, setPageState] = useState({
     isLoading: false,
     data: [],
+    species: [],
     total: 0,
     page: 1,
     pageSize: 25,
@@ -120,6 +120,21 @@ function Search() {
   // Tabs state
   const [tabValue, setTabValue] = useState(0)
   const handleTabChange = (event, newValue) => {
+    // if (newValue === 0) {
+    //   setPageState((old) => ({
+    //     ...old,
+    //     groupResults: false,
+    //     page: 1,
+    //     pageSize: 25,
+    //   }))
+    // } else if (newValue === 1) {
+    //   setPageState((old) => ({
+    //     ...old,
+    //     groupResults: true,
+    //     page: 1,
+    //     pageSize: 24,
+    //   }))
+    // }
     setTabValue(newValue)
   }
 
@@ -305,7 +320,12 @@ function Search() {
   // Fetch list of records - SOLR select
   useEffect(() => {
     const fetchData = async () => {
-      setPageState((old) => ({ ...old, isLoading: true, data: [] }))
+      setPageState((old) => ({
+        ...old,
+        isLoading: true,
+        // data: [],
+        // species: [],
+      }))
       // calculate SOLR startIndex param
       const startIndex =
         pageState.page * pageState.pageSize - pageState.pageSize
@@ -341,9 +361,10 @@ function Search() {
       setPageState((old) => ({
         ...old,
         isLoading: false,
-        data: pageState.groupResults
+        data: pageState.groupResults ? {} : json.response.docs,
+        species: pageState.groupResults
           ? json.grouped.scientificName.groups
-          : json.response.docs,
+          : [],
         total: pageState.groupResults
           ? json.grouped.scientificName.matches
           : json.response.numFound,
@@ -449,7 +470,7 @@ function Search() {
     </IconButton>
   )
 
-  const datagridRef = useRef(null) // Not sure this is needed?
+  // const datagridRef = useRef(null) // Not sure this is needed?
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -529,68 +550,21 @@ function Search() {
                 </Tabs>
               </Box>
               <TabPanel value={tabValue} index={0}>
-                <DataGrid
-                  // components={{
-                  //   Toolbar: GridToolbar
-                  // }}
-                  autoHeight={false}
-                  disableSelectionOnClick
-                  rowHeight={40}
-                  headerHeight={42}
-                  ref={datagridRef}
-                  style={{ backgroundColor: 'white' }}
+                <DataTable
                   columns={columns}
-                  rows={pageState.data}
-                  rowCount={pageState.total}
-                  loading={pageState.isLoading}
-                  rowsPerPageOptions={[10, 25, 50, 70, 100]}
-                  // pagination
-                  page={pageState.page - 1}
-                  pageSize={pageState.pageSize}
-                  paginationMode="server"
-                  sortingMode="server"
-                  sortModel={[pageState]}
-                  onPageChange={(newPage) =>
-                    setPageState((old) => ({ ...old, page: newPage + 1 }))
-                  }
-                  onPageSizeChange={(newPageSize) =>
-                    setPageState((old) => ({ ...old, pageSize: newPageSize }))
-                  }
-                  onSortModelChange={(sortModel) =>
-                    setPageState((old) => ({
-                      ...old,
-                      field: sortModel[0]?.field || defaultSort,
-                      sort: sortModel[0]?.sort || 'asc',
-                      page: 1,
-                    }))
-                  }
-                  onRowClick={(e) =>
-                    setRecordState((old) => ({ ...old, id: e.id }))
-                  }
-                />
-                {/* ToDo put this in a custom styled component */}
-                <GlobalStyles
-                  styles={{
-                    '#results-tabpanel-0 .MuiDataGrid-root': {
-                      height: 'calc(100vh - 284px)',
-                    },
-                    '.MuiDataGrid-footerContainer': {
-                      // backgroundColor: '#fff', // '#D6EFFE',
-                      backgroundColor: lighten(theme.palette.success.main, 0.7),
-                      border: '1px solid rgba(224, 224, 224, 1)',
-                      borderRadius: '4px',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      bottom: 0, // <-- KEY
-                      zIndex: 3,
-                      position: 'fixed',
-                      width: '100%',
-                    },
-                  }}
+                  pageState={pageState}
+                  setPageState={setPageState}
+                  setRecordState={setRecordState}
                 />
               </TabPanel>
               <TabPanel value={tabValue} index={1}>
-                <Box sx={{ p: 1 }}>
+                <Box
+                  sx={{
+                    flexGrow: 1,
+                    p: 2,
+                    backgroundColor: lighten(theme.palette.warning.main, 0.75),
+                  }}
+                >
                   <GridView pageState={pageState} setPageState={setPageState} />
                 </Box>
               </TabPanel>
