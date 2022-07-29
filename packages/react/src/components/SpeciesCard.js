@@ -25,7 +25,7 @@ import {
   TextSnippet,
 } from '@mui/icons-material'
 // import { lighten } from '@mui/material/styles'
-import logoimage from '../assets/ARGA-logo-notext.png'
+import logoimage from '../assets/ARGA Logomark MONO REVERSED.png'
 import theme from './theme'
 
 const bieUrlPrefix = 'https://bie-ws.ala.org.au/ws/species/'
@@ -202,7 +202,12 @@ function SpeciesCard({ record, index, setRecordState }) {
         <CardMedia
           image={imageState.url}
           style={
-            imageState.hasImage ? { opacity: 1 } : { filter: 'grayscale(90%)' }
+            imageState.hasImage
+              ? { opacity: 1 }
+              : {
+                  // filter: 'invert(1)',
+                  backgroundColor: theme.palette.primary.main,
+                }
           }
           // sx={{ display: 'flex', justifyContent: 'center' }}
           title="Taxon Image"
