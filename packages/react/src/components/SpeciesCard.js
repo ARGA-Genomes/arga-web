@@ -1,16 +1,20 @@
 import React from 'react'
 import {
+  // Avatar,
   Button,
   Card,
   CardHeader,
   CardMedia,
   CardContent,
   CardActions,
+  // Chip,
   Collapse,
   Grid,
   IconButton,
   Typography,
   CircularProgress,
+  Badge,
+  styled,
 } from '@mui/material'
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import ShareIcon from '@mui/icons-material/Share'
@@ -18,8 +22,11 @@ import {
   // ExpandMore,
   // ExpandLess,
   Article,
+  TextSnippet,
 } from '@mui/icons-material'
+// import { lighten } from '@mui/material/styles'
 import logoimage from '../assets/ARGA-logo-notext.png'
+import theme from './theme'
 
 const bieUrlPrefix = 'https://bie-ws.ala.org.au/ws/species/'
 const biocacheUrlPrefix = 'https://biocache-ws.ala.org.au/ws/occurrences/search'
@@ -30,6 +37,16 @@ function getImageUrl(imageId) {
   const idArr = imageId.slice(-4).split('')
   return `https://images.ala.org.au/store/${idArr[3]}/${idArr[2]}/${idArr[1]}/${idArr[0]}/${imageId}/thumbnail_square_darkGray`
 }
+
+const StyledBadge = styled(Badge)(() => ({
+  '& .MuiBadge-badge': {
+    right: -3,
+    top: 11,
+    border: `2px solid ${theme.palette.background.paper}`,
+    padding: '0 4px',
+    color: 'white',
+  },
+}))
 
 function SpeciesCard({ record, index, setRecordState }) {
   const [expanded] = React.useState(false)
@@ -49,7 +66,7 @@ function SpeciesCard({ record, index, setRecordState }) {
   React.useEffect(() => {
     // const { taxonConceptID } = recordOne?.taxonConceptID
     if (!imageState.hasImage && !imageState.bieChecked) {
-      console.log('BIE: taxonConceptID', record.doclist.docs[0].taxonConceptID)
+      // console.log('BIE: taxonConceptID', record.doclist.docs[0].taxonConceptID)
       const fetchBieImage = async () => {
         setImageState((old) => ({ ...old, isLoading: true }))
         const resp = await fetch(
@@ -90,10 +107,10 @@ function SpeciesCard({ record, index, setRecordState }) {
   // Fallback try getting an image from Biocache
   React.useEffect(() => {
     if (!imageState.hasImage && imageState.bieChecked) {
-      console.log(
-        'Biocache: taxonConceptID',
-        record.doclist.docs[0].taxonConceptID
-      )
+      // console.log(
+      //   'Biocache: taxonConceptID',
+      //   record.doclist.docs[0].taxonConceptID
+      // )
       const fetchBiocacheImage = async () => {
         setImageState((old) => ({ ...old, isLoading: true }))
         const resp2 = await fetch(
@@ -126,6 +143,27 @@ function SpeciesCard({ record, index, setRecordState }) {
     }
   }, [imageState.bieChecked])
 
+  // const [docs] = record.doclist.docs
+  const drCounts = record.doclist.docs.reduce((accumulator, currentValue) => {
+    if (accumulator[currentValue.dataResourceName]) {
+      accumulator[currentValue.dataResourceName] += 1
+    } else {
+      accumulator[currentValue.dataResourceName] = 1
+    }
+
+    return accumulator
+  }, {})
+
+  // console.log('drCounts', drCounts)
+
+  // const dataResourceArr = pageState.facetResults.dataResourceName
+  // const newValueArray = []
+  // for (let i = 0; i < dataResourceArr.length; i += 2) {
+  //   const name = dataResourceArr[i]
+  //   const count = dataResourceArr[i + 1]
+  //   newValueArray.push({ name, count })
+  // }
+
   // const handleExpandClick = () => {
   //   setExpanded(!expanded)
   // }
@@ -143,7 +181,9 @@ function SpeciesCard({ record, index, setRecordState }) {
         //     <MoreVertIcon />
         //   </IconButton>
         // }
-        sx={{ height: '5vw', overflow: 'hidden' }}
+        sx={{
+          overflow: 'hidden',
+        }}
         title={
           <Typography sx={{ fontWeight: 600, fontStyle: 'italic' }}>
             {record.groupValue}
@@ -171,11 +211,36 @@ function SpeciesCard({ record, index, setRecordState }) {
         />
       </Grid>
 
-      <CardContent>
-        <Typography variant="body2" color="textSecondary" component="p">
-          {record.doclist.docs.length} sequence record
-          {record.doclist.docs.length > 1 ? `s are` : ' is'} available — expand
-          to see details
+      <CardContent sx={{ height: '120px', overflow: 'auto' }}>
+        <Typography variant="body2" color="textSecondary" component="div">
+          {record.doclist.docs.length} sequence record{' '}
+          {record.doclist.docs.length > 1 ? `s are` : ' is'} available
+        </Typography>
+        <Typography
+          variant="body2"
+          color="textSecondary"
+          component="ul"
+          sx={{ paddingInlineStart: '20px' }}
+        >
+          {Object.keys(drCounts).map((key) => (
+            // <Chip
+            //   avatar={<Avatar>{drCounts[key]}</Avatar>}
+            //   label={key}
+            //   size="small"
+            //   // color="success"
+            // />
+            <li variant="body2" color="textSecondary" component="p" key={key}>
+              {key}
+              <StyledBadge
+                color="success"
+                badgeContent={drCounts[key]}
+                showZero
+              >
+                <TextSnippet />
+              </StyledBadge>
+            </li>
+          ))}
+          {/* — expand to see details */}
         </Typography>
       </CardContent>
       <CardActions disableSpacing>
@@ -193,7 +258,7 @@ function SpeciesCard({ record, index, setRecordState }) {
         >
           {expanded ? <ExpandLess /> : <ExpandMore />}
         </IconButton> */}
-        <IconButton
+        <Button
           sx={{ textTransform: 'none', marginLeft: 'auto' }}
           onClick={() =>
             setRecordState((old) => ({
@@ -202,13 +267,12 @@ function SpeciesCard({ record, index, setRecordState }) {
               speciesIndex: index,
             }))
           }
+          size="small"
+          variant="outlined"
+          endIcon={<Article />}
         >
-          {' '}
-          <Button size="small" variant="outlined" endIcon={<Article />}>
-            {' '}
-            View {record.doclist.docs.length}
-          </Button>
-        </IconButton>
+          View {record.doclist.docs.length}
+        </Button>
       </CardActions>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent>
@@ -217,6 +281,7 @@ function SpeciesCard({ record, index, setRecordState }) {
           </Typography>
           {record.doclist.docs.map((sequence, idx) => (
             <Typography
+              key={sequence.id}
               sx={{ borderTop: '1px' }}
               variant="body2"
               color="textSecondary"
