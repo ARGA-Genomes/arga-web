@@ -198,15 +198,21 @@ function SpeciesCard({ record, index, setRecordState }) {
           // height: '2vw',
         }}
       />
-      <Grid container justifyContent="center" height={200}>
+      <Grid
+        container
+        justifyContent="center"
+        height={200}
+        sx={{
+          backgroundColor: theme.palette.primary.main,
+        }}
+      >
         <CardMedia
           image={imageState.url}
           style={
             imageState.hasImage
               ? { opacity: 1 }
               : {
-                  // filter: 'invert(1)',
-                  backgroundColor: theme.palette.primary.main,
+                  filter: 'invert(25%)',
                 }
           }
           // sx={{ display: 'flex', justifyContent: 'center' }}
