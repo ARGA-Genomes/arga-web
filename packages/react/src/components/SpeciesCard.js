@@ -183,6 +183,7 @@ function SpeciesCard({ record, index, setRecordState }) {
         // }
         sx={{
           overflow: 'hidden',
+          height: '75px',
         }}
         title={
           <Typography sx={{ fontWeight: 600, fontStyle: 'italic' }}>
@@ -211,7 +212,7 @@ function SpeciesCard({ record, index, setRecordState }) {
         />
       </Grid>
 
-      <CardContent sx={{ height: '120px', overflow: 'auto' }}>
+      <CardContent sx={{ height: '105px', overflow: 'hidden' }}>
         <Typography variant="body2" color="textSecondary" component="div">
           {record.doclist.docs.length} sequence record{' '}
           {record.doclist.docs.length > 1 ? `s are` : ' is'} available
