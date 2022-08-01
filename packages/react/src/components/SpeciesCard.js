@@ -210,7 +210,7 @@ function SpeciesCard({ record, index, setRecordState }) {
           image={imageState.url}
           style={
             imageState.hasImage
-              ? { opacity: 1 }
+              ? { filter: 'none' }
               : {
                   filter: 'invert(25%)',
                 }
