@@ -172,7 +172,7 @@ const geoJsonFromSolr = (data, geoField) => {
   return geoJsonObj
 }
 
-function CustomGeoJson() {
+function CustomGeoJson({ pageState, fqState }) {
   const map = useMap()
   const geoJsonLayerRef = useRef(null)
   const [mapDataState, setMapDataState] = useState({
@@ -214,11 +214,26 @@ function CustomGeoJson() {
   }
 
   useEffect(() => {
-    // console.log('map', mapDataState.zoom, mapDataState.bbox)
+    console.log(
+      'map',
+      // mapDataState.zoom,
+      // mapDataState.bbox,
+      pageState.q
+    )
     const fetchRecord = async () => {
       setMapDataState((old) => ({ ...old, isLoading: true }))
+      const fqParamList = []
+      Object.keys(fqState).forEach((key) => {
+        if (fqState[key].length > 0) {
+          fqState[key].forEach((val) => {
+            fqParamList.push(`${key}:%22${val}%22`)
+          })
+        }
+      })
       const resp = await fetch(
-        `${serverUrlPrefix}/select?q=*:*&fq={!bbox%20sfield=location}&pt=${getSolrBbox(
+        `${serverUrlPrefix}/select?q=${pageState.q}&fq=${fqParamList.join(
+          '&fq='
+        )}&fq={!bbox%20sfield=location}&pt=${getSolrBbox(
           mapDataState.bbox,
           mapDataState.center
         )}&facet=true&facet.field=${
@@ -244,7 +259,7 @@ function CustomGeoJson() {
       // const msg = `Oops something went wrong. ${error.message}`
       // setSnackState({ status: true, message: msg })
     })
-  }, [mapDataState.bbox, mapDataState.zoom])
+  }, [mapDataState.bbox, mapDataState.zoom, pageState.q, fqState])
 
   useEffect(() => {
     if (
@@ -268,7 +283,7 @@ function CustomGeoJson() {
   )
 }
 
-function MapView() {
+function MapView({ pageState, fqState }) {
   // const map = useMap()
 
   return (
@@ -281,7 +296,7 @@ function MapView() {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
       />
-      <CustomGeoJson />
+      <CustomGeoJson pageState={pageState} fqState={fqState} />
     </MapContainer>
   )
 }
