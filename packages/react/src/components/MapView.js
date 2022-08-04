@@ -158,7 +158,7 @@ const getFeatureObj = ({ latlng, count, geoField }) => {
       geoAddition,
     },
   }
-  console.log('featureObj', featureObj)
+  // console.log('featureObj', featureObj)
   return featureObj
 }
 
@@ -170,7 +170,7 @@ const geoJsonFromSolr = (data, geoField) => {
     const count = data[i + 1]
     featureArray.push(getFeatureObj({ latlng, count, geoField }))
   }
-  console.log('geoJsonFromSolr', featureArray)
+  // console.log('geoJsonFromSolr', featureArray)
 
   const geoJsonObj = {
     type: 'FeatureCollection',
@@ -184,8 +184,9 @@ function CustomGeoJson() {
   const map = useMap()
   const geoJsonLayerRef = useRef(null)
   const [mapDataState, setMapDataState] = useState({
-    bbox: map.getBounds(),
+    bbox: map.getBounds(), // Leaflet `LatLng` object
     zoom: map.getZoom(), // 18 is maxZoomLevel, default seems to be 4 or 5 on load
+    center: map.getCenter(), // Leaflet `LatLng` object
     geoField: getFieldForZoom(map.getZoom()),
     data: null,
     isLoading: false,
@@ -197,6 +198,7 @@ function CustomGeoJson() {
       ...old,
       zoom: mapEv.getZoom(),
       bbox: mapEv.getBounds(),
+      center: mapEv.getCenter(),
       geoField: getFieldForZoom(mapEv.getZoom()),
     }))
   }
@@ -210,20 +212,23 @@ function CustomGeoJson() {
     },
   })
 
-  const getSolrBbox = (latLngBounds) =>
-    `[${latLngBounds.getSouthWest().lat},${
-      latLngBounds.getSouthWest().lng
-    }%20TO%20${latLngBounds.getNorthEast().lat},${
-      latLngBounds.getNorthEast().lng
-    }]`
+  const getSolrBbox = (latLngBounds, center) => {
+    // Calculate distance from map center to a corner for use as radius value (km)
+    // in SOLR bbox filter https://solr.apache.org/guide/8_5/spatial-search.html#bbox
+    const dist = center.distanceTo(latLngBounds.getNorthEast()) / 1000
+    return `${center.lat.toFixed(7)},${center.lng.toFixed(7)}&d=${Math.ceil(
+      dist
+    )}`
+  }
 
   useEffect(() => {
     console.log('map', mapDataState.zoom, mapDataState.bbox)
     const fetchRecord = async () => {
       setMapDataState((old) => ({ ...old, isLoading: true }))
       const resp = await fetch(
-        `${serverUrlPrefix}/select?q=*:*&fq=geohash:${getSolrBbox(
-          mapDataState.bbox
+        `${serverUrlPrefix}/select?q=*:*&fq={!bbox%20sfield=location}&pt=${getSolrBbox(
+          mapDataState.bbox,
+          mapDataState.center
         )}&facet=true&facet.field=${
           mapDataState.geoField
         }&facet.mincount=1&rows=0&facet.limit=999`
