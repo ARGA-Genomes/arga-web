@@ -231,7 +231,9 @@ function CustomGeoJson({ pageState, fqState }) {
         }
       })
       const resp = await fetch(
-        `${serverUrlPrefix}/select?q=${pageState.q}&fq=${fqParamList.join(
+        `${serverUrlPrefix}/select?q=${
+          pageState.q || '*:*'
+        }&fq=${fqParamList.join(
           '&fq='
         )}&fq={!bbox%20sfield=location}&pt=${getSolrBbox(
           mapDataState.bbox,
