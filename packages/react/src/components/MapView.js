@@ -7,6 +7,7 @@ import {
   useMap,
   useMapEvents,
 } from 'react-leaflet'
+import { darken } from '@mui/material/styles'
 import '../assets/leaflet/leaflet.css'
 // import GeosjonData from '../assets/leaflet/example-featurecollection.json'
 
@@ -39,18 +40,18 @@ const zoomToPoint = {
 }
 
 const getColourForCount = (count) => {
-  let colour = '#cc0000'
+  let colour = '#0868AC'
 
   if (count < 10) {
-    colour = '#ffff00'
+    colour = '#F0F9E8' // #ffff00
   } else if (count < 50) {
-    colour = '#ffcc00'
+    colour = '#BAE4BC' // #ffcc00
   } else if (count < 100) {
-    colour = '#ff9900'
+    colour = '#7BCCC4' // #ff9900
   } else if (count < 250) {
-    colour = '#ff6600'
+    colour = '#43A2CA' // #ff6600
   } else if (count < 500) {
-    colour = '#ff3300'
+    colour = '#0868AC' // #ff3300
   }
 
   return colour
@@ -78,11 +79,11 @@ const onEachPolygon = (feature, layer) => {
   const setColor = feature.properties.color
   if (setColor) {
     layer.setStyle({
-      color: setColor,
+      color: darken(setColor, 0.2),
       fillColor: setColor,
-      fillOpacity: 0.4,
+      fillOpacity: 0.6,
       weight: 1,
-      strole: false,
+      stroke: true,
     })
   }
   const popupContent = ReactDOMServer.renderToString(
