@@ -67,19 +67,11 @@ const getFieldForZoom = (zoom) => {
 
 function Popup({ feature }) {
   let popupContent = '-1'
-  let latLngs = null
-  let precision = ''
   if (feature.properties && feature.properties.count) {
     popupContent = feature.properties.count
-    precision = feature.properties.geoAddition
-    latLngs = feature.geometry.coordinates.join(',')
   }
 
-  return (
-    <div>
-      {popupContent} sequence records ({precision}) - {latLngs}
-    </div>
-  )
+  return <div>{popupContent} sequence records</div>
 }
 
 const onEachPolygon = (feature, layer) => {
@@ -222,7 +214,7 @@ function CustomGeoJson() {
   }
 
   useEffect(() => {
-    console.log('map', mapDataState.zoom, mapDataState.bbox)
+    // console.log('map', mapDataState.zoom, mapDataState.bbox)
     const fetchRecord = async () => {
       setMapDataState((old) => ({ ...old, isLoading: true }))
       const resp = await fetch(
@@ -231,7 +223,7 @@ function CustomGeoJson() {
           mapDataState.center
         )}&facet=true&facet.field=${
           mapDataState.geoField
-        }&facet.mincount=1&rows=0&facet.limit=999`
+        }&facet.mincount=1&rows=0&facet.limit=4999`
       )
       const json = await resp.json()
       setMapDataState((old) => ({
@@ -270,7 +262,6 @@ function CustomGeoJson() {
       key={mapDataState.data ? mapDataState.data.length : 1}
       ref={geoJsonLayerRef}
       attribution="CC-BY ARGA"
-      // data={GeosjonData}
       data={mapDataState.data}
       onEachFeature={onEachPolygon}
     />
@@ -282,8 +273,6 @@ function MapView() {
 
   return (
     <MapContainer
-      // center={[-25.61, 134.36]}
-      // zoom={5}
       bounds={AusBounds}
       scrollWheelZoom={false}
       style={{ height: 'calc(100vh - 284px)', width: '100%' }}
