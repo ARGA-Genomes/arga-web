@@ -18,6 +18,7 @@ import ArgaToolbar from './ArgaToolbar'
 import FacetsBar from './FacetsBar'
 import GridView from './GridView'
 import DataTable from './DataTable'
+import MapView from './MapView'
 import theme from './theme'
 
 /*
@@ -578,7 +579,14 @@ function Search() {
                 </Box>
               </TabPanel>
               <TabPanel value={tabValue} index={2}>
-                <Box sx={{ p: 3 }}>Map view goes here</Box>
+                <Box
+                  sx={{
+                    flexGrow: 1,
+                    p: 2,
+                  }}
+                >
+                  <MapView />
+                </Box>
               </TabPanel>
             </Box>
           </div>
