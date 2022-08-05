@@ -1,14 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
 import ReactDOMServer from 'react-dom/server'
+// import { Button } from '@mui/material'
 import {
   MapContainer,
   TileLayer,
   GeoJSON,
   useMap,
   useMapEvents,
+  LayersControl,
 } from 'react-leaflet'
 import { darken } from '@mui/material/styles'
 import '../assets/leaflet/leaflet.css'
+import Legend from './MapLegend'
 // import GeosjonData from '../assets/leaflet/example-featurecollection.json'
 
 // import { Icon } from 'leaflet'
@@ -33,26 +36,27 @@ const zoomToPoint = {
   10: 'point-0.01',
   11: 'point-0.01',
   12: 'point-0.01',
-  // 13: 'point-0.001',
-  // 14: 'point-0.001',
-  // 15: 'point-0.001',
-  // 16: 'point-0.001',
+}
+
+// const coloursForCounts = ['#f1eef6', '#bdc9e1', '#74a9cf', '#2b8cbe', '#045a8d']
+const coloursForCounts = {
+  10: '#f1eef6',
+  50: '#bdc9e1',
+  100: '#74a9cf',
+  250: '#2b8cbe',
+  500: '#045a8d',
 }
 
 const getColourForCount = (count) => {
-  let colour = '#0868AC'
+  let colour = '#045a8d'
 
-  if (count < 10) {
-    colour = '#F0F9E8' // #ffff00
-  } else if (count < 50) {
-    colour = '#BAE4BC' // #ffcc00
-  } else if (count < 100) {
-    colour = '#7BCCC4' // #ff9900
-  } else if (count < 250) {
-    colour = '#43A2CA' // #ff6600
-  } else if (count < 500) {
-    colour = '#0868AC' // #ff3300
-  }
+  Object.keys(coloursForCounts).every((key) => {
+    if (count < key) {
+      colour = coloursForCounts[key]
+      return false
+    }
+    return true
+  })
 
   return colour
 }
@@ -71,8 +75,15 @@ function Popup({ feature }) {
   if (feature.properties && feature.properties.count) {
     popupContent = feature.properties.count
   }
+  // feature.geometry.coordinates
 
-  return <div>{popupContent} sequence records</div>
+  return (
+    <div>
+      {popupContent} sequence records
+      <br />
+      <a href="#">View sequences for this area</a>
+    </div>
+  )
 }
 
 const onEachPolygon = (feature, layer) => {
@@ -215,12 +226,12 @@ function CustomGeoJson({ pageState, fqState }) {
   }
 
   useEffect(() => {
-    console.log(
-      'map',
-      // mapDataState.zoom,
-      // mapDataState.bbox,
-      pageState.q
-    )
+    // console.log(
+    //   'map',
+    //   // mapDataState.zoom,
+    //   // mapDataState.bbox,
+    //   pageState.q
+    // )
     const fetchRecord = async () => {
       setMapDataState((old) => ({ ...old, isLoading: true }))
       const fqParamList = []
@@ -270,7 +281,7 @@ function CustomGeoJson({ pageState, fqState }) {
       geoJsonLayerRef.current &&
       geoJsonLayerRef.current.getLayers()
     ) {
-      console.log('adding data: ', mapDataState.data)
+      // console.log('adding data: ', mapDataState.data)
       geoJsonLayerRef.current.clearLayers().addData(mapDataState.data)
     }
   }, [mapDataState.data])
@@ -287,7 +298,16 @@ function CustomGeoJson({ pageState, fqState }) {
 }
 
 function MapView({ pageState, fqState }) {
-  // const map = useMap()
+  const [legendState, setLegendState] = useState(null)
+  // const mapProviderUrl =
+  //   'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+  // const MapProviderAttr =
+  //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  // const maxZoom = 20
+
+  // useEffect(() => {
+  //   console.log('MapView: legendState', legendState)
+  // }, [legendState])
 
   return (
     <MapContainer
@@ -298,8 +318,19 @@ function MapView({ pageState, fqState }) {
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+        maxZoom={20}
+        subdomains="abcd"
       />
-      <CustomGeoJson pageState={pageState} fqState={fqState} />
+      <LayersControl position="topright">
+        <LayersControl.Overlay checked name="Sequence data">
+          <CustomGeoJson pageState={pageState} fqState={fqState} />
+        </LayersControl.Overlay>
+      </LayersControl>
+      <Legend
+        legendState={legendState}
+        setLegendState={setLegendState}
+        coloursForCounts={coloursForCounts}
+      />
     </MapContainer>
   )
 }
