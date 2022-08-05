@@ -8,7 +8,7 @@ function Legend({ legendState, setLegendState, coloursForCounts }) {
   useEffect(() => {
     if (legendState) {
       // hack to prevent duplicate legend appearing on map
-      map.removeControl(legendState)
+      // map.removeControl(legendState)
     } else if (map && !legendState) {
       // Add legend to map
       const legend = L.control({ position: 'bottomright' })
