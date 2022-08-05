@@ -663,7 +663,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 } */
 
 .info {
-	padding: 8px 14px 10px 14px;
+	padding: 8px 14px 12px 14px;
 	/* font: 14px/16px Arial, Helvetica, sans-serif; */
 	background: white;
 	border-radius: 5px;
@@ -676,7 +676,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 }
 
 .legend h4 {
-	margin: 4px 0;
+	margin: 4px 0 8px 0;
 	font-size: 13px;
 }
 
