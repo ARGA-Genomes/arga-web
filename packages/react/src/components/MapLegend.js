@@ -9,7 +9,7 @@ function Legend({ legendState, setLegendState, coloursForCounts }) {
     if (legendState) {
       // hack to prevent duplicate legend appearing on map
       // map.removeControl(legendState)
-    } else if (map && !legendState) {
+    } else if (map) {
       // Add legend to map
       const legend = L.control({ position: 'bottomright' })
 
