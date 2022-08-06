@@ -1,18 +1,16 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useMap } from 'react-leaflet'
 import L from 'leaflet'
 
-function Legend({ legendState, setLegendState, coloursForCounts }) {
+function Legend({ coloursForCounts }) {
   const map = useMap()
+  const legendRef = useRef(null)
+
   // console.log('map', map?.zoom)
   useEffect(() => {
-    if (legendState) {
-      // hack to prevent duplicate legend appearing on map
-      // map.removeControl(legendState)
-    } else if (map) {
+    if (map) {
       // Add legend to map
       const legend = L.control({ position: 'bottomright' })
-
       legend.onAdd = () => {
         const div = L.DomUtil.create('div', 'info legend')
         const title = '<h4>Records per grid</h4>'
@@ -28,25 +26,18 @@ function Legend({ legendState, setLegendState, coloursForCounts }) {
         div.innerHTML = `${title}${entries.join('')}`
         return div
       }
-      setLegendState(legend)
+      legendRef.current = legend
       legend.addTo(map)
-
-      // const info = L.control({ position: 'bottomright' })
-      // info.onAdd = () => {
-      //   info.div = L.DomUtil.create('div', 'info')
-      //   info.update()
-      //   return info.div
-      // }
-
-      // info.update = () => {
-      //   const heading = '<h4>Heatmap colours</h4>'
-      //   const content = '<b>Lorem ipsum dolor sit amet</b>'
-      //   info.div.innerHTML = `${heading}${content}`
-      // }
-      //
-      // info.addTo(map)
     }
-  }, [legendState])
+
+    return () => {
+      // cleanup function
+      // prevent duplicate controls appreaing in dev mode
+      if (legendRef.current) {
+        map.removeControl(legendRef.current)
+      }
+    }
+  }, [])
 
   return null
 }

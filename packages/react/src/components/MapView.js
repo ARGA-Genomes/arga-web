@@ -12,7 +12,6 @@ import {
 import { darken } from '@mui/material/styles'
 import '../assets/leaflet/leaflet.css'
 import Legend from './MapLegend'
-// import GeosjonData from '../assets/leaflet/example-featurecollection.json'
 
 // import { Icon } from 'leaflet'
 // import { CssBaseline } from '@mui/material'
@@ -298,17 +297,6 @@ function CustomGeoJson({ pageState, fqState }) {
 }
 
 function MapView({ pageState, fqState }) {
-  const [legendState, setLegendState] = useState(null)
-  // const mapProviderUrl =
-  //   'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-  // const MapProviderAttr =
-  //   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-  // const maxZoom = 20
-
-  // useEffect(() => {
-  //   console.log('MapView: legendState', legendState)
-  // }, [legendState])
-
   return (
     <MapContainer
       bounds={AusBounds}
@@ -326,11 +314,7 @@ function MapView({ pageState, fqState }) {
           <CustomGeoJson pageState={pageState} fqState={fqState} />
         </LayersControl.Overlay>
       </LayersControl>
-      <Legend
-        legendState={legendState}
-        setLegendState={setLegendState}
-        coloursForCounts={coloursForCounts}
-      />
+      <Legend coloursForCounts={coloursForCounts} />
     </MapContainer>
   )
 }
