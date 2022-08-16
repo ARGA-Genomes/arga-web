@@ -2,7 +2,18 @@ import { useEffect, useRef } from 'react'
 import { useMap } from 'react-leaflet'
 import L from 'leaflet'
 
-function Legend({ coloursForCounts }) {
+// Colour palette from https://colorbrewer2.org/#type=sequential&scheme=PuBu&n=5
+// Note this code is duplicated in MapDataLayer - ideally it should be passed in as a prop
+// but this makes it require react.memo or similar. Could be done with context too.
+const coloursForCounts = {
+  10: '#f1eef6',
+  50: '#bdc9e1',
+  100: '#74a9cf',
+  250: '#2b8cbe',
+  500: '#045a8d',
+}
+
+function Legend() {
   const map = useMap()
   const legendRef = useRef(null)
 
