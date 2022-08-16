@@ -12,6 +12,7 @@ import {
 import { darken } from '@mui/material/styles'
 import '../assets/leaflet/leaflet.css'
 import Legend from './MapLegend'
+import MapPopup from './MapPopup'
 
 // import { Icon } from 'leaflet'
 // import { CssBaseline } from '@mui/material'
@@ -34,10 +35,10 @@ const zoomToPoint = {
   9: 'point-0.1',
   10: 'point-0.01',
   11: 'point-0.01',
-  12: 'point-0.01',
+  12: 'point-0.01', // everything higher is `0.001`
 }
 
-// const coloursForCounts = ['#f1eef6', '#bdc9e1', '#74a9cf', '#2b8cbe', '#045a8d']
+// Colour palette from https://colorbrewer2.org/#type=sequential&scheme=PuBu&n=5
 const coloursForCounts = {
   10: '#f1eef6',
   50: '#bdc9e1',
@@ -50,9 +51,9 @@ const getColourForCount = (count) => {
   let colour = '#045a8d'
 
   Object.keys(coloursForCounts).every((key) => {
-    if (count < key) {
+    if (count - 1 < key) {
       colour = coloursForCounts[key]
-      return false
+      return false // escape `every` looping
     }
     return true
   })
@@ -61,7 +62,7 @@ const getColourForCount = (count) => {
 }
 
 const getFieldForZoom = (zoom) => {
-  // let field = 'location'
+  // let field = 'location' // not a facet field!
   let field = 'point-0.001'
   if (zoom in zoomToPoint) {
     field = zoomToPoint[zoom]
@@ -69,38 +70,21 @@ const getFieldForZoom = (zoom) => {
   return field
 }
 
-function Popup({ feature }) {
-  let popupContent = '-1'
-  if (feature.properties && feature.properties.count) {
-    popupContent = feature.properties.count
-  }
-  // feature.geometry.coordinates
+// function Popup({ feature }) {
+//   let popupContent = '-1'
+//   if (feature.properties && feature.properties.count) {
+//     popupContent = feature.properties.count
+//   }
+//   // feature.geometry.coordinates
 
-  return (
-    <div>
-      {popupContent} sequence records
-      <br />
-      <a href="#">View sequences for this area</a>
-    </div>
-  )
-}
-
-const onEachPolygon = (feature, layer) => {
-  const setColor = feature.properties.color
-  if (setColor) {
-    layer.setStyle({
-      color: darken(setColor, 0.2),
-      fillColor: setColor,
-      fillOpacity: 0.6,
-      weight: 1,
-      stroke: true,
-    })
-  }
-  const popupContent = ReactDOMServer.renderToString(
-    <Popup feature={feature} />
-  )
-  layer.bindPopup(popupContent)
-}
+//   return (
+//     <div>
+//       {popupContent} sequence records
+//       <br />
+//       <a href="#">View sequences for this area</a>
+//     </div>
+//   )
+// }
 
 function getGeoAddition(lat, lng) {
   if (!lat.includes('.') && !lng.includes('.')) {
@@ -204,6 +188,27 @@ function CustomGeoJson({ pageState, fqState }) {
       center: mapEv.getCenter(),
       geoField: getFieldForZoom(mapEv.getZoom()),
     }))
+  }
+
+  // Add styling and popup to each polygon
+  const onEachPolygon = (feature, layer) => {
+    const setColor = feature.properties.color
+    if (setColor) {
+      layer.setStyle({
+        color: darken(setColor, 0.2),
+        fillColor: setColor,
+        fillOpacity: 0.6,
+        weight: 1,
+        stroke: true,
+      })
+    }
+    const popupContent = ReactDOMServer.renderToString(
+      // Note this is effectively doing a static HTML output, similar to SSR,
+      // so interactive functionality (like data fetching) does not work.
+      // See https://stackoverflow.com/a/67474278/249327 alternative way...
+      <MapPopup feature={feature} pageState={pageState} fqState={fqState} />
+    )
+    layer.bindPopup(popupContent)
   }
 
   const mapEvent = useMapEvents({
