@@ -321,6 +321,8 @@ function Search() {
 
   // Fetch list of records - SOLR select
   useEffect(() => {
+    const abortController = new AbortController() // if mulitple record requests - last one wins
+
     const fetchData = async () => {
       setPageState((old) => ({
         ...old,
@@ -343,21 +345,20 @@ function Search() {
       const groupParams = pageState.groupResults
         ? '&group=true&group.field=scientificName&group.limit=99'
         : ''
+      const url = `${serverUrlPrefix}/select?q=${
+        pageState.q || defaultQuery
+      }&fq=${fqParamList.join('&fq=')}&fl=${columnDataFields.join(
+        ','
+      )}&facet=true&facet.field=${facetFields.join(
+        '&facet.field='
+      )}&facet.mincount=1&&rows=${
+        pageState.pageSize
+      }&start=${startIndex}&sort=${pageState.field}+${
+        pageState.sort
+      }${groupParams}`
 
       // Do HTTP fetch
-      const response = await fetch(
-        `${serverUrlPrefix}/select?q=${
-          pageState.q || defaultQuery
-        }&fq=${fqParamList.join('&fq=')}&fl=${columnDataFields.join(
-          ','
-        )}&facet=true&facet.field=${facetFields.join(
-          '&facet.field='
-        )}&facet.mincount=1&&rows=${
-          pageState.pageSize
-        }&start=${startIndex}&sort=${pageState.field}+${
-          pageState.sort
-        }${groupParams}`
-      )
+      const response = await fetch(url, { signal: abortController.signal })
       // wait for async response
       const json = await response.json()
       setPageState((old) => ({
@@ -381,6 +382,10 @@ function Search() {
       const msg = `Oops something went wrong. ${error.message}`
       setSnackState({ status: true, message: msg })
     })
+
+    return () => {
+      abortController.abort()
+    }
   }, [
     pageState.page,
     pageState.pageSize,
