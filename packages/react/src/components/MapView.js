@@ -1,10 +1,10 @@
 import { MapContainer, TileLayer, LayersControl } from 'react-leaflet'
 import '../assets/leaflet/leaflet.css'
 import Legend from './MapLegend'
+import MapDataLayer from './MapDataLayer'
 
 // import { Icon } from 'leaflet'
 // import { CssBaseline } from '@mui/material'
-import MapDataLayer from './MapDataLayer'
 
 const AusBounds = [
   [-43, 113],
@@ -26,14 +26,10 @@ function MapView({ pageState, fqState }) {
       />
       <LayersControl position="topright">
         <LayersControl.Overlay checked name="Sequence data">
-          <MapDataLayer
-            pageState={pageState}
-            fqState={fqState}
-            coloursForCounts={coloursForCounts}
-          />
+          <MapDataLayer pageState={pageState} fqState={fqState} />
         </LayersControl.Overlay>
       </LayersControl>
-      <Legend coloursForCounts={coloursForCounts} />
+      <Legend />
     </MapContainer>
   )
 }

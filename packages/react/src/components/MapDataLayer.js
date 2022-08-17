@@ -1,9 +1,10 @@
+import { uniqueId } from 'lodash'
 import { useState, useEffect, useRef } from 'react'
-import ReactDOMServer from 'react-dom/server'
+// import ReactDOMServer from 'react-dom/server'
 // import { Button } from '@mui/material'
-import { GeoJSON, useMap, useMapEvents } from 'react-leaflet'
+import { LayerGroup, Polygon, Popup, useMap, useMapEvents } from 'react-leaflet'
 import { darken } from '@mui/material/styles'
-import MapPopup from './MapPopup'
+import GridPopup from './GridPopup'
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
 
@@ -91,12 +92,21 @@ const getFeatureObj = ({ latlng, count, geoField }) => {
   let coords = []
 
   if (geoField.startsWith('point')) {
+    // geoJSON is x, y format
+    // coords = [
+    //   [lngN, latN], // [146, -28]
+    //   [lngN, latN + geoAddition], // [146, -27],
+    //   [lngN + geoAddition, latN + geoAddition], // [147, -27],
+    //   [lngN + geoAddition, latN], // [147, -28],
+    //   [lngN, latN], // [146, -28]
+    // ]
+    // Leaflet is lat,lng format
     coords = [
-      [lngN, latN], // [146, -28]
-      [lngN, latN + geoAddition], // [146, -27],
-      [lngN + geoAddition, latN + geoAddition], // [147, -27],
-      [lngN + geoAddition, latN], // [147, -28],
-      [lngN, latN], // [146, -28]
+      [latN, lngN], // [ -28, 146]
+      [latN + geoAddition, lngN], // [-27, 146],
+      [latN + geoAddition, lngN + geoAddition], // [-27, 147],
+      [latN, lngN + geoAddition], // [-28, 147],
+      // [latN, lngN], // [-28, 146] - we don't need to close it with Leaflet polygon (unlike WKT and geoJSON)
     ]
   } else {
     type = 'Point'
@@ -119,22 +129,23 @@ const getFeatureObj = ({ latlng, count, geoField }) => {
   return featureObj
 }
 
-const geoJsonFromSolr = (data, geoField) => {
+const buildPolygonArray = (data, geoField) => {
   // data is array of lat,lng and count couplets
+  console.log('data, geoField', data, geoField)
   const featureArray = []
   for (let i = 0; i < data.length; i += 2) {
     const latlng = data[i]
     const count = data[i + 1]
     featureArray.push(getFeatureObj({ latlng, count, geoField }))
   }
-  // console.log('geoJsonFromSolr', featureArray)
+  console.log('featureArray', featureArray)
 
-  const geoJsonObj = {
-    type: 'FeatureCollection',
-    features: featureArray,
-  }
+  // const geoJsonObj = {
+  //   type: 'FeatureCollection',
+  //   features: featureArray,
+  // }
 
-  return geoJsonObj
+  return featureArray
 }
 
 /**
@@ -152,7 +163,7 @@ function MapDataLayer({ pageState, fqState }) {
     zoom: map.getZoom(), // 18 is maxZoomLevel, default seems to be 4 or 5 on load
     center: map.getCenter(), // Leaflet `LatLng` object
     geoField: getFieldForZoom(map.getZoom()),
-    data: null,
+    data: [],
     isLoading: false,
     errorMsg: '',
   })
@@ -167,26 +178,34 @@ function MapDataLayer({ pageState, fqState }) {
     }))
   }
 
+  const setLayerStyles = (setColour) => ({
+    color: darken(setColour, 0.2),
+    fillColor: setColour,
+    fillOpacity: 0.6,
+    weight: 1,
+    stroke: true,
+  })
+
   // Add styling and popup to each polygon
-  const onEachPolygon = (feature, layer) => {
-    const setColor = feature.properties.color
-    if (setColor) {
-      layer.setStyle({
-        color: darken(setColor, 0.2),
-        fillColor: setColor,
-        fillOpacity: 0.6,
-        weight: 1,
-        stroke: true,
-      })
-    }
-    const popupContent = ReactDOMServer.renderToString(
-      // Note this is effectively doing a static HTML output, similar to SSR,
-      // so interactive functionality (like data fetching) does not work.
-      // See https://stackoverflow.com/a/67474278/249327 alternative way...
-      <MapPopup feature={feature} pageState={pageState} fqState={fqState} />
-    )
-    layer.bindPopup(popupContent)
-  }
+  // const onEachPolygon = (feature, layer) => {
+  //   const setColor = feature.properties.color
+  //   if (setColor) {
+  //     layer.setStyle({
+  //       color: darken(setColor, 0.2),
+  //       fillColor: setColor,
+  //       fillOpacity: 0.6,
+  //       weight: 1,
+  //       stroke: true,
+  //     })
+  //   }
+  //   const popupContent = ReactDOMServer.renderToString(
+  //     // Note this is effectively doing a static HTML output, similar to SSR,
+  //     // so interactive functionality (like data fetching) does not work.
+  //     // See https://stackoverflow.com/a/67474278/249327 alternative way...
+  //     <MapPopup feature={feature} pageState={pageState} fqState={fqState} />
+  //   )
+  //   layer.bindPopup(popupContent)
+  // }
 
   const mapEvent = useMapEvents({
     zoomend: () => {
@@ -239,7 +258,7 @@ function MapDataLayer({ pageState, fqState }) {
       setMapDataState((old) => ({
         ...old,
         isLoading: false,
-        data: geoJsonFromSolr(
+        data: buildPolygonArray(
           json.facet_counts.facet_fields[mapDataState.geoField],
           mapDataState.geoField
         ),
@@ -267,14 +286,38 @@ function MapDataLayer({ pageState, fqState }) {
     }
   }, [mapDataState.data])
 
+  // const PolygonArray = mapDataState.data.features.map((feature, index) => {
+  //   ;<Polygon
+  //     pathOptions={feature.properties.color}
+  //     positions={feature.coords}
+  //   />
+  // })
+
   return (
-    <GeoJSON
-      key={mapDataState.data ? mapDataState.data.length : 1}
-      ref={geoJsonLayerRef}
-      attribution="CC-BY ARGA"
-      data={mapDataState.data}
-      onEachFeature={onEachPolygon}
-    />
+    <LayerGroup>
+      {mapDataState.data.map((feature) => (
+        <Polygon
+          key={uniqueId()}
+          pathOptions={setLayerStyles(feature.properties.color)}
+          positions={feature.geometry.coordinates}
+        >
+          <Popup>
+            <GridPopup
+              feature={feature}
+              pageState={pageState}
+              fqState={fqState}
+            />
+          </Popup>
+        </Polygon>
+      ))}
+    </LayerGroup>
+    // <GeoJSON
+    //   key={mapDataState.data ? mapDataState.data.length : 1}
+    //   ref={geoJsonLayerRef}
+    //   attribution="CC-BY ARGA"
+    //   data={mapDataState.data}
+    //   onEachFeature={onEachPolygon}
+    // />
   )
 }
 

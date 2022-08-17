@@ -1,24 +1,49 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
 
 function getBboxForCoords(coords) {
+  console.log('getBboxForCoords coords', coords)
+  const ff = 0 // 0.0000001 // fudge factor
+  let bbox = '[]'
+  if (coords && coords.length > 0) {
+    bbox = `[${coords[0][3][0] + ff},${coords[0][1][1] + ff} TO ${
+      coords[0][1][0] - ff
+    },${coords[0][3][1] - ff}]`
+  }
+  console.log('getBboxForCoords bbox', bbox)
+  // TODO
   // geohash:[-44,112%20TO%20-10,155] bottom-left TO top-right
-  return coords
+  return bbox
 }
 
-// This is being statically rendered due to being pulled in via `ReactDOMServer.renderToString()`
+// Fixed = This is being statically rendered due to being pulled in via `ReactDOMServer.renderToString()`
 // try portals trick - https://stackoverflow.com/a/69353273/249327
-function MapPopup({ feature, pageState, fqState }) {
+function GridPopup({ feature, pageState, fqState }) {
   const [popupState, setPopupState] = useState({
-    coords: '',
+    // coords: getBboxForCoords(feature.geometry.coordinates),
     isLoading: false,
     data: [], // should be array of IDs only
     total: 0,
   })
 
+  const bboxCoords = useMemo(
+    () => getBboxForCoords(feature.geometry.coordinates),
+    []
+  )
+
+  // useEffect(() => {
+  //   console.log('useEffect coords', feature.geometry.coordinates)
+  //   if (feature.geometry && feature.geometry.coordinates) {
+  //     setPopupState((old) => ({
+  //       ...old,
+  //       coords: getBboxForCoords(feature.geometry.coordinates),
+  //     }))
+  //   }
+  // }, [])
+
   useEffect(() => {
-    console.log('coords', popupState.coords)
+    console.log('fetchData bboxCoords', bboxCoords)
     const abortController = new AbortController() // if mulitple requests (clicks with slow connection) - service just the last one
     const fetchData = async () => {
       setPopupState((old) => ({
@@ -36,9 +61,7 @@ function MapPopup({ feature, pageState, fqState }) {
       })
       const url = `${serverUrlPrefix}/select?q=${
         pageState.q || '*:*'
-      }&fq=${fqParamList.join('&fq=')}&fq=geohash:${getBboxForCoords(
-        popupState.coords
-      )}&fl=id`
+      }&fq=${fqParamList.join('&fq=')}&fq=geohash:${bboxCoords}&fl=id`
 
       // Do HTTP fetch
       const response = await fetch(url, { signal: abortController.signal })
@@ -55,7 +78,8 @@ function MapPopup({ feature, pageState, fqState }) {
       setPopupState((old) => ({
         ...old,
         isLoading: false,
-      })) // TODO dispay error message using a global context
+      }))
+      // TODO dispay error message using a global context
       // const msg = `Oops something went wrong. ${error.message}`
       // setSnackState({ status: true, message: msg })
     })
@@ -64,13 +88,6 @@ function MapPopup({ feature, pageState, fqState }) {
       abortController.abort()
     }
   }, [pageState.q, fqState, popupState.coords])
-
-  useEffect(() => {
-    console.log('coords', feature.geometry.coordinates)
-    if (feature.geometry && feature.geometry.coordinates) {
-      setPopupState((old) => ({ ...old, coords: feature.geometry.coordinates }))
-    }
-  }, [])
 
   let popupContent = '-1'
   if (feature.properties && feature.properties.count) {
@@ -82,10 +99,14 @@ function MapPopup({ feature, pageState, fqState }) {
   return (
     <div>
       {popupContent.toLocaleString()} sequence entries
+      {/* ({JSON.stringify(feature.geometry.coordinates)}) */}
       <br />
-      <a href="#">View sequences for this area</a>
+      {/* {popupState.total} found in {bboxCoords}<br /> */}
+      <a href="#" onClick={() => alert('Not implemented yet 🔨')}>
+        View sequences for this area
+      </a>
     </div>
   )
 }
 
-export default MapPopup
+export default GridPopup
