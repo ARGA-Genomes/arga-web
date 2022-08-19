@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 // import { Button } from '@mui/material'
 import { LayerGroup, Polygon, Popup, useMap, useMapEvents } from 'react-leaflet'
 import { darken } from '@mui/material/styles'
-import GridPopup from './GridPopup'
+import MapGridPopup from './MapGridPopup'
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
 
@@ -123,6 +123,8 @@ const getFeatureObj = ({ latlng, count, geoField }) => {
       count,
       color: getColourForCount(count),
       geoAddition,
+      latlng,
+      geoField,
     },
   }
   // console.log('featureObj', featureObj)
@@ -131,14 +133,14 @@ const getFeatureObj = ({ latlng, count, geoField }) => {
 
 const buildPolygonArray = (data, geoField) => {
   // data is array of lat,lng and count couplets
-  console.log('data, geoField', data, geoField)
+  // console.log('data, geoField', data, geoField)
   const featureArray = []
   for (let i = 0; i < data.length; i += 2) {
     const latlng = data[i]
     const count = data[i + 1]
     featureArray.push(getFeatureObj({ latlng, count, geoField }))
   }
-  console.log('featureArray', featureArray)
+  // console.log('featureArray', featureArray)
 
   // const geoJsonObj = {
   //   type: 'FeatureCollection',
@@ -155,7 +157,7 @@ const buildPolygonArray = (data, geoField) => {
  * @param {*} fqState prop
  * @returns JSX
  */
-function MapDataLayer({ pageState, fqState }) {
+function MapDataLayer({ pageState, fqState, setFqState, setRecordState }) {
   const map = useMap()
   const geoJsonLayerRef = useRef(null)
   const [mapDataState, setMapDataState] = useState({
@@ -302,10 +304,12 @@ function MapDataLayer({ pageState, fqState }) {
           positions={feature.geometry.coordinates}
         >
           <Popup>
-            <GridPopup
+            <MapGridPopup
               feature={feature}
               pageState={pageState}
               fqState={fqState}
+              setFqState={setFqState}
+              setRecordState={setRecordState}
             />
           </Popup>
         </Polygon>

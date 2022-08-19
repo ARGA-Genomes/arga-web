@@ -590,7 +590,12 @@ function Search() {
                     p: 2,
                   }}
                 >
-                  <MapView pageState={pageState} fqState={fqState} />
+                  <MapView
+                    pageState={pageState}
+                    fqState={fqState}
+                    setFqState={setFqState}
+                    setRecordState={setRecordState}
+                  />
                 </Box>
               </TabPanel>
             </Box>

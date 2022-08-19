@@ -2,24 +2,30 @@ import { useState, useEffect, useMemo } from 'react'
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
 
-function getBboxForCoords(coords) {
-  console.log('getBboxForCoords coords', coords)
-  const ff = 0 // 0.0000001 // fudge factor
-  let bbox = '[]'
-  if (coords && coords.length > 0) {
-    bbox = `[${coords[0][3][0] + ff},${coords[0][1][1] + ff} TO ${
-      coords[0][1][0] - ff
-    },${coords[0][3][1] - ff}]`
-  }
-  console.log('getBboxForCoords bbox', bbox)
-  // TODO
-  // geohash:[-44,112%20TO%20-10,155] bottom-left TO top-right
-  return bbox
-}
+// function getBboxForCoords(coords) {
+//   console.log('getBboxForCoords coords', coords)
+//   const ff = 0 // 0.0000001 // fudge factor
+//   let bbox = '[]'
+//   if (coords && coords.length > 0) {
+//     bbox = `[${coords[0][3][0] + ff},${coords[0][1][1] + ff} TO ${
+//       coords[0][1][0] - ff
+//     },${coords[0][3][1] - ff}]`
+//   }
+//   console.log('getBboxForCoords bbox', bbox)
+//   // TODO
+//   // geohash:[-44,112%20TO%20-10,155] bottom-left TO top-right
+//   return bbox
+// }
 
 // Fixed = This is being statically rendered due to being pulled in via `ReactDOMServer.renderToString()`
 // try portals trick - https://stackoverflow.com/a/69353273/249327
-function GridPopup({ feature, pageState, fqState }) {
+function MapGridPopup({
+  feature,
+  pageState,
+  fqState,
+  setFqState,
+  setRecordState,
+}) {
   const [popupState, setPopupState] = useState({
     // coords: getBboxForCoords(feature.geometry.coordinates),
     isLoading: false,
@@ -27,23 +33,11 @@ function GridPopup({ feature, pageState, fqState }) {
     total: 0,
   })
 
-  const bboxCoords = useMemo(
-    () => getBboxForCoords(feature.geometry.coordinates),
-    []
-  )
-
-  // useEffect(() => {
-  //   console.log('useEffect coords', feature.geometry.coordinates)
-  //   if (feature.geometry && feature.geometry.coordinates) {
-  //     setPopupState((old) => ({
-  //       ...old,
-  //       coords: getBboxForCoords(feature.geometry.coordinates),
-  //     }))
-  //   }
-  // }, [])
+  const latlng = useMemo(() => feature?.properties?.latlng, [])
+  const geoField = useMemo(() => feature?.properties?.geoField, [])
 
   useEffect(() => {
-    console.log('fetchData bboxCoords', bboxCoords)
+    // console.log('fetchData', geoField, latlng)
     const abortController = new AbortController() // if mulitple requests (clicks with slow connection) - service just the last one
     const fetchData = async () => {
       setPopupState((old) => ({
@@ -61,7 +55,7 @@ function GridPopup({ feature, pageState, fqState }) {
       })
       const url = `${serverUrlPrefix}/select?q=${
         pageState.q || '*:*'
-      }&fq=${fqParamList.join('&fq=')}&fq=geohash:${bboxCoords}&fl=id`
+      }&fq=${fqParamList.join('&fq=')}&fq=${geoField}:%22${latlng}%22` // &fq=geohash:${bboxCoords}&fl=id`
 
       // Do HTTP fetch
       const response = await fetch(url, { signal: abortController.signal })
@@ -94,19 +88,24 @@ function GridPopup({ feature, pageState, fqState }) {
     popupContent = feature.properties.count
   }
 
-  // feature.geometry.coordinates
+  const onShowRecords = () => {
+    const fq = { [geoField]: [latlng] }
+    setFqState((old) => ({ ...old, ...fq }))
+    setRecordState((old) => ({
+      ...old,
+      id: pageState.data[0]?.id,
+    }))
+  }
 
   return (
     <div>
-      {popupContent.toLocaleString()} sequence entries
-      {/* ({JSON.stringify(feature.geometry.coordinates)}) */}
+      {popupContent.toLocaleString()} sequence records
       <br />
-      {/* {popupState.total} found in {bboxCoords}<br /> */}
-      <a href="#" onClick={() => alert('Not implemented yet 🔨')}>
+      <a href="#" onClick={onShowRecords}>
         View sequences for this area
       </a>
     </div>
   )
 }
 
-export default GridPopup
+export default MapGridPopup

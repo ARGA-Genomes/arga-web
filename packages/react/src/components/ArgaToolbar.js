@@ -22,11 +22,13 @@ export default function ArgaToolbar() {
   return (
     <AppBar position="fixed">
       <Toolbar sx={{ height: 76, fontFamily: 'Raleway' }}>
-        <img
-          src={logo}
-          alt="ARGA logo"
-          style={{ height: 68, marginRight: 8 }}
-        />
+        <a href="https://arga.org.au">
+          <img
+            src={logo}
+            alt="ARGA logo"
+            style={{ height: 68, marginRight: 8 }}
+          />
+        </a>
         <Typography
           variant="span"
           sx={{ fontSize: '14px', lineHeight: '15px', marginRight: 4 }}
