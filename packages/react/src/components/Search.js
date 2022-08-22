@@ -373,6 +373,10 @@ function Search() {
           : json.response.numFound,
         facetResults: json.facet_counts.facet_fields,
       }))
+      if (drawerState) {
+        // if drawer is open, reset record ID to be first in results
+        setRecordState((old) => ({ ...old, id: json.response.docs[0].id }))
+      }
     }
     fetchData().catch((error) => {
       setPageState((old) => ({
@@ -592,6 +596,8 @@ function Search() {
                 >
                   <MapView
                     pageState={pageState}
+                    setPageState={setPageState}
+                    setDrawerState={setDrawerState}
                     fqState={fqState}
                     setFqState={setFqState}
                     setRecordState={setRecordState}

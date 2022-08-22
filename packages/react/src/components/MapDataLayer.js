@@ -157,7 +157,14 @@ const buildPolygonArray = (data, geoField) => {
  * @param {*} fqState prop
  * @returns JSX
  */
-function MapDataLayer({ pageState, fqState, setFqState, setRecordState }) {
+function MapDataLayer({
+  pageState,
+  setPageState,
+  setDrawerState,
+  fqState,
+  setFqState,
+  setRecordState,
+}) {
   const map = useMap()
   const geoJsonLayerRef = useRef(null)
   const [mapDataState, setMapDataState] = useState({
@@ -187,27 +194,6 @@ function MapDataLayer({ pageState, fqState, setFqState, setRecordState }) {
     weight: 1,
     stroke: true,
   })
-
-  // Add styling and popup to each polygon
-  // const onEachPolygon = (feature, layer) => {
-  //   const setColor = feature.properties.color
-  //   if (setColor) {
-  //     layer.setStyle({
-  //       color: darken(setColor, 0.2),
-  //       fillColor: setColor,
-  //       fillOpacity: 0.6,
-  //       weight: 1,
-  //       stroke: true,
-  //     })
-  //   }
-  //   const popupContent = ReactDOMServer.renderToString(
-  //     // Note this is effectively doing a static HTML output, similar to SSR,
-  //     // so interactive functionality (like data fetching) does not work.
-  //     // See https://stackoverflow.com/a/67474278/249327 alternative way...
-  //     <MapPopup feature={feature} pageState={pageState} fqState={fqState} />
-  //   )
-  //   layer.bindPopup(popupContent)
-  // }
 
   const mapEvent = useMapEvents({
     zoomend: () => {
@@ -307,6 +293,8 @@ function MapDataLayer({ pageState, fqState, setFqState, setRecordState }) {
             <MapGridPopup
               feature={feature}
               pageState={pageState}
+              setPageState={setPageState}
+              setDrawerState={setDrawerState}
               fqState={fqState}
               setFqState={setFqState}
               setRecordState={setRecordState}

@@ -11,7 +11,14 @@ const AusBounds = [
   [-11, 154],
 ]
 
-function MapView({ pageState, fqState, setFqState, setRecordState }) {
+function MapView({
+  pageState,
+  setPageState,
+  setDrawerState,
+  fqState,
+  setFqState,
+  setRecordState,
+}) {
   return (
     <MapContainer
       bounds={AusBounds}
@@ -28,6 +35,8 @@ function MapView({ pageState, fqState, setFqState, setRecordState }) {
         <LayersControl.Overlay checked name="Sequence data">
           <MapDataLayer
             pageState={pageState}
+            setPageState={setPageState}
+            setDrawerState={setDrawerState}
             fqState={fqState}
             setFqState={setFqState}
             setRecordState={setRecordState}

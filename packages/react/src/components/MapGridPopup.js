@@ -22,9 +22,9 @@ const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
 function MapGridPopup({
   feature,
   pageState,
+  // setDrawerState,
   fqState,
   setFqState,
-  setRecordState,
 }) {
   const [popupState, setPopupState] = useState({
     // coords: getBboxForCoords(feature.geometry.coordinates),
@@ -88,22 +88,27 @@ function MapGridPopup({
     popupContent = feature.properties.count
   }
 
-  const onShowRecords = () => {
+  const onFilterRecords = () => {
     const fq = { [geoField]: [latlng] }
     setFqState((old) => ({ ...old, ...fq }))
-    setRecordState((old) => ({
-      ...old,
-      id: pageState.data[0]?.id,
-    }))
   }
+
+  // const onShowRecords = () => {
+  //   onFilterRecords()
+  //   setDrawerState(true)
+  // }
 
   return (
     <div>
       {popupContent.toLocaleString()} sequence records
       <br />
-      <a href="#" onClick={onShowRecords}>
-        View sequences for this area
+      <a href="#" onClick={onFilterRecords}>
+        Filter results for this area
       </a>
+      {/* <br />
+      <a href="#" onClick={onShowRecords}>
+        View {popupContent.toLocaleString()} records
+      </a> */}
     </div>
   )
 }
