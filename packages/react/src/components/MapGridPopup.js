@@ -2,21 +2,6 @@ import { useState, useEffect, useMemo } from 'react'
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
 
-// function getBboxForCoords(coords) {
-//   console.log('getBboxForCoords coords', coords)
-//   const ff = 0 // 0.0000001 // fudge factor
-//   let bbox = '[]'
-//   if (coords && coords.length > 0) {
-//     bbox = `[${coords[0][3][0] + ff},${coords[0][1][1] + ff} TO ${
-//       coords[0][1][0] - ff
-//     },${coords[0][3][1] - ff}]`
-//   }
-//   console.log('getBboxForCoords bbox', bbox)
-//   // TODO
-//   // geohash:[-44,112%20TO%20-10,155] bottom-left TO top-right
-//   return bbox
-// }
-
 // Fixed = This is being statically rendered due to being pulled in via `ReactDOMServer.renderToString()`
 // try portals trick - https://stackoverflow.com/a/69353273/249327
 function MapGridPopup({
