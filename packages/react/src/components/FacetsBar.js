@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react'
 import {
   TextField,
   Box,
+  Button,
   InputAdornment,
   IconButton,
   Divider,
   Grid,
+  // Chip,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
@@ -82,6 +84,19 @@ export default function FacetsBar({
     })
   }
 
+  // Any remaining fq params in REST request NOT shown in facetFieldList are added to this array
+  const extraFqParams = Object.keys(fqState).filter(
+    (fq) => !(fq in facetsDisplay)
+  )
+
+  const handleDelete = (fqName) => () => {
+    setFqState((current) => {
+      const copy = { ...current }
+      delete copy[fqName]
+      return copy
+    })
+  }
+
   return (
     <Box
       sx={{
@@ -139,6 +154,33 @@ export default function FacetsBar({
             variant="outlined"
           />
         </Grid>
+        {extraFqParams.map((fqName) => (
+          <Grid
+            item
+            xs={6}
+            sm={4}
+            md={2}
+            lg={2}
+            key={fqName}
+            sx={{ marginTop: '2px' }}
+          >
+            {/* <Chip
+              sx={{ backgroundColor: theme.palette.background.paper }}
+              label={`${fqName}: ${fqState[fqName]}`}
+              variant="outlined"
+              size="large"
+              onDelete={handleDelete(fqName)}
+            /> */}
+            <Button
+              sx={{ backgroundColor: theme.palette.background.paper }}
+              variant="outlined"
+              onClick={handleDelete(fqName)}
+              endIcon={<CloseIcon />}
+            >
+              {fqName}: {fqState[fqName]}
+            </Button>
+          </Grid>
+        ))}
       </Grid>
       <Grid container spacing={0} columnSpacing={1}>
         {Object.keys(facetsDisplay).map((field) => (

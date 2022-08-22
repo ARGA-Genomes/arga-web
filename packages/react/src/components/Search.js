@@ -6,17 +6,20 @@ import {
   Chip,
   Snackbar,
   IconButton,
-  GlobalStyles,
   Grid,
+  Tab,
+  Tabs,
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
-import { DataGrid } from '@mui/x-data-grid'
 import { lighten } from '@mui/material/styles'
 import stringHash from 'string-hash'
-import theme from './theme'
 import RecordDrawer from './RecordDrawer'
 import ArgaToolbar from './ArgaToolbar'
 import FacetsBar from './FacetsBar'
+import GridView from './GridView'
+import DataTable from './DataTable'
+import MapView from './MapView'
+import theme from './theme'
 
 /*
  * ToDo list
@@ -25,7 +28,7 @@ import FacetsBar from './FacetsBar'
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
 const defaultQuery = '*:*'
-const defaultSort = 'vernacularName'
+// const defaultSort = 'vernacularName'
 const facetFields = [
   'dataResourceName',
   'speciesGroup',
@@ -43,6 +46,7 @@ const muiColourCategories = [
   'success',
   'warning',
 ]
+const additionalFields = ['taxonConceptID', 'matchType']
 
 function getColourForValue(input) {
   const hash =
@@ -67,6 +71,19 @@ function ValueTag({ value, label, field, fqUpdate }) {
   )
 }
 
+function TabPanel({ children, value, index }) {
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`results-tabpanel-${index}`}
+      aria-labelledby={`results-tab-${index}`}
+    >
+      {value === index && <Box sx={{ p: 0 }}>{children}</Box>}
+    </div>
+  )
+}
+
 /**
  * Search component
  *
@@ -76,6 +93,7 @@ function Search() {
   const [pageState, setPageState] = useState({
     isLoading: false,
     data: [],
+    species: [],
     total: 0,
     page: 1,
     pageSize: 25,
@@ -83,6 +101,7 @@ function Search() {
     sort: 'asc', // order
     q: '',
     // Note: `fq` is in its own state var below (`fqState`)
+    groupResults: false,
     facetResults: [],
   })
 
@@ -94,10 +113,32 @@ function Search() {
     isLoading: false,
     data: [],
     id: '',
+    speciesIndex: 0,
   })
 
   const [drawerState, setDrawerState] = useState(false)
   const [snackState, setSnackState] = useState({ status: false, message: '' })
+
+  // Tabs state
+  const [tabValue, setTabValue] = useState(0)
+  const handleTabChange = (event, newValue) => {
+    // if (newValue === 0) {
+    //   setPageState((old) => ({
+    //     ...old,
+    //     groupResults: false,
+    //     page: 1,
+    //     pageSize: 25,
+    //   }))
+    // } else if (newValue === 1) {
+    //   setPageState((old) => ({
+    //     ...old,
+    //     groupResults: true,
+    //     page: 1,
+    //     pageSize: 24,
+    //   }))
+    // }
+    setTabValue(newValue)
+  }
 
   // const { search } = useLocation();
   const [searchParams] = useSearchParams()
@@ -274,14 +315,21 @@ function Search() {
 
   // array of fields to request from SOLR
   const columnDataFields = useMemo(
-    () => columns.map((el) => el.field),
+    () => columns.map((el) => el.field).concat(additionalFields),
     [columns]
   )
 
   // Fetch list of records - SOLR select
   useEffect(() => {
+    const abortController = new AbortController() // if mulitple record requests - last one wins
+
     const fetchData = async () => {
-      setPageState((old) => ({ ...old, isLoading: true, data: [] }))
+      setPageState((old) => ({
+        ...old,
+        isLoading: true,
+        // data: [],
+        // species: [],
+      }))
       // calculate SOLR startIndex param
       const startIndex =
         pageState.page * pageState.pageSize - pageState.pageSize
@@ -294,28 +342,41 @@ function Search() {
           })
         }
       })
+      const groupParams = pageState.groupResults
+        ? '&group=true&group.field=scientificName&group.limit=99'
+        : ''
+      const url = `${serverUrlPrefix}/select?q=${
+        pageState.q || defaultQuery
+      }&fq=${fqParamList.join('&fq=')}&fl=${columnDataFields.join(
+        ','
+      )}&facet=true&facet.field=${facetFields.join(
+        '&facet.field='
+      )}&facet.mincount=1&&rows=${
+        pageState.pageSize
+      }&start=${startIndex}&sort=${pageState.field}+${
+        pageState.sort
+      }${groupParams}`
 
       // Do HTTP fetch
-      const response = await fetch(
-        `${serverUrlPrefix}/select?q=${
-          pageState.q || defaultQuery
-        }&fq=${fqParamList.join('&fq=')}&fl=${columnDataFields.join(
-          ','
-        )}&facet=true&facet.field=${facetFields.join(
-          '&facet.field='
-        )}&facet.mincount=1&&rows=${
-          pageState.pageSize
-        }&start=${startIndex}&sort=${pageState.field}+${pageState.sort}`
-      )
+      const response = await fetch(url, { signal: abortController.signal })
       // wait for async response
       const json = await response.json()
       setPageState((old) => ({
         ...old,
         isLoading: false,
-        data: json.response.docs,
-        total: json.response.numFound,
+        data: pageState.groupResults ? {} : json.response.docs,
+        species: pageState.groupResults
+          ? json.grouped.scientificName.groups
+          : [],
+        total: pageState.groupResults
+          ? json.grouped.scientificName.matches
+          : json.response.numFound,
         facetResults: json.facet_counts.facet_fields,
       }))
+      if (drawerState) {
+        // if drawer is open, reset record ID to be first in results
+        setRecordState((old) => ({ ...old, id: json.response.docs[0].id }))
+      }
     }
     fetchData().catch((error) => {
       setPageState((old) => ({
@@ -325,12 +386,17 @@ function Search() {
       const msg = `Oops something went wrong. ${error.message}`
       setSnackState({ status: true, message: msg })
     })
+
+    return () => {
+      abortController.abort()
+    }
   }, [
     pageState.page,
     pageState.pageSize,
     pageState.field,
     pageState.sort,
     pageState.q,
+    pageState.groupResults,
     fqState,
     columnDataFields,
   ])
@@ -382,7 +448,11 @@ function Search() {
 
   const stepRecord = (id, direction) => {
     if (id && direction) {
-      const idList = pageState.data.map((it) => it.id)
+      const idList = pageState.groupResults
+        ? pageState.species[recordState.speciesIndex].doclist.docs.map(
+            (it) => it.id
+          )
+        : pageState.data.map((it) => it.id)
       const idPosition = idList.indexOf(id)
       const newidPosition =
         direction === 'next' ? idPosition + 1 : idPosition - 1
@@ -415,7 +485,7 @@ function Search() {
     </IconButton>
   )
 
-  const datagridRef = useRef(null) // Not sure this is needed?
+  // const datagridRef = useRef(null) // Not sure this is needed?
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -457,7 +527,7 @@ function Search() {
           <div
             style={{
               width: '100%',
-              height: 'calc(100vh - 236px)',
+              height: 'calc(100vh - 284px)',
               background: '#E0E0E0',
             }}
           >
@@ -468,64 +538,75 @@ function Search() {
               fqState={fqRef.current || {}}
               setFqState={setFqState}
             />
-            <DataGrid
-              // components={{
-              //   Toolbar: GridToolbar
-              // }}
-              autoHeight={false}
-              disableSelectionOnClick
-              rowHeight={40}
-              headerHeight={42}
-              ref={datagridRef}
-              style={{ backgroundColor: 'white' }}
-              columns={columns}
-              rows={pageState.data}
-              rowCount={pageState.total}
-              loading={pageState.isLoading}
-              rowsPerPageOptions={[10, 25, 50, 70, 100]}
-              // pagination
-              page={pageState.page - 1}
-              pageSize={pageState.pageSize}
-              paginationMode="server"
-              sortingMode="server"
-              sortModel={[pageState]}
-              onPageChange={(newPage) =>
-                setPageState((old) => ({ ...old, page: newPage + 1 }))
-              }
-              onPageSizeChange={(newPageSize) =>
-                setPageState((old) => ({ ...old, pageSize: newPageSize }))
-              }
-              onSortModelChange={(sortModel) =>
-                setPageState((old) => ({
-                  ...old,
-                  field: sortModel[0]?.field || defaultSort,
-                  sort: sortModel[0]?.sort || 'asc',
-                  page: 1,
-                }))
-              }
-              onRowClick={(e) =>
-                setRecordState((old) => ({ ...old, id: e.id }))
-              }
-            />
+            <Box sx={{ width: '100%', background: 'white' }}>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs
+                  value={tabValue}
+                  onChange={handleTabChange}
+                  textColor="secondary"
+                  indicatorColor="secondary"
+                  aria-label="Navigation tabs for search results"
+                >
+                  <Tab
+                    label="Table"
+                    id="results-tab-0"
+                    aria-controls="results-tabpanel-0"
+                  />
+                  <Tab
+                    label="Grid"
+                    id="results-tab-1"
+                    aria-controls="results-tabpanel-1"
+                  />
+                  <Tab
+                    label="Map"
+                    id="results-tab-2"
+                    aria-controls="results-tabpanel-2"
+                  />
+                </Tabs>
+              </Box>
+              <TabPanel value={tabValue} index={0}>
+                <DataTable
+                  columns={columns}
+                  pageState={pageState}
+                  setPageState={setPageState}
+                  setRecordState={setRecordState}
+                />
+              </TabPanel>
+              <TabPanel value={tabValue} index={1}>
+                <Box
+                  sx={{
+                    flexGrow: 1,
+                    p: 2,
+                    backgroundColor: lighten(theme.palette.warning.main, 0.75),
+                  }}
+                >
+                  <GridView
+                    pageState={pageState}
+                    setPageState={setPageState}
+                    setRecordState={setRecordState}
+                  />
+                </Box>
+              </TabPanel>
+              <TabPanel value={tabValue} index={2}>
+                <Box
+                  sx={{
+                    flexGrow: 1,
+                    p: 2,
+                  }}
+                >
+                  <MapView
+                    pageState={pageState}
+                    setPageState={setPageState}
+                    setDrawerState={setDrawerState}
+                    fqState={fqState}
+                    setFqState={setFqState}
+                    setRecordState={setRecordState}
+                  />
+                </Box>
+              </TabPanel>
+            </Box>
           </div>
           {/* </Box> */}
-          {/* ToDo put this in a custom styled component */}
-          <GlobalStyles
-            styles={{
-              '.MuiDataGrid-footerContainer': {
-                // backgroundColor: '#fff', // '#D6EFFE',
-                backgroundColor: lighten(theme.palette.success.main, 0.7),
-                border: '1px solid rgba(224, 224, 224, 1)',
-                borderRadius: '4px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                bottom: 0, // <-- KEY
-                zIndex: 3,
-                position: 'fixed',
-                width: '100%',
-              },
-            }}
-          />
         </Box>
       </Grid>
     </Box>

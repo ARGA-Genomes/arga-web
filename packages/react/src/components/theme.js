@@ -4,22 +4,22 @@ const theme = createTheme({
   palette: {
     type: 'light',
     primary: {
-      main: '#233C4B',
+      main: '#233C4B', // dark blue
       // main: '#1C303B',
     },
     secondary: {
-      main: '#f96f00',
+      main: '#f96f00', // orange
     },
     warning: {
       // main: '#FEC743',
-      main: '#cb9f36',
+      main: '#cb9f36', // yellow-mustard
     },
     error: {
-      main: '#34A59D',
+      main: '#34A59D', // aqua blue
     },
     success: {
       // main: '#A0CA68',
-      main: '#80a253',
+      main: '#80a253', // forest green
     },
     background: {
       default: '#E0E0E0',
