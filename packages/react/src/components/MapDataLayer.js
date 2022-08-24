@@ -1,12 +1,18 @@
 import { uniqueId } from 'lodash'
-import { useState, useEffect, useRef } from 'react'
-// import ReactDOMServer from 'react-dom/server'
-// import { Button } from '@mui/material'
-import { LayerGroup, Polygon, Popup, useMap, useMapEvents } from 'react-leaflet'
+import { useState, useEffect, useMemo } from 'react'
+import {
+  LayerGroup,
+  LayersControl,
+  Polygon,
+  Popup,
+  useMap,
+  useMapEvents,
+} from 'react-leaflet'
 import { darken } from '@mui/material/styles'
 import MapGridPopup from './MapGridPopup'
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
+const solrGeoField = 'quad' // 'packedQuad'
 
 // Colour palette from https://colorbrewer2.org/#type=sequential&scheme=PuBu&n=5
 // Note this code is duplicated in MapLegend - ideally it should be passed in as a prop
@@ -166,13 +172,14 @@ function MapDataLayer({
   setRecordState,
 }) {
   const map = useMap()
-  const geoJsonLayerRef = useRef(null)
+  // const geoJsonLayerRef = useRef(null)
   const [mapDataState, setMapDataState] = useState({
-    bbox: map.getBounds(), // Leaflet `LatLng` object
+    bbox: map.getBounds(), // Leaflet `LatLngBounds` object
     zoom: map.getZoom(), // 18 is maxZoomLevel, default seems to be 4 or 5 on load
     center: map.getCenter(), // Leaflet `LatLng` object
     geoField: getFieldForZoom(map.getZoom()),
     data: [],
+    heatmap: {},
     isLoading: false,
     errorMsg: '',
   })
@@ -204,23 +211,36 @@ function MapDataLayer({
     },
   })
 
-  const getSolrBbox = (latLngBounds, center) => {
-    // Calculate distance from map center to a corner for use as radius value (km)
-    // in SOLR bbox filter https://solr.apache.org/guide/8_5/spatial-search.html#bbox
-    const dist = center.distanceTo(latLngBounds.getNorthEast()) / 1000
-    return `${center.lat.toFixed(7)},${center.lng.toFixed(7)}&d=${Math.ceil(
-      dist
-    )}`
+  const getSolrBboxPolygon = (latLngBounds) => {
+    // POLYGON((153 -28, 154 -28, 154 -27, 153 -27, 153 -28))
+    const sw = latLngBounds.getSouthWest().wrap()
+    const se = latLngBounds.getSouthEast().wrap()
+    const ne = latLngBounds.getNorthEast().wrap()
+    const nw = latLngBounds.getNorthWest().wrap()
+
+    return `POLYGON((${sw.lng} ${sw.lat},${se.lng} ${se.lat},${ne.lng} ${ne.lat},${nw.lng} ${nw.lat},${sw.lng} ${sw.lat}))`
+  }
+
+  const getGridLevel = () => {
+    // Code from https://github.com/AtlasOfLivingAustralia/biocache-service/blob/develop/src/main/java/au/org/ala/biocache/dao/SearchDAOImpl.java#L2695
+    const gridLevelsArray = [
+      360, 180, 90, 45, 22.5, 11.25, 5.625, 2.8125, 1.40625, 0.703125,
+      0.3515625, 0.17578125, 0.087890625, 0.0439453125, 0.02197265625,
+      0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625,
+      0.0006866455078125,
+    ]
+    const tileWidth =
+      map.getBounds().getNorthEast().wrap().lng -
+      map.getBounds().getNorthWest().wrap().lng
+    const tileSizeArray = gridLevelsArray.filter((it) => tileWidth < it)
+    const adjustFactor = 5 // simlar to 7 used in biocache-service, except that is for 256px tiles
+
+    return tileSizeArray.length + adjustFactor
   }
 
   useEffect(() => {
-    // console.log(
-    //   'map',
-    //   // mapDataState.zoom,
-    //   // mapDataState.bbox,
-    //   pageState.q
-    // )
     const fetchRecord = async () => {
+      // TODO code is duplicated in Search.js so needs to be shared in util file or done with React-query
       setMapDataState((old) => ({ ...old, isLoading: true }))
       const fqParamList = []
       Object.keys(fqState).forEach((key) => {
@@ -228,6 +248,9 @@ function MapDataLayer({
           fqState[key].forEach((val) => {
             fqParamList.push(`${key}:%22${val}%22`)
           })
+        } else {
+          // empty value in object ()
+          fqParamList.push(key)
         }
       })
       const resp = await fetch(
@@ -235,12 +258,13 @@ function MapDataLayer({
           pageState.q || '*:*'
         }&fq=${fqParamList.join(
           '&fq='
-        )}&fq={!bbox%20sfield=location}&pt=${getSolrBbox(
-          mapDataState.bbox,
-          mapDataState.center
-        )}&facet=true&facet.field=${
+        )}&fq={!field f=${solrGeoField}}Intersects(${getSolrBboxPolygon(
+          mapDataState.bbox
+        )})&facet=true&facet.field=${
           mapDataState.geoField
-        }&facet.mincount=1&rows=0&facet.limit=4999`
+        }&facet.heatmap=${solrGeoField}&facet.heatmap.geom=${getSolrBboxPolygon(
+          mapDataState.bbox
+        )}&facet.heatmap.gridLevel=${getGridLevel()}&facet.mincount=1&rows=0&facet.limit=9999`
       )
       const json = await resp.json()
       setMapDataState((old) => ({
@@ -250,6 +274,7 @@ function MapDataLayer({
           json.facet_counts.facet_fields[mapDataState.geoField],
           mapDataState.geoField
         ),
+        heatmap: json.facet_counts.facet_heatmaps[solrGeoField],
       }))
     }
     fetchRecord().catch((error) => {
@@ -263,53 +288,113 @@ function MapDataLayer({
     })
   }, [mapDataState.bbox, mapDataState.zoom, pageState.q, fqState])
 
-  useEffect(() => {
-    if (
-      mapDataState.data &&
-      geoJsonLayerRef.current &&
-      geoJsonLayerRef.current.getLayers()
-    ) {
-      // console.log('adding data: ', mapDataState.data)
-      geoJsonLayerRef.current.clearLayers().addData(mapDataState.data)
+  const getHeatmapPolygons = (heatmap) => {
+    if (Object.keys(heatmap).length < 1 || heatmap.counts_ints2D.length < 1) {
+      return []
     }
-  }, [mapDataState.data])
 
-  // const PolygonArray = mapDataState.data.features.map((feature, index) => {
-  //   ;<Polygon
-  //     pathOptions={feature.properties.color}
-  //     positions={feature.coords}
-  //   />
-  // })
+    const gridArray = heatmap.counts_ints2D // rows then columns
+    const lat0 = heatmap.maxY
+    const lng0 = heatmap.minX
+    const latStep = (heatmap.maxY - heatmap.minY) / heatmap.rows // lng changes
+    const lngStep = (heatmap.maxX - heatmap.minX) / heatmap.columns // lat changes
+    // console.log('cell', lat0, lng0, latStep, lngStep, map.getZoom())
+    const features = []
+
+    gridArray.forEach((row, i) => {
+      if (row) {
+        row.forEach((rowCell, j) => {
+          if (rowCell > 0) {
+            const [latN, lngN] = [lat0 - latStep * i, lng0 + lngStep * j]
+            const coords = [
+              [latN, lngN], // [ -28, 146]
+              [latN - latStep, lngN], // [-27, 146],
+              [latN - latStep, lngN + lngStep], // [-27, 147],
+              [latN, lngN + lngStep], // [-28, 147],
+            ]
+            const featureObj = {
+              type: 'Feature',
+              geometry: {
+                type: 'polygon',
+                coordinates: [coords],
+              },
+              properties: {
+                count: rowCell,
+                color: getColourForCount(rowCell),
+                geo: [latN, lngN],
+                wkt: `POLYGON((${lngN} ${latN}, ${lngN} ${latN - latStep},${
+                  lngN + lngStep
+                } ${latN - latStep}, ${
+                  lngN + lngStep
+                } ${latN},${lngN} ${latN}))`,
+              },
+            }
+            // console.log('featureObj', featureObj)
+            features.push(featureObj)
+          }
+        })
+      }
+    })
+
+    return features
+  }
+
+  const heatmapFeatures = useMemo(
+    () => getHeatmapPolygons(mapDataState.heatmap),
+    [mapDataState.heatmap]
+  )
 
   return (
-    <LayerGroup>
-      {mapDataState.data.map((feature) => (
-        <Polygon
-          key={uniqueId()}
-          pathOptions={setLayerStyles(feature.properties.color)}
-          positions={feature.geometry.coordinates}
-        >
-          <Popup>
-            <MapGridPopup
-              feature={feature}
-              pageState={pageState}
-              setPageState={setPageState}
-              setDrawerState={setDrawerState}
-              fqState={fqState}
-              setFqState={setFqState}
-              setRecordState={setRecordState}
-            />
-          </Popup>
-        </Polygon>
-      ))}
-    </LayerGroup>
-    // <GeoJSON
-    //   key={mapDataState.data ? mapDataState.data.length : 1}
-    //   ref={geoJsonLayerRef}
-    //   attribution="CC-BY ARGA"
-    //   data={mapDataState.data}
-    //   onEachFeature={onEachPolygon}
-    // />
+    <>
+      <LayersControl.BaseLayer checked name="Sequence data">
+        <LayerGroup>
+          {mapDataState.data.map((feature) => (
+            <Polygon
+              key={uniqueId()}
+              pathOptions={setLayerStyles(feature.properties.color)}
+              positions={feature.geometry.coordinates}
+            >
+              <Popup>
+                <MapGridPopup
+                  feature={feature}
+                  pageState={pageState}
+                  setPageState={setPageState}
+                  setDrawerState={setDrawerState}
+                  fqState={fqState}
+                  setFqState={setFqState}
+                  setRecordState={setRecordState}
+                />
+              </Popup>
+            </Polygon>
+          ))}
+        </LayerGroup>
+      </LayersControl.BaseLayer>
+      {heatmapFeatures.length > 0 && (
+        <LayersControl.BaseLayer name="Sequence heatmap">
+          <LayerGroup>
+            {heatmapFeatures.map((feature) => (
+              <Polygon
+                key={uniqueId('heatmap')}
+                pathOptions={setLayerStyles(feature.properties.color)}
+                positions={feature.geometry.coordinates}
+              >
+                <Popup>
+                  <MapGridPopup
+                    feature={feature}
+                    pageState={pageState}
+                    setPageState={setPageState}
+                    setDrawerState={setDrawerState}
+                    fqState={fqState}
+                    setFqState={setFqState}
+                    setRecordState={setRecordState}
+                  />
+                </Popup>
+              </Polygon>
+            ))}
+          </LayerGroup>
+        </LayersControl.BaseLayer>
+      )}
+    </>
   )
 }
 

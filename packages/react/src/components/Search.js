@@ -337,9 +337,13 @@ function Search() {
       const fqParamList = []
       Object.keys(fqState).forEach((key) => {
         if (fqState[key].length > 0) {
+          // array in object value
           fqState[key].forEach((val) => {
             fqParamList.push(`${key}:%22${val}%22`)
           })
+        } else {
+          // empty value in object ()
+          fqParamList.push(key)
         }
       })
       const groupParams = pageState.groupResults

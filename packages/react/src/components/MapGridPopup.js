@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
+const solrGeoField = 'quad' // 'packedQuad'
 
 // Fixed = This is being statically rendered due to being pulled in via `ReactDOMServer.renderToString()`
 // try portals trick - https://stackoverflow.com/a/69353273/249327
@@ -20,6 +21,7 @@ function MapGridPopup({
 
   const latlng = useMemo(() => feature?.properties?.latlng, [])
   const geoField = useMemo(() => feature?.properties?.geoField, [])
+  const wktField = useMemo(() => feature?.properties?.wkt, [])
 
   useEffect(() => {
     // console.log('fetchData', geoField, latlng)
@@ -38,9 +40,12 @@ function MapGridPopup({
           })
         }
       })
+      const geoFq = wktField
+        ? `{!field f=${solrGeoField}}Intersects(${wktField})`
+        : `${geoField}:%22${latlng}%22`
       const url = `${serverUrlPrefix}/select?q=${
         pageState.q || '*:*'
-      }&fq=${fqParamList.join('&fq=')}&fq=${geoField}:%22${latlng}%22` // &fq=geohash:${bboxCoords}&fl=id`
+      }&fq=${fqParamList.join('&fq=')}&fq=${geoFq}` // &fq=geohash:${bboxCoords}&fl=id`
 
       // Do HTTP fetch
       const response = await fetch(url, { signal: abortController.signal })
@@ -74,7 +79,10 @@ function MapGridPopup({
   }
 
   const onFilterRecords = () => {
-    const fq = { [geoField]: [latlng] }
+    const wktFq = wktField
+      ? `{!field f=${solrGeoField}}Intersects(${wktField})`
+      : ''
+    const fq = wktField ? { [wktFq]: '' } : { [geoField]: [latlng] }
     setFqState((old) => ({ ...old, ...fq }))
   }
 
