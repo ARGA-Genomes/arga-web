@@ -1,10 +1,7 @@
 import { MapContainer, TileLayer, LayersControl } from 'react-leaflet'
-import '../assets/leaflet/leaflet.css'
 import Legend from './MapLegend'
 import MapDataLayer from './MapDataLayer'
-
-// import { Icon } from 'leaflet'
-// import { CssBaseline } from '@mui/material'
+import '../assets/leaflet/leaflet.css'
 
 const AusBounds = [
   [-43, 113],
