@@ -11,7 +11,6 @@ import {
   Tabs,
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
-import { lighten } from '@mui/material/styles'
 import stringHash from 'string-hash'
 import RecordDrawer from './RecordDrawer'
 import ArgaToolbar from './ArgaToolbar'
@@ -581,7 +580,7 @@ function Search() {
                   sx={{
                     flexGrow: 1,
                     p: 2,
-                    backgroundColor: lighten(theme.palette.warning.main, 0.75),
+                    backgroundColor: theme.palette.warning.light,
                   }}
                 >
                   <GridView

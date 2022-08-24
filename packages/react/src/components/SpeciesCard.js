@@ -7,7 +7,6 @@ import {
   CardMedia,
   CardContent,
   CardActions,
-  // Chip,
   Collapse,
   Grid,
   IconButton,
@@ -18,13 +17,7 @@ import {
 } from '@mui/material'
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import ShareIcon from '@mui/icons-material/Share'
-import {
-  // ExpandMore,
-  // ExpandLess,
-  Article,
-  TextSnippet,
-} from '@mui/icons-material'
-// import { lighten } from '@mui/material/styles'
+import { Article, TextSnippet } from '@mui/icons-material'
 import logoimage from '../assets/ARGA Logomark MONO REVERSED.png'
 import theme from './theme'
 

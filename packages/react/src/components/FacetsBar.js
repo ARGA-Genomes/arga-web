@@ -7,11 +7,10 @@ import {
   IconButton,
   Divider,
   Grid,
-  // Chip,
+  Tooltip,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
-import { lighten } from '@mui/material/styles'
 import { useSearchParams } from 'react-router-dom'
 import FacetSelect from './FacetSelect'
 import theme from './theme'
@@ -89,6 +88,31 @@ export default function FacetsBar({
     (fq) => !(fq in facetsDisplay)
   )
 
+  const formatFacetText = (fqName) => {
+    let content = ''
+    if (fqState[fqName]) {
+      // regular `field: value` output
+      content = `${fqName}: ${fqState[fqName]}`
+    } else {
+      // handle WKT filter, e.g. `{!field f=quad}Intersects(POLYGON((137.8125 -31.640625, 137.8125 -32.34375,139.21875 -32.34375, 139.21875 -31.640625,137.8125 -31.640625)))`
+      const polygonPosition = fqName.search('POLYGON')
+      if (polygonPosition > 0) {
+        const coords = fqName
+          .slice(polygonPosition + 9, -3)
+          .split(',')[0]
+          .split(' ')
+        const truncatedCoords = coords.map((coord) =>
+          Number.isNaN(coord) ? coord : parseFloat(coord).toFixed(4)
+        )
+        content = `POLYGON: ${truncatedCoords[0]}, ${truncatedCoords[1]}`
+      } else {
+        content = fqName
+      }
+    }
+
+    return content
+  }
+
   const handleDelete = (fqName) => () => {
     setFqState((current) => {
       const copy = { ...current }
@@ -103,8 +127,7 @@ export default function FacetsBar({
         border: '1px solid rgba(224, 224, 224, 1)',
         borderRadius: '4px',
         padding: 1,
-        // backgroundColor: 'white',
-        backgroundColor: lighten(theme.palette.success.main, 0.7),
+        backgroundColor: theme.palette.success.light,
       }}
     >
       <Grid container spacing={1}>
@@ -115,10 +138,7 @@ export default function FacetsBar({
             value={inputState}
             onChange={(e) => setInputState(e.target.value)}
             onKeyPress={searchKeyPress}
-            // style={{ width: '50ch' }}
             sx={{
-              // fontSize: '14px',
-              // width: '50ch',
               width: '100%',
               '& .MuiInputLabel-root, .MuiOutlinedInput-root': {
                 fontSize: '14px',
@@ -160,7 +180,7 @@ export default function FacetsBar({
             xs={6}
             sm={4}
             md={2}
-            lg={2}
+            lg={3}
             key={fqName}
             sx={{ marginTop: '2px' }}
           >
@@ -171,14 +191,24 @@ export default function FacetsBar({
               size="large"
               onDelete={handleDelete(fqName)}
             /> */}
-            <Button
-              sx={{ backgroundColor: theme.palette.background.paper }}
-              variant="outlined"
-              onClick={handleDelete(fqName)}
-              endIcon={<CloseIcon />}
-            >
-              {fqName}: {fqState[fqName]}
-            </Button>
+            <Tooltip title="Click to remove filter" arrow>
+              <Button
+                sx={{
+                  backgroundColor: theme.palette.primary.mid,
+                  color: theme.palette.background.paper,
+                  width: '100%',
+                  '&:hover': {
+                    backgroundColor: theme.palette.background.paper,
+                    color: theme.palette.text.primary,
+                  },
+                }}
+                variant="outlined"
+                onClick={handleDelete(fqName)}
+                endIcon={<CloseIcon />}
+              >
+                {formatFacetText(fqName)}
+              </Button>
+            </Tooltip>
           </Grid>
         ))}
       </Grid>
