@@ -18,7 +18,9 @@ function MapGridPopup({ feature, setFqState }) {
     popupContent = feature.properties.count
   }
 
-  const onFilterRecords = () => {
+  const onFilterRecords = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
     const wktFq = wktField
       ? `{!field f=${solrGeoField}}Intersects(${wktField})`
       : ''

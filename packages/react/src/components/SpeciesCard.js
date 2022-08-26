@@ -218,7 +218,7 @@ function SpeciesCard({ record, index, setRecordState }) {
 
       <CardContent sx={{ height: '105px', overflow: 'hidden' }}>
         <Typography variant="body2" color="textSecondary" component="div">
-          {record.doclist.docs.length} sequence record{' '}
+          {record.doclist.docs.length} sequence record
           {record.doclist.docs.length > 1 ? `s are` : ' is'} available
         </Typography>
         <Typography

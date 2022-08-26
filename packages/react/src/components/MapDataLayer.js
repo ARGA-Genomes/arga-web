@@ -63,99 +63,6 @@ const getFieldForZoom = (zoom) => {
   return field
 }
 
-function getGeoAddition(lat, lng) {
-  if (!lat.includes('.') && !lng.includes('.')) {
-    return 1
-  }
-
-  const decimalLat = lat.includes('.') ? lat.split('.')[1].length : 1
-  const decimalng = lng.includes('.') ? lng.split('.')[1].length : 1
-  const decimal = Math.min(decimalLat, decimalng)
-  const stringPart = `.${'0'.repeat(decimal - 1)}`
-  return Number(stringPart + 1)
-}
-
-function getPrecisionFromGeoField(geoField) {
-  // point-1, point-0.1, point-0.01, point-0.001, point-0.0001
-  let precision = 1
-  const numberPart = geoField.substring(6) // point-0.1 -> 0.1
-
-  if (!Number.isNaN(numberPart)) {
-    precision = Number(numberPart)
-  }
-
-  return precision
-}
-
-const getFeatureObj = ({ latlng, count, geoField }) => {
-  const [lat, lng] = latlng.split(',') // array of strings !
-  const geoFieldAddition = getPrecisionFromGeoField(geoField)
-  const geoDataAddition = getGeoAddition(lat, lng, geoField)
-  const geoAddition = Math.min(geoFieldAddition, geoDataAddition)
-  const latN = Number(lat)
-  const lngN = Number(lng)
-  let type = 'Polygon'
-  let coords = []
-
-  if (geoField.startsWith('point')) {
-    // geoJSON is x, y format
-    // coords = [
-    //   [lngN, latN], // [146, -28]
-    //   [lngN, latN + geoAddition], // [146, -27],
-    //   [lngN + geoAddition, latN + geoAddition], // [147, -27],
-    //   [lngN + geoAddition, latN], // [147, -28],
-    //   [lngN, latN], // [146, -28]
-    // ]
-    // Leaflet is lat,lng format
-    coords = [
-      [latN, lngN], // [ -28, 146]
-      [latN + geoAddition, lngN], // [-27, 146],
-      [latN + geoAddition, lngN + geoAddition], // [-27, 147],
-      [latN, lngN + geoAddition], // [-28, 147],
-      // [latN, lngN], // [-28, 146] - we don't need to close it with Leaflet polygon (unlike WKT and geoJSON)
-    ]
-  } else {
-    type = 'Point'
-    coords = [lngN, latN]
-  }
-
-  const featureObj = {
-    type: 'Feature',
-    geometry: {
-      type, // shorthand
-      coordinates: [coords],
-    },
-    properties: {
-      count,
-      color: getColourForCount(count),
-      geoAddition,
-      latlng,
-      geoField,
-    },
-  }
-  // console.log('featureObj', featureObj)
-  return featureObj
-}
-
-const buildPolygonArray = (data, geoField) => {
-  // data is array of lat,lng and count couplets
-  // console.log('data, geoField', data, geoField)
-  const featureArray = []
-  for (let i = 0; i < data.length; i += 2) {
-    const latlng = data[i]
-    const count = data[i + 1]
-    featureArray.push(getFeatureObj({ latlng, count, geoField }))
-  }
-  // console.log('featureArray', featureArray)
-
-  // const geoJsonObj = {
-  //   type: 'FeatureCollection',
-  //   features: featureArray,
-  // }
-
-  return featureArray
-}
-
 /**
  * MapDataLayer component
  *
@@ -180,7 +87,6 @@ function MapDataLayer({
     geoField: getFieldForZoom(map.getZoom()),
     data: [],
     heatmap: {},
-    crossesDateline: false,
     isLoading: false,
     errorMsg: '',
   })
@@ -218,21 +124,8 @@ function MapDataLayer({
     const se = bounds.getSouthEast().wrap()
     const ne = bounds.getNorthEast().wrap()
     const nw = bounds.getNorthWest().wrap()
-    // console.log(
-    //   'bbox',
-    //   bounds.toBBoxString(),
-    //   bounds.getNorthEast().wrap(),
-    //   bounds.getNorthEast()
-    // )
-    let wktString = ''
-    if (true && bounds.getNorthEast().lng > 180) {
-      // bbox crosses dateline
-      setMapDataState((old) => ({ ...old, crossesDateline: true }))
-      wktString = `MULTIPOLYGON(((${nw.lng} ${nw.lat},${sw.lng} ${sw.lat},180 ${se.lat},180 ${ne.lat},${nw.lng} ${nw.lat})),((-180 ${se.lat}, ${se.lng} ${se.lat}, ${ne.lng} ${ne.lat}, -180 ${ne.lat}, -180 ${se.lat})))`
-    } else {
-      wktString = `POLYGON((${sw.lng} ${sw.lat},${se.lng} ${se.lat},${ne.lng} ${ne.lat},${nw.lng} ${nw.lat},${sw.lng} ${sw.lat}))`
-    }
-    return wktString
+
+    return `POLYGON((${sw.lng} ${sw.lat},${se.lng} ${se.lat},${ne.lng} ${ne.lat},${nw.lng} ${nw.lat},${sw.lng} ${sw.lat}))`
 
     // const wrappedSw = bounds.getSouthWest().wrap()
     // const wrappedNe = bounds.getNorthEast().wrap()
@@ -293,9 +186,9 @@ function MapDataLayer({
       const resp = await fetch(
         `${serverUrlPrefix}/select?q=${
           pageState.q || '*:*'
-        }&fq=${fqParamList.join('&fq=')}&facet=true&facet.field=${
-          mapDataState.geoField
-        }&facet.heatmap=${solrGeoField}&facet.heatmap.geom=${getSolrBboxPolygon(
+        }&fq=${fqParamList.join(
+          '&fq='
+        )}&facet=true&facet.heatmap=${solrGeoField}&facet.heatmap.geom=${getSolrBboxPolygon(
           mapDataState.bbox
         )}&facet.heatmap.gridLevel=${getGridLevel()}&facet.mincount=1&rows=0&facet.limit=9999`
       )
@@ -303,10 +196,6 @@ function MapDataLayer({
       setMapDataState((old) => ({
         ...old,
         isLoading: false,
-        data: buildPolygonArray(
-          json.facet_counts.facet_fields[mapDataState.geoField],
-          mapDataState.geoField
-        ),
         heatmap: json.facet_counts.facet_heatmaps[solrGeoField],
       }))
     }
@@ -391,12 +280,12 @@ function MapDataLayer({
   )
 
   return (
-    <>
-      <LayersControl.BaseLayer name="Sequence data">
+    <LayersControl.Overlay checked name="Sequence heatmap">
+      {heatmapFeatures.length > 0 && (
         <LayerGroup>
-          {mapDataState.data.map((feature) => (
+          {heatmapFeatures.map((feature) => (
             <Polygon
-              key={uniqueId()}
+              key={uniqueId('heatmap')}
               pathOptions={setLayerStyles(feature.properties.color)}
               positions={feature.geometry.coordinates}
             >
@@ -414,33 +303,8 @@ function MapDataLayer({
             </Polygon>
           ))}
         </LayerGroup>
-      </LayersControl.BaseLayer>
-      {heatmapFeatures.length > 0 && (
-        <LayersControl.BaseLayer checked name="Sequence heatmap">
-          <LayerGroup>
-            {heatmapFeatures.map((feature) => (
-              <Polygon
-                key={uniqueId('heatmap')}
-                pathOptions={setLayerStyles(feature.properties.color)}
-                positions={feature.geometry.coordinates}
-              >
-                <Popup>
-                  <MapGridPopup
-                    feature={feature}
-                    pageState={pageState}
-                    setPageState={setPageState}
-                    setDrawerState={setDrawerState}
-                    fqState={fqState}
-                    setFqState={setFqState}
-                    setRecordState={setRecordState}
-                  />
-                </Popup>
-              </Polygon>
-            ))}
-          </LayerGroup>
-        </LayersControl.BaseLayer>
       )}
-    </>
+    </LayersControl.Overlay>
   )
 }
 
