@@ -54,6 +54,30 @@ const getColourForCount = (count) => {
   return colour
 }
 
+const setLayerStyles = (setColour) => ({
+  color: darken(setColour, 0.2),
+  fillColor: setColour,
+  fillOpacity: 0.5,
+  weight: 1,
+  stroke: true,
+})
+
+const getSolrBboxPolygon = (bounds) => {
+  // POLYGON((153 -28, 154 -28, 154 -27, 153 -27, 153 -28))
+  const sw = bounds.getSouthWest().wrap()
+  const se = bounds.getSouthEast().wrap()
+  const ne = bounds.getNorthEast().wrap()
+  const nw = bounds.getNorthWest().wrap()
+
+  return `POLYGON((${sw.lng} ${sw.lat},${se.lng} ${se.lat},${ne.lng} ${ne.lat},${nw.lng} ${nw.lat},${sw.lng} ${sw.lat}))`
+
+  // const wrappedSw = bounds.getSouthWest().wrap()
+  // const wrappedNe = bounds.getNorthEast().wrap()
+  // return `["${wrappedSw.lng} ${bounds.getSouth()}" TO "${
+  //   wrappedNe.lng
+  // } ${bounds.getNorth()}"]`
+}
+
 const getFieldForZoom = (zoom) => {
   // let field = 'location' // not a facet field!
   let field = 'point-0.001'
@@ -61,6 +85,67 @@ const getFieldForZoom = (zoom) => {
     field = zoomToPoint[zoom]
   }
   return field
+}
+
+const getHeatmapFeatures = (heatmap) => {
+  if (Object.keys(heatmap).length < 1 || heatmap.counts_ints2D.length < 1) {
+    return []
+  }
+
+  const gridArray = heatmap.counts_ints2D // rows then columns
+  const lat0 = heatmap.maxY
+  const lng0 = heatmap.minX
+  const latStep = (heatmap.maxY - heatmap.minY) / heatmap.rows // lng changes
+  const lngStep =
+    heatmap.maxX > heatmap.minX
+      ? (heatmap.maxX - heatmap.minX) / heatmap.columns
+      : (180 - heatmap.minX + (heatmap.maxX + 180)) / heatmap.columns // lat changes
+  // console.log('cell', lat0, lng0, latStep, lngStep)
+  const features = []
+
+  // iterate each row
+  gridArray.forEach((row, i) => {
+    // heatmap row can be `null` if all column/cell values are zero (to save bandwidth)
+    if (row) {
+      // iterate each column for the given row
+      row.forEach((rowCell, j) => {
+        // only draw a cell if the count > 0
+        if (rowCell > 0) {
+          const latN = lat0 - latStep * i
+          const lngN = lng0 + lngStep * j
+          // if ()
+          const coords = [
+            [latN, lngN], // [ -28, 146]
+            [latN - latStep, lngN], // [-27, 146],
+            [latN - latStep, lngN + lngStep], // [-27, 147],
+            [latN, lngN + lngStep], // [-28, 147],
+          ]
+          const featureObj = {
+            type: 'Feature',
+            geometry: {
+              type: 'polygon',
+              coordinates: [coords],
+            },
+            properties: {
+              count: rowCell,
+              color: getColourForCount(rowCell),
+              geo: [latN, lngN],
+              wkt: `POLYGON((${lngN} ${latN}, ${lngN} ${latN - latStep},${
+                lngN + lngStep
+              } ${latN - latStep}, ${lngN + lngStep} ${latN},${lngN} ${latN}))`,
+            },
+          }
+
+          if (lngN > 180) {
+            // console.log('featureObj', featureObj)
+          }
+          features.push(featureObj)
+        }
+      })
+    }
+  })
+
+  return features
 }
 
 /**
@@ -101,14 +186,6 @@ function MapDataLayer({
     }))
   }
 
-  const setLayerStyles = (setColour) => ({
-    color: darken(setColour, 0.2),
-    fillColor: setColour,
-    fillOpacity: 0.6,
-    weight: 1,
-    stroke: true,
-  })
-
   const mapEvent = useMapEvents({
     zoomend: () => {
       updateMapState(mapEvent)
@@ -117,22 +194,6 @@ function MapDataLayer({
       updateMapState(mapEvent)
     },
   })
-
-  const getSolrBboxPolygon = (bounds) => {
-    // POLYGON((153 -28, 154 -28, 154 -27, 153 -27, 153 -28))
-    const sw = bounds.getSouthWest().wrap()
-    const se = bounds.getSouthEast().wrap()
-    const ne = bounds.getNorthEast().wrap()
-    const nw = bounds.getNorthWest().wrap()
-
-    return `POLYGON((${sw.lng} ${sw.lat},${se.lng} ${se.lat},${ne.lng} ${ne.lat},${nw.lng} ${nw.lat},${sw.lng} ${sw.lat}))`
-
-    // const wrappedSw = bounds.getSouthWest().wrap()
-    // const wrappedNe = bounds.getNorthEast().wrap()
-    // return `["${wrappedSw.lng} ${bounds.getSouth()}" TO "${
-    //   wrappedNe.lng
-    // } ${bounds.getNorth()}"]`
-  }
 
   // const getSolrBboxFq = (bounds) => {
   //   const wrappedSw = bounds.getSouthWest().wrap()
@@ -160,12 +221,12 @@ function MapDataLayer({
     const tileSizeHeightIndex = gridLevelsArray.filter(
       (it) => tileHeight < it
     ).length
-    const adjustFactor = 5 // simlar to 7 used in biocache-service, except that is for 256px tiles
+    const adjustFactor = 4 // was 5 (using Math.min()), based on 7 (max allowed) used in biocache-service, except that is for 256px tiles
     // console.log('getGridLevel tile size', tileWidth, tileHeight)
-    // console.log('getGridLevel index', tileSizeWidthIndex, tileSizeHeightIndex)
+    // console.log('getGridLevel index', Math.min(tileSizeWidthIndex, tileSizeHeightIndex))
     // gridLevel must be > 0 and <= 26
 
-    return Math.min(tileSizeWidthIndex, tileSizeHeightIndex) + adjustFactor
+    return Math.max(tileSizeWidthIndex, tileSizeHeightIndex) + adjustFactor
   }
 
   useEffect(() => {
@@ -211,71 +272,8 @@ function MapDataLayer({
     })
   }, [mapDataState.bbox, mapDataState.zoom, pageState.q, fqState])
 
-  const getHeatmapPolygons = (heatmap) => {
-    if (Object.keys(heatmap).length < 1 || heatmap.counts_ints2D.length < 1) {
-      return []
-    }
-
-    const gridArray = heatmap.counts_ints2D // rows then columns
-    const lat0 = heatmap.maxY
-    const lng0 = heatmap.minX
-    const latStep = (heatmap.maxY - heatmap.minY) / heatmap.rows // lng changes
-    const lngStep =
-      heatmap.maxX > heatmap.minX
-        ? (heatmap.maxX - heatmap.minX) / heatmap.columns
-        : (180 - heatmap.minX + (heatmap.maxX + 180)) / heatmap.columns // lat changes
-    // console.log('cell', lat0, lng0, latStep, lngStep)
-    const features = []
-
-    // iterate each row
-    gridArray.forEach((row, i) => {
-      // heatmap row can be `null` if all column/cell values are zero (to save bandwidth)
-      if (row) {
-        // iterate each column for the given row
-        row.forEach((rowCell, j) => {
-          // only draw a cell if the count > 0
-          if (rowCell > 0) {
-            const latN = lat0 - latStep * i
-            const lngN = lng0 + lngStep * j
-            // if ()
-            const coords = [
-              [latN, lngN], // [ -28, 146]
-              [latN - latStep, lngN], // [-27, 146],
-              [latN - latStep, lngN + lngStep], // [-27, 147],
-              [latN, lngN + lngStep], // [-28, 147],
-            ]
-            const featureObj = {
-              type: 'Feature',
-              geometry: {
-                type: 'polygon',
-                coordinates: [coords],
-              },
-              properties: {
-                count: rowCell,
-                color: getColourForCount(rowCell),
-                geo: [latN, lngN],
-                wkt: `POLYGON((${lngN} ${latN}, ${lngN} ${latN - latStep},${
-                  lngN + lngStep
-                } ${latN - latStep}, ${
-                  lngN + lngStep
-                } ${latN},${lngN} ${latN}))`,
-              },
-            }
-
-            if (lngN > 180) {
-              // console.log('featureObj', featureObj)
-            }
-            features.push(featureObj)
-          }
-        })
-      }
-    })
-
-    return features
-  }
-
   const heatmapFeatures = useMemo(
-    () => getHeatmapPolygons(mapDataState.heatmap),
+    () => getHeatmapFeatures(mapDataState.heatmap),
     [mapDataState.heatmap]
   )
 
