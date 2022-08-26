@@ -1,10 +1,7 @@
 import { MapContainer, TileLayer, LayersControl } from 'react-leaflet'
-import '../assets/leaflet/leaflet.css'
 import Legend from './MapLegend'
 import MapDataLayer from './MapDataLayer'
-
-// import { Icon } from 'leaflet'
-// import { CssBaseline } from '@mui/material'
+import '../assets/leaflet/leaflet.css'
 
 const AusBounds = [
   [-43, 113],
@@ -30,18 +27,17 @@ function MapView({
         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         maxZoom={20}
         subdomains="abcd"
+        worldCopyJump={1}
       />
       <LayersControl position="topright">
-        <LayersControl.Overlay checked name="Sequence data">
-          <MapDataLayer
-            pageState={pageState}
-            setPageState={setPageState}
-            setDrawerState={setDrawerState}
-            fqState={fqState}
-            setFqState={setFqState}
-            setRecordState={setRecordState}
-          />
-        </LayersControl.Overlay>
+        <MapDataLayer
+          pageState={pageState}
+          setPageState={setPageState}
+          setDrawerState={setDrawerState}
+          fqState={fqState}
+          setFqState={setFqState}
+          setRecordState={setRecordState}
+        />
       </LayersControl>
       <Legend />
     </MapContainer>

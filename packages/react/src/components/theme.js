@@ -1,25 +1,44 @@
 import { createTheme } from '@mui/material'
+import { lighten } from '@mui/material/styles'
 
+const light = 0.8
+const mid = 0.4
+const argaColours = {
+  primary: '#233C4B', // dark blue
+  secondary: '#f96f00', // orange
+  warning: '#cb9f36', // yellow-mustard
+  error: '#34A59D', // aqua blue
+  success: '#80a253', // forest green
+}
 const theme = createTheme({
   palette: {
     type: 'light',
     primary: {
-      main: '#233C4B', // dark blue
-      // main: '#1C303B',
+      main: argaColours.primary, // dark blue
+      light: lighten(argaColours.primary, light),
+      mid: lighten(argaColours.primary, mid),
     },
     secondary: {
-      main: '#f96f00', // orange
+      main: argaColours.secondary, // orange
+      light: lighten(argaColours.secondary, light),
+      mid: lighten(argaColours.secondary, mid),
     },
     warning: {
       // main: '#FEC743',
-      main: '#cb9f36', // yellow-mustard
+      main: argaColours.warning, // yellow-mustard
+      light: lighten(argaColours.warning, light),
+      mid: lighten(argaColours.warning, mid),
     },
     error: {
-      main: '#34A59D', // aqua blue
+      main: argaColours.error, // aqua blue
+      light: lighten(argaColours.error, light),
+      mid: lighten(argaColours.error, mid),
     },
     success: {
       // main: '#A0CA68',
-      main: '#80a253', // forest green
+      main: argaColours.success, // forest green
+      light: lighten(argaColours.success, light),
+      mid: lighten(argaColours.success, mid),
     },
     background: {
       default: '#E0E0E0',

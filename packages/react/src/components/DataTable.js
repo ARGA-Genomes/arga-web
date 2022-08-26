@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
-import { lighten } from '@mui/material/styles'
 import { GlobalStyles } from '@mui/material'
 import theme from './theme'
 
@@ -55,7 +54,7 @@ function DataTable({ columns, pageState, setPageState, setRecordState }) {
           },
           '.MuiDataGrid-footerContainer': {
             // backgroundColor: '#fff', // '#D6EFFE',
-            backgroundColor: lighten(theme.palette.success.main, 0.75),
+            backgroundColor: theme.palette.success.light,
             border: '1px solid rgba(224, 224, 224, 1)',
             borderRadius: '4px',
             left: '50%',
