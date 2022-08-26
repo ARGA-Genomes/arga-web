@@ -180,6 +180,7 @@ function MapDataLayer({
     geoField: getFieldForZoom(map.getZoom()),
     data: [],
     heatmap: {},
+    crossesDateline: false,
     isLoading: false,
     errorMsg: '',
   })
@@ -211,15 +212,42 @@ function MapDataLayer({
     },
   })
 
-  const getSolrBboxPolygon = (latLngBounds) => {
+  const getSolrBboxPolygon = (bounds) => {
     // POLYGON((153 -28, 154 -28, 154 -27, 153 -27, 153 -28))
-    const sw = latLngBounds.getSouthWest().wrap()
-    const se = latLngBounds.getSouthEast().wrap()
-    const ne = latLngBounds.getNorthEast().wrap()
-    const nw = latLngBounds.getNorthWest().wrap()
+    const sw = bounds.getSouthWest().wrap()
+    const se = bounds.getSouthEast().wrap()
+    const ne = bounds.getNorthEast().wrap()
+    const nw = bounds.getNorthWest().wrap()
+    // console.log(
+    //   'bbox',
+    //   bounds.toBBoxString(),
+    //   bounds.getNorthEast().wrap(),
+    //   bounds.getNorthEast()
+    // )
+    let wktString = ''
+    if (true && bounds.getNorthEast().lng > 180) {
+      // bbox crosses dateline
+      setMapDataState((old) => ({ ...old, crossesDateline: true }))
+      wktString = `MULTIPOLYGON(((${nw.lng} ${nw.lat},${sw.lng} ${sw.lat},180 ${se.lat},180 ${ne.lat},${nw.lng} ${nw.lat})),((-180 ${se.lat}, ${se.lng} ${se.lat}, ${ne.lng} ${ne.lat}, -180 ${ne.lat}, -180 ${se.lat})))`
+    } else {
+      wktString = `POLYGON((${sw.lng} ${sw.lat},${se.lng} ${se.lat},${ne.lng} ${ne.lat},${nw.lng} ${nw.lat},${sw.lng} ${sw.lat}))`
+    }
+    return wktString
 
-    return `POLYGON((${sw.lng} ${sw.lat},${se.lng} ${se.lat},${ne.lng} ${ne.lat},${nw.lng} ${nw.lat},${sw.lng} ${sw.lat}))`
+    // const wrappedSw = bounds.getSouthWest().wrap()
+    // const wrappedNe = bounds.getNorthEast().wrap()
+    // return `["${wrappedSw.lng} ${bounds.getSouth()}" TO "${
+    //   wrappedNe.lng
+    // } ${bounds.getNorth()}"]`
   }
+
+  // const getSolrBboxFq = (bounds) => {
+  //   const wrappedSw = bounds.getSouthWest().wrap()
+  //   const wrappedNe = bounds.getNorthEast().wrap()
+  //   return `"Intersects(ENVELOPE(${wrappedSw.lng}, ${
+  //     wrappedNe.lng
+  //   }, ${bounds.getNorth()}, ${bounds.getSouth()}))"`
+  // }
 
   const getGridLevel = () => {
     // Code from https://github.com/AtlasOfLivingAustralia/biocache-service/blob/develop/src/main/java/au/org/ala/biocache/dao/SearchDAOImpl.java#L2695
@@ -230,12 +258,21 @@ function MapDataLayer({
       0.0006866455078125,
     ]
     const tileWidth =
-      map.getBounds().getNorthEast().wrap().lng -
-      map.getBounds().getNorthWest().wrap().lng
-    const tileSizeArray = gridLevelsArray.filter((it) => tileWidth < it)
+      map.getBounds().getNorthEast().lng - map.getBounds().getNorthWest().lng
+    const tileHeight =
+      map.getBounds().getNorthWest().lat - map.getBounds().getSouthWest().lat
+    const tileSizeWidthIndex = gridLevelsArray.filter(
+      (it) => tileWidth < it
+    ).length
+    const tileSizeHeightIndex = gridLevelsArray.filter(
+      (it) => tileHeight < it
+    ).length
     const adjustFactor = 5 // simlar to 7 used in biocache-service, except that is for 256px tiles
+    // console.log('getGridLevel tile size', tileWidth, tileHeight)
+    // console.log('getGridLevel index', tileSizeWidthIndex, tileSizeHeightIndex)
+    // gridLevel must be > 0 and <= 26
 
-    return tileSizeArray.length + adjustFactor
+    return Math.min(tileSizeWidthIndex, tileSizeHeightIndex) + adjustFactor
   }
 
   useEffect(() => {
@@ -256,11 +293,7 @@ function MapDataLayer({
       const resp = await fetch(
         `${serverUrlPrefix}/select?q=${
           pageState.q || '*:*'
-        }&fq=${fqParamList.join(
-          '&fq='
-        )}&fq={!field f=${solrGeoField}}Intersects(${getSolrBboxPolygon(
-          mapDataState.bbox
-        )})&facet=true&facet.field=${
+        }&fq=${fqParamList.join('&fq=')}&facet=true&facet.field=${
           mapDataState.geoField
         }&facet.heatmap=${solrGeoField}&facet.heatmap.geom=${getSolrBboxPolygon(
           mapDataState.bbox
@@ -285,6 +318,7 @@ function MapDataLayer({
       }))
       // const msg = `Oops something went wrong. ${error.message}`
       // setSnackState({ status: true, message: msg })
+      // console.log('API error', error.message)
     })
   }, [mapDataState.bbox, mapDataState.zoom, pageState.q, fqState])
 
@@ -297,15 +331,24 @@ function MapDataLayer({
     const lat0 = heatmap.maxY
     const lng0 = heatmap.minX
     const latStep = (heatmap.maxY - heatmap.minY) / heatmap.rows // lng changes
-    const lngStep = (heatmap.maxX - heatmap.minX) / heatmap.columns // lat changes
-    // console.log('cell', lat0, lng0, latStep, lngStep, map.getZoom())
+    const lngStep =
+      heatmap.maxX > heatmap.minX
+        ? (heatmap.maxX - heatmap.minX) / heatmap.columns
+        : (180 - heatmap.minX + (heatmap.maxX + 180)) / heatmap.columns // lat changes
+    // console.log('cell', lat0, lng0, latStep, lngStep)
     const features = []
 
+    // iterate each row
     gridArray.forEach((row, i) => {
+      // heatmap row can be `null` if all column/cell values are zero (to save bandwidth)
       if (row) {
+        // iterate each column for the given row
         row.forEach((rowCell, j) => {
+          // only draw a cell if the count > 0
           if (rowCell > 0) {
-            const [latN, lngN] = [lat0 - latStep * i, lng0 + lngStep * j]
+            const latN = lat0 - latStep * i
+            const lngN = lng0 + lngStep * j
+            // if ()
             const coords = [
               [latN, lngN], // [ -28, 146]
               [latN - latStep, lngN], // [-27, 146],
@@ -329,7 +372,10 @@ function MapDataLayer({
                 } ${latN},${lngN} ${latN}))`,
               },
             }
-            // console.log('featureObj', featureObj)
+
+            if (lngN > 180) {
+              // console.log('featureObj', featureObj)
+            }
             features.push(featureObj)
           }
         })
@@ -346,7 +392,7 @@ function MapDataLayer({
 
   return (
     <>
-      <LayersControl.BaseLayer checked name="Sequence data">
+      <LayersControl.BaseLayer name="Sequence data">
         <LayerGroup>
           {mapDataState.data.map((feature) => (
             <Polygon
@@ -370,7 +416,7 @@ function MapDataLayer({
         </LayerGroup>
       </LayersControl.BaseLayer>
       {heatmapFeatures.length > 0 && (
-        <LayersControl.BaseLayer name="Sequence heatmap">
+        <LayersControl.BaseLayer checked name="Sequence heatmap">
           <LayerGroup>
             {heatmapFeatures.map((feature) => (
               <Polygon
