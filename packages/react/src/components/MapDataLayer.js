@@ -88,7 +88,7 @@ const getFieldForZoom = (zoom) => {
 }
 
 const getHeatmapFeatures = (heatmap) => {
-  if (Object.keys(heatmap).length < 1 || heatmap.counts_ints2D.length < 1) {
+  if (Object.keys(heatmap).length < 1 || !heatmap.counts_ints2D) {
     return []
   }
 
