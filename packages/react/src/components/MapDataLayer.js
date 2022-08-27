@@ -3,12 +3,15 @@ import { useState, useEffect, useMemo } from 'react'
 import {
   LayerGroup,
   LayersControl,
+  FeatureGroup,
   Polygon,
   Popup,
   useMap,
   useMapEvents,
 } from 'react-leaflet'
+import { EditControl } from 'react-leaflet-draw'
 import { darken } from '@mui/material/styles'
+import '../assets/leaflet/leaflet.draw.css'
 import MapGridPopup from './MapGridPopup'
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
@@ -272,37 +275,96 @@ function MapDataLayer({
     })
   }, [mapDataState.bbox, mapDataState.zoom, pageState.q, fqState])
 
+  // I have a feeling the useMemo is unceccessary in its cirrent form
+  // `getHeatmapFeatures` could be called inside useEffect, probably?
   const heatmapFeatures = useMemo(
     () => getHeatmapFeatures(mapDataState.heatmap),
     [mapDataState.heatmap]
   )
 
+  const onFilterRecords = (layer, type) => (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    console.log('onFilterRecords clicked', layer?.toGeoJSON())
+    let wktString = ''
+    if (type === 'cirlce') {
+      wktString = layer.toGeoJSON()
+    } else {
+      wktString = layer.toGeoJSON()
+    }
+    const wktFq = `{!field f=${solrGeoField}}Intersects(${wktString})`
+    const fq = { [wktFq]: '' }
+    setFqState((old) => ({ ...old, ...fq }))
+  }
+
+  const onDrawCreate = (e) => {
+    // const type = e.layerType
+    const drawLayer = e.layer
+    // const msg = 'Filter results for this area'
+    console.log('onDrawCreate', e.layerType)
+    // const link = (
+    //   <Popup>
+    //     <a href="#" onClick={onFilterRecords(drawLayer, type)}>
+    //       ${msg}
+    //     </a>
+    //   </Popup>
+    // )
+    // drawLayer.bindPopup(link)
+    drawLayer.bindTooltip('Click shape to see options')
+
+    map.addLayer(drawLayer)
+  }
+
   return (
-    <LayersControl.Overlay checked name="Sequence heatmap">
-      {heatmapFeatures.length > 0 && (
-        <LayerGroup>
-          {heatmapFeatures.map((feature) => (
-            <Polygon
-              key={uniqueId('heatmap')}
-              pathOptions={setLayerStyles(feature.properties.color)}
-              positions={feature.geometry.coordinates}
-            >
-              <Popup>
-                <MapGridPopup
-                  feature={feature}
-                  pageState={pageState}
-                  setPageState={setPageState}
-                  setDrawerState={setDrawerState}
-                  fqState={fqState}
-                  setFqState={setFqState}
-                  setRecordState={setRecordState}
-                />
-              </Popup>
-            </Polygon>
-          ))}
-        </LayerGroup>
-      )}
-    </LayersControl.Overlay>
+    <>
+      <LayersControl.Overlay checked name="Sequence heatmap">
+        {heatmapFeatures.length > 0 && (
+          <LayerGroup>
+            {heatmapFeatures.map((feature) => (
+              <Polygon
+                key={uniqueId('heatmap')}
+                pathOptions={setLayerStyles(feature.properties.color)}
+                positions={feature.geometry.coordinates}
+              >
+                <Popup>
+                  <MapGridPopup
+                    feature={feature}
+                    pageState={pageState}
+                    setPageState={setPageState}
+                    setDrawerState={setDrawerState}
+                    fqState={fqState}
+                    setFqState={setFqState}
+                    setRecordState={setRecordState}
+                  />
+                </Popup>
+              </Polygon>
+            ))}
+          </LayerGroup>
+        )}
+      </LayersControl.Overlay>
+      <FeatureGroup>
+        <EditControl
+          position="topleft"
+          // onEdited={onEditPath}
+          onCreated={onDrawCreate}
+          // onDeleted={onDeleted}
+          draw={{
+            polyline: false,
+            marker: false,
+            circlemarker: false,
+          }}
+        />
+        <Popup>
+          <a href="#" onClick={onFilterRecords} ref={null}>
+            Filter results for this area
+          </a>
+          <br />
+          <a href="#" onClick={(e) => console.log('test action', e)}>
+            Test action
+          </a>
+        </Popup>
+      </FeatureGroup>
+    </>
   )
 }
 
