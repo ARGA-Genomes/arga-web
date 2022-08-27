@@ -25,6 +25,21 @@ function formatLabels(label) {
   return startCase(lab1)
 }
 
+const removeFacet = (setFqState, newArray, field) => {
+  if (newArray.length > 0) {
+    // still other selected facets with same field present
+    const fqObj = { [field]: [...newArray] }
+    setFqState((old) => ({ ...old, ...fqObj }))
+  } else {
+    // no more facets for this field, so just delete it
+    setFqState((current) => {
+      const copy = { ...current }
+      delete copy[field]
+      return copy
+    })
+  }
+}
+
 /**
  * Component to output a single `Select` component for filtering by `fq` param
  * State is maintained via the `[fqState, setFqState]` state vars in Search.js
@@ -38,7 +53,7 @@ function formatLabels(label) {
 export default function FacetsSelect({
   field,
   fieldValues,
-  fqState,
+  fqState: thisFqState, // is array of values for just this `field` (not all facets like the parent version)
   setFqState,
 }) {
   const handleSelectChange = (event) => {
@@ -47,22 +62,20 @@ export default function FacetsSelect({
     } = event
     const valueArray = typeof value === 'string' ? value.split(',') : value
 
-    if (valueArray.length > fqState.length) {
+    if (valueArray.length > thisFqState.length) {
       // add new fq
       const fqObj = { [field]: [...valueArray] }
       setFqState((old) => ({ ...old, ...fqObj }))
     } else {
       // remove an element
-      const newArray = fqState.filter((x) => valueArray.includes(x))
-      const fqObj = { [field]: [...newArray] }
-      setFqState((old) => ({ ...old, ...fqObj }))
+      const newArray = thisFqState.filter((x) => valueArray.includes(x))
+      removeFacet(setFqState, newArray, field)
     }
   }
 
   const handleDelete = (chipToDelete) => () => {
-    const newArray = fqState.filter((x) => x !== chipToDelete)
-    const fqObj = { [field]: [...newArray] }
-    setFqState((old) => ({ ...old, ...fqObj }))
+    const newArray = thisFqState.filter((x) => x !== chipToDelete)
+    removeFacet(setFqState, newArray, field)
   }
 
   return (
@@ -86,7 +99,7 @@ export default function FacetsSelect({
       <Select
         labelId={`${field}-input`}
         id={`${field}-input`}
-        value={fqState}
+        value={thisFqState}
         name={field}
         multiple
         size="small"
@@ -129,7 +142,7 @@ export default function FacetsSelect({
           >
             {/* {it.name} ({it.count}) checked={personName.indexOf(name) > -1} */}
             <Checkbox
-              checked={fqState?.indexOf(it.name) > -1}
+              checked={thisFqState?.indexOf(it.name) > -1}
               sx={{ '& svg': { fontSize: '18px' } }}
             />
             <ListItemText
