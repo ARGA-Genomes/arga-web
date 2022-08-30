@@ -96,6 +96,7 @@ export default function FacetsBar({
     } else {
       // handle WKT filter, e.g. `{!field f=quad}Intersects(POLYGON((137.8125 -31.640625, 137.8125 -32.34375,139.21875 -32.34375, 139.21875 -31.640625,137.8125 -31.640625)))`
       const polygonPosition = fqName.search('POLYGON')
+      const circlePosition = fqName.search('geofilt')
       if (polygonPosition > 0) {
         const coords = fqName
           .slice(polygonPosition + 9, -3)
@@ -105,6 +106,10 @@ export default function FacetsBar({
           Number.isNaN(coord) ? coord : parseFloat(coord).toFixed(4)
         )
         content = `POLYGON: ${truncatedCoords[0]}, ${truncatedCoords[1]}`
+      } else if (circlePosition > 0) {
+        // {!geofilt sfield=location}&pt=-21.777355,131.835938&d=582
+        const [point, distance] = fqName.split('&').slice(-2)
+        content = `CIRCLE: ${point}, ${distance}`
       } else {
         content = fqName
       }
@@ -196,6 +201,7 @@ export default function FacetsBar({
                 sx={{
                   backgroundColor: theme.palette.primary.mid,
                   color: theme.palette.background.paper,
+                  textTransform: 'none',
                   width: '100%',
                   '&:hover': {
                     backgroundColor: theme.palette.background.paper,
