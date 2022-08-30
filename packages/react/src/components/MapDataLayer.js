@@ -9,6 +9,7 @@ import {
   useMapEvents,
 } from 'react-leaflet'
 import { darken } from '@mui/material/styles'
+import '../assets/leaflet/leaflet.draw.css'
 import MapGridPopup from './MapGridPopup'
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
@@ -161,7 +162,6 @@ function MapDataLayer({
   setDrawerState,
   fqState,
   setFqState,
-  setRecordState,
 }) {
   const map = useMap()
   // const geoJsonLayerRef = useRef(null)
@@ -272,6 +272,8 @@ function MapDataLayer({
     })
   }, [mapDataState.bbox, mapDataState.zoom, pageState.q, fqState])
 
+  // I have a feeling the useMemo is unceccessary in its cirrent form
+  // `getHeatmapFeatures` could be called inside useEffect, probably?
   const heatmapFeatures = useMemo(
     () => getHeatmapFeatures(mapDataState.heatmap),
     [mapDataState.heatmap]
@@ -280,14 +282,14 @@ function MapDataLayer({
   return (
     <LayersControl.Overlay checked name="Sequence heatmap">
       {heatmapFeatures.length > 0 && (
-        <LayerGroup>
+        <LayerGroup pane="dataPane">
           {heatmapFeatures.map((feature) => (
             <Polygon
               key={uniqueId('heatmap')}
               pathOptions={setLayerStyles(feature.properties.color)}
               positions={feature.geometry.coordinates}
             >
-              <Popup>
+              <Popup pane="popupPane">
                 <MapGridPopup
                   feature={feature}
                   pageState={pageState}
@@ -295,7 +297,6 @@ function MapDataLayer({
                   setDrawerState={setDrawerState}
                   fqState={fqState}
                   setFqState={setFqState}
-                  setRecordState={setRecordState}
                 />
               </Popup>
             </Polygon>

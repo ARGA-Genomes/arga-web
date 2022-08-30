@@ -1,7 +1,8 @@
-import { MapContainer, TileLayer, LayersControl } from 'react-leaflet'
+import { MapContainer, TileLayer, LayersControl, Pane } from 'react-leaflet'
 import Legend from './MapLegend'
 import MapDataLayer from './MapDataLayer'
 import '../assets/leaflet/leaflet.css'
+import MapDrawTool from './MapDrawTool'
 
 const AusBounds = [
   [-43, 113],
@@ -30,16 +31,19 @@ function MapView({
         worldCopyJump={1}
       />
       <LayersControl position="topright">
-        <MapDataLayer
-          pageState={pageState}
-          setPageState={setPageState}
-          setDrawerState={setDrawerState}
-          fqState={fqState}
-          setFqState={setFqState}
-          setRecordState={setRecordState}
-        />
+        <Pane name="dataPane" style={{ zIndex: 301 }}>
+          <MapDataLayer
+            pageState={pageState}
+            setPageState={setPageState}
+            setDrawerState={setDrawerState}
+            fqState={fqState}
+            setFqState={setFqState}
+            setRecordState={setRecordState}
+          />
+        </Pane>
       </LayersControl>
       <Legend />
+      <MapDrawTool fqState={fqState} setFqState={setFqState} />
     </MapContainer>
   )
 }
