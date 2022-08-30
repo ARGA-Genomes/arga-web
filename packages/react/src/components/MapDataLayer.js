@@ -11,7 +11,6 @@ import {
 import { darken } from '@mui/material/styles'
 import '../assets/leaflet/leaflet.draw.css'
 import MapGridPopup from './MapGridPopup'
-import MapDrawTool from './MapDrawTool'
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
 const solrGeoField = 'quad' // 'packedQuad'
@@ -281,33 +280,30 @@ function MapDataLayer({
   )
 
   return (
-    <>
-      <LayersControl.Overlay checked name="Sequence heatmap">
-        {heatmapFeatures.length > 0 && (
-          <LayerGroup>
-            {heatmapFeatures.map((feature) => (
-              <Polygon
-                key={uniqueId('heatmap')}
-                pathOptions={setLayerStyles(feature.properties.color)}
-                positions={feature.geometry.coordinates}
-              >
-                <Popup>
-                  <MapGridPopup
-                    feature={feature}
-                    pageState={pageState}
-                    setPageState={setPageState}
-                    setDrawerState={setDrawerState}
-                    fqState={fqState}
-                    setFqState={setFqState}
-                  />
-                </Popup>
-              </Polygon>
-            ))}
-          </LayerGroup>
-        )}
-      </LayersControl.Overlay>
-      <MapDrawTool fqState={fqState} setFqState={setFqState} />
-    </>
+    <LayersControl.Overlay checked name="Sequence heatmap">
+      {heatmapFeatures.length > 0 && (
+        <LayerGroup pane="dataPane">
+          {heatmapFeatures.map((feature) => (
+            <Polygon
+              key={uniqueId('heatmap')}
+              pathOptions={setLayerStyles(feature.properties.color)}
+              positions={feature.geometry.coordinates}
+            >
+              <Popup pane="popupPane">
+                <MapGridPopup
+                  feature={feature}
+                  pageState={pageState}
+                  setPageState={setPageState}
+                  setDrawerState={setDrawerState}
+                  fqState={fqState}
+                  setFqState={setFqState}
+                />
+              </Popup>
+            </Polygon>
+          ))}
+        </LayerGroup>
+      )}
+    </LayersControl.Overlay>
   )
 }
 
