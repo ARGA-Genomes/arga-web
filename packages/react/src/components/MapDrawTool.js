@@ -8,8 +8,11 @@ import '../assets/leaflet/leaflet.draw.css'
 
 function MapDrawTool({ setFqState }) {
   const [drawLayer, setDrawLayer] = useState({ layer: null, layerType: '' })
+  // keep a reference to `drawLayer` so that `onFilterRecords` callback can see updates to `drawLayer`
   const drawToolRef = useRef()
-  const popupRef = useRef() // not sure this needed but provides a check to `map.closePopoup()`
+  drawToolRef.current = drawLayer
+  // not sure this needed but provides a check to `map.closePopoup()`
+  const popupRef = useRef()
   const map = useMap()
   const styles = {
     button: {
@@ -18,9 +21,6 @@ function MapDrawTool({ setFqState }) {
     },
   }
   const solrGeoField = 'geohash' // 'packedQuad' 'location' other values
-
-  // keep a reference to `drawLayer` so that `onFilterRecords` callback can see updates to `drawLayer`
-  drawToolRef.current = drawLayer
 
   const onCreated = (e) => {
     if (drawToolRef.current.layer) {
@@ -31,13 +31,13 @@ function MapDrawTool({ setFqState }) {
 
     setDrawLayer({ layer: e.layer, layerType: e.layerType })
     e.layer.bindTooltip('Click shape to see options')
-    e.layer.bringToFront() // so grid polygon onClick events aren't triggered
+    // e.layer.bringToFront() // so grid polygon onClick events aren't triggered
     map.addLayer(e.layer)
   }
 
   const onDeleted = (e) => {
     const layerToDelete =
-      e.layer || drawToolRef.current?.layer || drawLayer.layer
+      drawToolRef.current?.layer || drawLayer.layer || (e.layers && e.layers[0])
     map.removeLayer(layerToDelete)
     if (popupRef.current) {
       map.closePopup()
@@ -77,7 +77,8 @@ function MapDrawTool({ setFqState }) {
         position="topleft"
         onCreated={onCreated}
         onDeleted={onDeleted}
-        edit={{ edit: false }}
+        // onEdited={onEdited}
+        // edit={{ edit: false }}
         draw={{
           polyline: false,
           marker: false,
