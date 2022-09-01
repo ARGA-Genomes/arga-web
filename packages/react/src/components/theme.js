@@ -1,5 +1,5 @@
 import { createTheme } from '@mui/material'
-import { lighten } from '@mui/material/styles'
+import { lighten, darken } from '@mui/material/styles'
 
 const light = 0.8
 const mid = 0.4
@@ -9,6 +9,7 @@ const argaColours = {
   warning: '#cb9f36', // yellow-mustard
   error: '#34A59D', // aqua blue
   success: '#80a253', // forest green
+  grid: '#045a8d',
 }
 const theme = createTheme({
   palette: {
@@ -39,6 +40,17 @@ const theme = createTheme({
       main: argaColours.success, // forest green
       light: lighten(argaColours.success, light),
       mid: lighten(argaColours.success, mid),
+    },
+    grids: {
+      main: argaColours.grid, // from https://colorbrewer2.org/#type=sequential&scheme=PuBu&n=5
+      border: lighten(argaColours.grid, 0.7),
+      coloursForCounts: {
+        10: lighten(argaColours.grid, 0.9),
+        50: lighten(argaColours.grid, 0.7),
+        100: lighten(argaColours.grid, 0.4),
+        500: lighten(argaColours.grid, 0),
+        1000: darken(argaColours.grid, 0.2),
+      },
     },
     background: {
       default: '#E0E0E0',

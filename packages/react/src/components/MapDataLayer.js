@@ -11,42 +11,17 @@ import {
 import { darken } from '@mui/material/styles'
 import '../assets/leaflet/leaflet.draw.css'
 import MapGridPopup from './MapGridPopup'
+import theme from './theme'
 
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
 const solrGeoField = 'quad' // 'packedQuad'
 
-// Colour palette from https://colorbrewer2.org/#type=sequential&scheme=PuBu&n=5
-// Note this code is duplicated in MapLegend - ideally it should be passed in as a prop
-// but this makes it require react.memo or similar. Could be done with context too.
-const coloursForCounts = {
-  10: '#f1eef6',
-  50: '#bdc9e1',
-  100: '#74a9cf',
-  250: '#2b8cbe',
-  500: '#045a8d',
-}
-
-const zoomToPoint = {
-  1: 'point-1',
-  2: 'point-1',
-  3: 'point-1',
-  4: 'point-1',
-  5: 'point-1',
-  6: 'point-1',
-  7: 'point-0.1',
-  8: 'point-0.1',
-  9: 'point-0.1',
-  10: 'point-0.01',
-  11: 'point-0.01',
-  12: 'point-0.01', // everything higher is `0.001`
-}
-
 const getColourForCount = (count) => {
-  let colour = '#045a8d'
+  let colour = theme.palette.grids.coloursForCounts[500] // '#045a8d'
 
-  Object.keys(coloursForCounts).every((key) => {
+  Object.keys(theme.palette.grids.coloursForCounts).every((key) => {
     if (count - 1 < key) {
-      colour = coloursForCounts[key]
+      colour = theme.palette.grids.coloursForCounts[key]
       return false // escape `every` looping
     }
     return true
@@ -77,15 +52,6 @@ const getSolrBboxPolygon = (bounds) => {
   // return `["${wrappedSw.lng} ${bounds.getSouth()}" TO "${
   //   wrappedNe.lng
   // } ${bounds.getNorth()}"]`
-}
-
-const getFieldForZoom = (zoom) => {
-  // let field = 'location' // not a facet field!
-  let field = 'point-0.001'
-  if (zoom in zoomToPoint) {
-    field = zoomToPoint[zoom]
-  }
-  return field
 }
 
 const getHeatmapFeatures = (heatmap) => {
@@ -137,9 +103,6 @@ const getHeatmapFeatures = (heatmap) => {
             },
           }
 
-          if (lngN > 180) {
-            // console.log('featureObj', featureObj)
-          }
           features.push(featureObj)
         }
       })
@@ -169,7 +132,7 @@ function MapDataLayer({
     bbox: map.getBounds(), // Leaflet `LatLngBounds` object
     zoom: map.getZoom(), // 18 is maxZoomLevel, default seems to be 4 or 5 on load
     center: map.getCenter(), // Leaflet `LatLng` object
-    geoField: getFieldForZoom(map.getZoom()),
+    // geoField: getFieldForZoom(map.getZoom()),
     data: [],
     heatmap: {},
     isLoading: false,
@@ -182,7 +145,6 @@ function MapDataLayer({
       zoom: mapEv.getZoom(),
       bbox: mapEv.getBounds(),
       center: mapEv.getCenter(),
-      geoField: getFieldForZoom(mapEv.getZoom()),
     }))
   }
 
