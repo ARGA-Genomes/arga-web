@@ -132,7 +132,6 @@ function MapDataLayer({
     bbox: map.getBounds(), // Leaflet `LatLngBounds` object
     zoom: map.getZoom(), // 18 is maxZoomLevel, default seems to be 4 or 5 on load
     center: map.getCenter(), // Leaflet `LatLng` object
-    // geoField: getFieldForZoom(map.getZoom()),
     data: [],
     heatmap: {},
     isLoading: false,
