@@ -9,7 +9,7 @@ const argaColours = {
   warning: '#cb9f36', // yellow-mustard
   error: '#34A59D', // aqua blue
   success: '#80a253', // forest green
-  grid: '#045a8d',
+  grid: '#045a8d', // dark blue similar to primary
 }
 const theme = createTheme({
   palette: {
@@ -49,8 +49,8 @@ const theme = createTheme({
         10: lighten(argaColours.grid, 0.9),
         50: lighten(argaColours.grid, 0.7),
         100: lighten(argaColours.grid, 0.4),
-        500: lighten(argaColours.grid, 0),
-        1000: darken(argaColours.grid, 0.2),
+        250: lighten(argaColours.grid, 0.1),
+        500: darken(argaColours.grid, 0.3),
       },
     },
     background: {
