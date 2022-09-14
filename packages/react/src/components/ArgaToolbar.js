@@ -9,15 +9,32 @@ import {
   DialogContentText,
   DialogActions,
   IconButton,
+  Tooltip,
 } from '@mui/material'
 import InfoOutlined from '@mui/icons-material/InfoOutlined'
-import React from 'react'
+// import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'
+import LoginOutlinedIcon from '@mui/icons-material/LoginOutlined'
+import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
+import React, { useState, useCallback } from 'react'
+import { useAuth } from 'react-oidc-context'
 import logo from '../assets/ARGA-logo-notext.png'
 
 export default function ArgaToolbar() {
-  const [openAbout, setOpenAbout] = React.useState(false)
+  const [openAbout, setOpenAbout] = useState(false)
   const handleAboutOpen = () => setOpenAbout(true)
   const handleAboutClose = () => setOpenAbout(false)
+  // const showBasket = () => {
+  //   console.log('basket should appear')
+  // }
+
+  const auth = useAuth()
+  const onClick = useCallback(() => {
+    if (auth.isAuthenticated) {
+      auth.signoutRedirect()
+    } else {
+      auth.signinRedirect()
+    }
+  }, [auth])
 
   return (
     <AppBar position="fixed">
@@ -56,6 +73,21 @@ export default function ArgaToolbar() {
           <span style={{ fontWeight: 700 }}>Data Brwsr</span>{' '}
           <span style={{ fontWeight: 400 }}>Demo</span>
         </Typography>
+        <Tooltip title={auth.isAuthenticated ? 'Logout' : 'Login'}>
+          <IconButton
+            size="medium"
+            aria-label="show-basket"
+            onClick={onClick}
+            color="inherit"
+          >
+            {auth.isAuthenticated ? (
+              <LogoutOutlinedIcon fontSize="large" />
+            ) : (
+              <LoginOutlinedIcon fontSize="large" />
+            )}
+          </IconButton>
+        </Tooltip>
+
         <IconButton
           size="medium"
           aria-label="about-arga"
