@@ -11,6 +11,7 @@ const argaColours = {
   success: '#80a253', // forest green
   grid: '#045a8d', // dark blue similar to primary
 }
+
 const theme = createTheme({
   palette: {
     type: 'light',
@@ -35,12 +36,18 @@ const theme = createTheme({
       light: lighten(argaColours.error, light),
       mid: lighten(argaColours.error, mid),
     },
-
     success: {
       // main: '#A0CA68',
       main: argaColours.success, // forest green
       light: lighten(argaColours.success, light),
       mid: lighten(argaColours.success, mid),
+    },
+    background: {
+      default: '#E0E0E0',
+      paper: '#FFFFFF',
+    },
+    text: {
+      primary: '#182a34',
     },
     grids: {
       main: argaColours.grid, // from https://colorbrewer2.org/#type=sequential&scheme=PuBu&n=5
@@ -50,15 +57,8 @@ const theme = createTheme({
         50: lighten(argaColours.grid, 0.7),
         100: lighten(argaColours.grid, 0.4),
         250: lighten(argaColours.grid, 0.1),
-        500: darken(argaColours.grid, 0.3),
+        500: darken(argaColours.grid, 0.4),
       },
-    },
-    background: {
-      default: '#E0E0E0',
-      paper: '#FFFFFF',
-    },
-    text: {
-      primary: '#182a34',
     },
   },
   typography: {
