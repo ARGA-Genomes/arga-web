@@ -16,7 +16,7 @@ function App() {
           authority={config.authority}
           redirect_uri={config.redirect_uri}
           onSigninCallback={(user) => {
-            console.log(user)
+            // console.log(user)
             window.history.replaceState({ path: '/' }, '', '/')
           }}
         >
