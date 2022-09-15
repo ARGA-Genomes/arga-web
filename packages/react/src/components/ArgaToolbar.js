@@ -9,15 +9,44 @@ import {
   DialogContentText,
   DialogActions,
   IconButton,
+  Tooltip,
 } from '@mui/material'
 import InfoOutlined from '@mui/icons-material/InfoOutlined'
-import React from 'react'
+import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'
+// import LoginOutlinedIcon from '@mui/icons-material/LoginOutlined'
+// import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
+import React, { useState, useCallback } from 'react'
+import { useAuth } from 'react-oidc-context'
+import theme from './theme'
 import logo from '../assets/ARGA-logo-notext.png'
 
 export default function ArgaToolbar() {
-  const [openAbout, setOpenAbout] = React.useState(false)
+  const [openAbout, setOpenAbout] = useState(false)
   const handleAboutOpen = () => setOpenAbout(true)
   const handleAboutClose = () => setOpenAbout(false)
+  // const showBasket = () => {
+  //   console.log('basket should appear')
+  // }
+
+  const auth = useAuth()
+  const toggleLogin = useCallback(() => {
+    if (auth.isAuthenticated) {
+      auth.signoutRedirect()
+    } else {
+      auth.signinRedirect()
+    }
+  }, [auth])
+
+  // CSS styles
+  const styles = {
+    button: {
+      textTransform: 'none',
+      // margin: '6px 0',
+      color: theme.palette.background.paper,
+      borderColor: theme.palette.background.paper,
+      marginRight: 2,
+    },
+  }
 
   return (
     <AppBar position="fixed">
@@ -56,22 +85,47 @@ export default function ArgaToolbar() {
           <span style={{ fontWeight: 700 }}>Data Brwsr</span>{' '}
           <span style={{ fontWeight: 400 }}>Demo</span>
         </Typography>
-        <IconButton
-          size="medium"
-          aria-label="about-arga"
-          onClick={handleAboutOpen}
-          color="inherit"
-        >
-          <InfoOutlined fontSize="large" />
-        </IconButton>
+        <Tooltip title="About ARGA">
+          <IconButton
+            size="medium"
+            aria-label="about-arga"
+            onClick={handleAboutOpen}
+            // color="warning"
+            sx={styles.button}
+          >
+            <InfoOutlined fontSize="large" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={auth.isAuthenticated ? 'Logout' : 'Login'}>
+          <Button
+            variant="outlined"
+            // color="warning"
+            aria-label="show-basket"
+            onClick={toggleLogin}
+            sx={styles.button}
+          >
+            {auth.isAuthenticated ? 'Logout' : 'Login'}
+          </Button>
+        </Tooltip>
+        <Tooltip title="View your saved sequences basket">
+          <IconButton
+            size="medium"
+            aria-label="view-basket"
+            // onClick={viewBasket}
+            sx={styles.button}
+          >
+            <ShoppingCartOutlinedIcon fontSize="large" />
+          </IconButton>
+        </Tooltip>
         <Dialog open={openAbout} onClose={handleAboutClose}>
           <DialogTitle>About ARGA</DialogTitle>
           <DialogContent sx={{ padding: '0 24px 10px 24px' }}>
             <DialogContentText>
-              ARGA is the Australian Reference Genome Atlas. It is an indexing
-              service for aggregating, discovering, filtering and accessing
-              complex life science data. ARGA is an NCRIS-enabled platform
-              powered by the{' '}
+              {/* TODO pull this content out of a MD file in a GH Wiki or from the static WP site */}
+              site ARGA is the Australian Reference Genome Atlas. It is an
+              indexing service for aggregating, discovering, filtering and
+              accessing complex life science data. ARGA is an NCRIS-enabled
+              platform powered by the{' '}
               <a href="https://ala.org.au" target="_blank" rel="noreferrer">
                 Atlas of Living Australia (ALA)
               </a>
@@ -105,7 +159,12 @@ export default function ArgaToolbar() {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleAboutClose} autoFocus variant="outlined">
+            <Button
+              onClick={handleAboutClose}
+              autoFocus
+              variant="contained"
+              color="primary"
+            >
               Close
             </Button>
           </DialogActions>
