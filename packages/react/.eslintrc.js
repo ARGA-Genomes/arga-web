@@ -21,5 +21,7 @@ module.exports = {
     'react/prop-types': 0,
     'no-console': 'warn',
     'jsx-a11y/anchor-is-valid': 0,
+    'no-alert': 0,
+    'no-confirm': 0,
   },
 }
