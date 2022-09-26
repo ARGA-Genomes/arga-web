@@ -13,7 +13,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close'
 import stringHash from 'string-hash'
 import RecordDrawer from './RecordDrawer'
-import ArgaToolbar from './ArgaToolbar'
+// import ArgaToolbar from './ArgaToolbar'
 import FacetsBar from './FacetsBar'
 import GridView from './GridView'
 import DataTable from './DataTable'
@@ -493,128 +493,128 @@ function Search() {
   // const datagridRef = useRef(null) // Not sure this is needed?
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <ArgaToolbar />
-      <Grid
-        style={{
-          marginTop: 62,
-          marginBottom: 72,
-          minWidth: '100%',
-          height: 'calc(10vh - 72px)',
+    // <Box sx={{ display: 'flex' }}>
+    //   <ArgaToolbar />
+    <Grid
+      style={{
+        marginTop: 62,
+        marginBottom: 72,
+        minWidth: '100%',
+        height: 'calc(10vh - 72px)',
+      }}
+      // maxWidth="lg"
+    >
+      <RecordDrawer
+        drawerState={drawerState}
+        toggleDrawer={toggleDrawer}
+        recordState={recordState}
+        stepRecord={stepRecord}
+      />
+      <Snackbar
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        open={snackState.status}
+        onClose={handleSnackClose}
+        autoHideDuration={4000}
+        action={snackbarAction}
+        message={snackState.message}
+      />
+      {/* <Box flex={4} p={{ xs: 0, md: 2 }}> */}
+      <Box
+        sx={{
+          // width: 500,
+          margin: '15px 0',
+          maxWidth: '100%',
+          width: '100%',
+          backgroundColor: 'white',
+          // height: 'calc(100% - 54px)'
         }}
-        // maxWidth="lg"
       >
-        <RecordDrawer
-          drawerState={drawerState}
-          toggleDrawer={toggleDrawer}
-          recordState={recordState}
-          stepRecord={stepRecord}
-        />
-        <Snackbar
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          open={snackState.status}
-          onClose={handleSnackClose}
-          autoHideDuration={4000}
-          action={snackbarAction}
-          message={snackState.message}
-        />
-        {/* <Box flex={4} p={{ xs: 0, md: 2 }}> */}
-        <Box
-          sx={{
-            // width: 500,
-            margin: '15px 0',
-            maxWidth: '100%',
+        <div
+          style={{
             width: '100%',
-            backgroundColor: 'white',
-            // height: 'calc(100% - 54px)'
+            height: 'calc(100vh - 284px)',
+            background: '#E0E0E0',
           }}
         >
-          <div
-            style={{
-              width: '100%',
-              height: 'calc(100vh - 284px)',
-              background: '#E0E0E0',
-            }}
-          >
-            <FacetsBar
-              pageState={pageState}
-              setPageState={setPageState}
-              searchKeyPress={searchKeyPress}
-              fqState={fqRef.current || {}}
-              setFqState={setFqState}
-            />
-            <Box sx={{ width: '100%', background: 'white' }}>
-              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                <Tabs
-                  value={tabValue}
-                  onChange={handleTabChange}
-                  textColor="secondary"
-                  indicatorColor="secondary"
-                  aria-label="Navigation tabs for search results"
-                >
-                  <Tab
-                    label="Table"
-                    id="results-tab-0"
-                    aria-controls="results-tabpanel-0"
-                  />
-                  <Tab
-                    label="Grid"
-                    id="results-tab-1"
-                    aria-controls="results-tabpanel-1"
-                  />
-                  <Tab
-                    label="Map"
-                    id="results-tab-2"
-                    aria-controls="results-tabpanel-2"
-                  />
-                </Tabs>
-              </Box>
-              <TabPanel value={tabValue} index={0}>
-                <DataTable
-                  columns={columns}
+          <FacetsBar
+            pageState={pageState}
+            setPageState={setPageState}
+            searchKeyPress={searchKeyPress}
+            fqState={fqRef.current || {}}
+            setFqState={setFqState}
+          />
+          <Box sx={{ width: '100%', background: 'white' }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+              <Tabs
+                value={tabValue}
+                onChange={handleTabChange}
+                textColor="secondary"
+                indicatorColor="secondary"
+                aria-label="Navigation tabs for search results"
+              >
+                <Tab
+                  label="Table"
+                  id="results-tab-0"
+                  aria-controls="results-tabpanel-0"
+                />
+                <Tab
+                  label="Grid"
+                  id="results-tab-1"
+                  aria-controls="results-tabpanel-1"
+                />
+                <Tab
+                  label="Map"
+                  id="results-tab-2"
+                  aria-controls="results-tabpanel-2"
+                />
+              </Tabs>
+            </Box>
+            <TabPanel value={tabValue} index={0}>
+              <DataTable
+                columns={columns}
+                pageState={pageState}
+                setPageState={setPageState}
+                setRecordState={setRecordState}
+              />
+            </TabPanel>
+            <TabPanel value={tabValue} index={1}>
+              <Box
+                sx={{
+                  flexGrow: 1,
+                  p: 2,
+                  backgroundColor: theme.palette.warning.light,
+                }}
+              >
+                <GridView
                   pageState={pageState}
                   setPageState={setPageState}
                   setRecordState={setRecordState}
                 />
-              </TabPanel>
-              <TabPanel value={tabValue} index={1}>
-                <Box
-                  sx={{
-                    flexGrow: 1,
-                    p: 2,
-                    backgroundColor: theme.palette.warning.light,
-                  }}
-                >
-                  <GridView
-                    pageState={pageState}
-                    setPageState={setPageState}
-                    setRecordState={setRecordState}
-                  />
-                </Box>
-              </TabPanel>
-              <TabPanel value={tabValue} index={2}>
-                <Box
-                  sx={{
-                    flexGrow: 1,
-                    p: 2,
-                  }}
-                >
-                  <MapView
-                    pageState={pageState}
-                    setPageState={setPageState}
-                    setDrawerState={setDrawerState}
-                    fqState={fqState}
-                    setFqState={setFqState}
-                    setRecordState={setRecordState}
-                  />
-                </Box>
-              </TabPanel>
-            </Box>
-          </div>
-          {/* </Box> */}
-        </Box>
-      </Grid>
-    </Box>
+              </Box>
+            </TabPanel>
+            <TabPanel value={tabValue} index={2}>
+              <Box
+                sx={{
+                  flexGrow: 1,
+                  p: 2,
+                }}
+              >
+                <MapView
+                  pageState={pageState}
+                  setPageState={setPageState}
+                  setDrawerState={setDrawerState}
+                  fqState={fqState}
+                  setFqState={setFqState}
+                  setRecordState={setRecordState}
+                />
+              </Box>
+            </TabPanel>
+          </Box>
+        </div>
+        {/* </Box> */}
+      </Box>
+    </Grid>
+    // </Box>
   )
 }
 

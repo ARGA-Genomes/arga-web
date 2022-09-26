@@ -2,6 +2,7 @@ import {
   Toolbar,
   Typography,
   AppBar,
+  Badge,
   Button,
   Dialog,
   DialogTitle,
@@ -13,10 +14,12 @@ import {
 } from '@mui/material'
 import InfoOutlined from '@mui/icons-material/InfoOutlined'
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'
+import { Link } from 'react-router-dom'
 // import LoginOutlinedIcon from '@mui/icons-material/LoginOutlined'
 // import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
 import React, { useState, useCallback } from 'react'
 import { useAuth } from 'react-oidc-context'
+import { useCart } from 'react-use-cart'
 import theme from './theme'
 import logo from '../assets/ARGA-logo-notext.png'
 
@@ -36,6 +39,8 @@ export default function ArgaToolbar() {
       auth.signinRedirect()
     }
   }, [auth])
+
+  const { totalItems } = useCart()
 
   // CSS styles
   const styles = {
@@ -109,12 +114,16 @@ export default function ArgaToolbar() {
         </Tooltip>
         <Tooltip title="View your saved sequences basket">
           <IconButton
+            component={Link}
+            to="/basket"
             size="medium"
             aria-label="view-basket"
             // onClick={viewBasket}
             sx={styles.button}
           >
-            <ShoppingCartOutlinedIcon fontSize="large" />
+            <Badge badgeContent={totalItems} color="secondary">
+              <ShoppingCartOutlinedIcon fontSize="large" />
+            </Badge>
           </IconButton>
         </Tooltip>
         <Dialog open={openAbout} onClose={handleAboutClose}>

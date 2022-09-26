@@ -4,10 +4,12 @@ import {
   Typography,
   Divider,
   Paper,
+  Grid,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
+  Button,
   TableContainer,
   Table,
   TableBody,
@@ -22,6 +24,7 @@ import {
   ChevronLeft,
 } from '@mui/icons-material/'
 import useMediaQuery from '@mui/material/useMediaQuery'
+import { useCart } from 'react-use-cart'
 import theme from './theme'
 import RecordSection from './RecordSection'
 
@@ -126,6 +129,19 @@ export default function RecordDrawer({
   const drawerWidth = largeScreen ? '50%' : '95%'
   // console.log('drawerWidth', drawerWidth, largeScreen)
 
+  const { addItem } = useCart()
+
+  const addItemToBasket = () => {
+    console.log('Adding to basket', recordState.data.id)
+    const item = {
+      id: recordState.data.id,
+      price: 1,
+      data: recordState.data,
+    }
+
+    addItem(item)
+  }
+
   return (
     <React.Fragment key={anchor}>
       <SwipeableDrawer
@@ -146,62 +162,77 @@ export default function RecordDrawer({
             }}
           />
         )}
-        <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
-          <ListItem alignItems="flex-start">
-            <ListItemIcon>
-              <IconButton onClick={toggleDrawer}>
-                <ChevronRight />
-              </IconButton>
-            </ListItemIcon>
-            <ListItemIcon>
-              <TravelExploreOutlined fontSize="large" />
-            </ListItemIcon>
-            <ListItemText
-              primary={
-                <Typography
-                  sx={{ fontSize: '1.2rem' }}
-                  component="div"
-                  variant="h6"
-                  color="text.primary"
-                >
-                  Genome Sequence Record
-                </Typography>
-              }
-              secondary={
-                <Typography
-                  sx={{ fontFamily: 'Roboto Mono', fontSize: '0.9rem' }}
-                  component="div"
-                  variant="p"
-                  color="text.primary"
-                >
-                  {recordState.data?.id}
-                </Typography>
-              }
-            />
-          </ListItem>
-          <Divider variant="" component="" />
-          <Paper sx={{ width: '100%', marginBottom: '56px' }}>
-            <TableContainer component={Paper}>
-              <Table aria-label="collapsible table">
-                <TableBody>
-                  {Object.keys(fieldListMap).map((section) => (
-                    <RecordSection
-                      key={section}
-                      recordData={recordState.data}
-                      section={section}
-                      fieldList={fieldListMap[section]}
-                    />
-                  ))}
+        <Grid container spacing={1}>
+          <Grid item xs={9}>
+            <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
+              <ListItem alignItems="flex-start">
+                <ListItemIcon>
+                  <IconButton onClick={toggleDrawer}>
+                    <ChevronRight />
+                  </IconButton>
+                </ListItemIcon>
+                <ListItemIcon>
+                  <TravelExploreOutlined fontSize="large" />
+                </ListItemIcon>
+                <ListItemText
+                  primary={
+                    <Typography
+                      sx={{ fontSize: '1.2rem' }}
+                      component="div"
+                      variant="h6"
+                      color="text.primary"
+                    >
+                      Genome Sequence Record
+                    </Typography>
+                  }
+                  secondary={
+                    <Typography
+                      sx={{ fontFamily: 'Roboto Mono', fontSize: '0.9rem' }}
+                      component="div"
+                      variant="p"
+                      color="text.primary"
+                    >
+                      {recordState.data?.id}
+                    </Typography>
+                  }
+                />
+              </ListItem>
+            </List>
+          </Grid>
+          <Grid item xs={3} sx={{ textAlign: 'center' }}>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => addItemToBasket(recordState.data?.id)}
+              sx={{ color: 'white', marginTop: '25px ' }}
+            >
+              Add to basket
+            </Button>
+          </Grid>
+        </Grid>
+        <Divider variant="" component="" />
+        <Paper sx={{ width: '100%', marginBottom: '56px' }}>
+          <TableContainer component={Paper}>
+            <Table aria-label="collapsible table">
+              <TableBody>
+                {Object.keys(fieldListMap).map((section) => (
                   <RecordSection
+                    key={section}
                     recordData={recordState.data}
-                    section="Misc"
-                    fieldList={getMiscFields(recordState.data, fieldListMap)}
+                    section={section}
+                    fieldList={fieldListMap[section]}
                   />
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </List>
+                ))}
+                <RecordSection
+                  recordData={recordState.data}
+                  section="Misc"
+                  fieldList={getMiscFields(recordState.data, fieldListMap)}
+                />
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+
         <Paper
           sx={{
             position: 'fixed',
