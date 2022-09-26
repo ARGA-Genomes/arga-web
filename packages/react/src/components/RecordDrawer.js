@@ -129,10 +129,10 @@ export default function RecordDrawer({
   const drawerWidth = largeScreen ? '50%' : '95%'
   // console.log('drawerWidth', drawerWidth, largeScreen)
 
-  const { addItem } = useCart()
+  const { addItem, items } = useCart()
 
   const addItemToBasket = () => {
-    console.log('Adding to basket', recordState.data.id)
+    // console.log('Adding to basket', recordState.data.id)
     const item = {
       id: recordState.data.id,
       price: 1,
@@ -206,7 +206,9 @@ export default function RecordDrawer({
               onClick={() => addItemToBasket(recordState.data?.id)}
               sx={{ color: 'white', marginTop: '25px ' }}
             >
-              Add to basket
+              {items.find((it) => it.id === recordState.data?.id)
+                ? 'Sequence record saved'
+                : 'Add to basket'}
             </Button>
           </Grid>
         </Grid>
