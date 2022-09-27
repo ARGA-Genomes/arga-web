@@ -34,6 +34,7 @@ const facetFields = [
   'speciesSubgroup',
   'country',
   'stateProvince',
+  'speciesListUid',
   // 'dynamicProperties_ncbi_refseq_category',
   // 'dynamicProperties_ncbi_genome_rep',
   'dynamicProperties_ncbi_assembly_level',
@@ -121,7 +122,8 @@ function Search() {
   const [snackState, setSnackState] = useState({ status: false, message: '' })
 
   // Tabs state
-  const [tabValue, setTabValue] = useState(0)
+  const defaultTabIndex = 1 // which tab is shown on first page load (zero-indexed array)
+  const [tabValue, setTabValue] = useState(defaultTabIndex)
   const handleTabChange = (event, newValue) => {
     // if (newValue === 0) {
     //   setPageState((old) => ({

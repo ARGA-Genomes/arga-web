@@ -22,7 +22,8 @@ import { startCase, replace } from 'lodash'
 function formatLabels(label) {
   const lab = replace(label, /dynamicProperties_ncbi_/g, '')
   const lab1 = replace(lab, /dataResourceName/g, 'dataset')
-  return startCase(lab1)
+  const lab2 = replace(lab1, /speciesListUid/g, 'conservation status')
+  return startCase(lab2)
 }
 
 const removeFacet = (setFqState, newArray, field) => {
@@ -38,6 +39,11 @@ const removeFacet = (setFqState, newArray, field) => {
       return copy
     })
   }
+}
+
+function getLabelForName(name, valueList) {
+  const item = valueList.find((val) => val.name === name)
+  return item && item.label ? item.label : name
 }
 
 /**
@@ -113,7 +119,9 @@ export default function FacetsSelect({
             {selected.map((value) => (
               <Chip
                 key={value}
-                label={value}
+                // label={value}
+                label={getLabelForName(value, fieldValues)}
+                // label={fieldValues.find((fv) => fv.name === value)}
                 size="small"
                 onMouseDown={(e) => {
                   e.stopPropagation()
@@ -154,7 +162,7 @@ export default function FacetsSelect({
                   // variant="span"
                   // color="grey"
                 >
-                  {it.name}
+                  {it.label || it.name}
                 </Typography>
               }
               // secondary={it.count}
