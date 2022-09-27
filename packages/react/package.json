@@ -24,6 +24,7 @@
     "react-oidc-context": "^2.1.1",
     "react-router-dom": "^6.3.0",
     "react-scripts": "5.0.1",
+    "react-use-cart": "^1.13.0",
     "save-dev": "^0.0.1-security",
     "string-hash": "^1.1.3",
     "web-vitals": "^2.1.4"
