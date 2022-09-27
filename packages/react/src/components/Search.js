@@ -32,12 +32,15 @@ const facetFields = [
   'dataResourceName',
   'speciesGroup',
   'speciesSubgroup',
+  'matchType',
   'country',
   'stateProvince',
+  'biome',
   'speciesListUid',
-  // 'dynamicProperties_ncbi_refseq_category',
-  // 'dynamicProperties_ncbi_genome_rep',
+  'dynamicProperties_ncbi_refseq_category',
+  'dynamicProperties_ncbi_genome_rep',
   'dynamicProperties_ncbi_assembly_level',
+  'dynamicProperties_bpa_resource_permissions',
 ]
 const muiColourCategories = [
   'default',

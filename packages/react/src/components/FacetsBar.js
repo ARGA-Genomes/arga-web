@@ -15,6 +15,7 @@ import { useSearchParams } from 'react-router-dom'
 import FacetSelect from './FacetSelect'
 import theme from './theme'
 
+// TODO should go in config file or i18n properties
 const facetFieldsTransform = {
   speciesListUid: {
     dr656: 'EPBC National conservation status',
@@ -29,6 +30,16 @@ const facetFieldsTransform = {
   },
 }
 
+/**
+ * Transform function that takes an array of objects (with `name` & `count` props) and
+ * augments each object with an additional prop called `label`. This is used in the `Select`
+ * component to show a custom label that differs from the select value. Labels are
+ * provided by the `facetFieldsTransform` (config) object.
+ *
+ * @param {*} field
+ * @param {*} values
+ * @returns
+ */
 function filterFacetValues(field, values) {
   const returnValues = []
 

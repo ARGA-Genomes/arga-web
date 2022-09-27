@@ -13,6 +13,14 @@ import {
 } from '@mui/material'
 import { startCase, replace } from 'lodash'
 
+const labelReplaceRegex = {
+  dynamicProperties_ncbi_: '',
+  dynamicProperties_bpa_: '',
+  dataResourceName: 'dataset',
+  matchType: 'Taxon match type',
+  speciesListUid: 'conservation status',
+}
+
 /**
  * Create a human readable label from a SOLR field name
  *
@@ -20,10 +28,17 @@ import { startCase, replace } from 'lodash'
  * @returns formatted label
  */
 function formatLabels(label) {
-  const lab = replace(label, /dynamicProperties_ncbi_/g, '')
-  const lab1 = replace(lab, /dataResourceName/g, 'dataset')
-  const lab2 = replace(lab1, /speciesListUid/g, 'conservation status')
-  return startCase(lab2)
+  const replacements = Object.keys(labelReplaceRegex).reduce(
+    (combined, searchString) => {
+      const re = new RegExp(searchString, 'g')
+      const newLabel = replace(label, re, labelReplaceRegex[searchString])
+      return `${combined}${newLabel !== label ? newLabel : ''}`
+    },
+    ''
+  )
+  const returnString = replacements.length > 0 ? replacements : label
+
+  return startCase(returnString)
 }
 
 const removeFacet = (setFqState, newArray, field) => {
@@ -43,7 +58,7 @@ const removeFacet = (setFqState, newArray, field) => {
 
 function getLabelForName(name, valueList) {
   const item = valueList.find((val) => val.name === name)
-  return item && item.label ? item.label : name
+  return item && item.label ? item.label : startCase(name)
 }
 
 /**
@@ -119,9 +134,7 @@ export default function FacetsSelect({
             {selected.map((value) => (
               <Chip
                 key={value}
-                // label={value}
                 label={getLabelForName(value, fieldValues)}
-                // label={fieldValues.find((fv) => fv.name === value)}
                 size="small"
                 onMouseDown={(e) => {
                   e.stopPropagation()
@@ -162,7 +175,7 @@ export default function FacetsSelect({
                   // variant="span"
                   // color="grey"
                 >
-                  {it.label || it.name}
+                  {startCase(it.label) || startCase(it.name)}
                 </Typography>
               }
               // secondary={it.count}
