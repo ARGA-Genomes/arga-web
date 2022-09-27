@@ -38,14 +38,14 @@ function filterFacetValues(field, values) {
       Object.keys(thisFacetFilter).includes(val.name)
     )
     filteredValues.forEach((valObj) => {
-      valObj.label = thisFacetFilter[valObj.name]
+      const thisValue = valObj
+      thisValue.label = thisFacetFilter[valObj.name]
     })
     returnValues.push(...filteredValues)
   } else {
     returnValues.push(...values)
   }
 
-  console.log('returnValues', returnValues)
   return returnValues
 }
 
