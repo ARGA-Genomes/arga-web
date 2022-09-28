@@ -15,7 +15,7 @@ import { startCase, replace } from 'lodash'
 
 const labelReplaceRegex = {
   dynamicProperties_ncbi_: '',
-  dynamicProperties_bpa_: '',
+  dynamicProperties_bpa_resource_permissions: 'BPA access permissions',
   dataResourceName: 'dataset',
   matchType: 'Taxon match type',
   speciesListUid: 'conservation status',
