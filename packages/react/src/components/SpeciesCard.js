@@ -234,7 +234,7 @@ function SpeciesCard({ record, index, setRecordState }) {
             //   size="small"
             //   // color="success"
             // />
-            <li variant="body2" color="textSecondary" component="p" key={key}>
+            <li color="textSecondary" key={key}>
               {key}
               <StyledBadge
                 color="success"
