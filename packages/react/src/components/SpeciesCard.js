@@ -228,12 +228,6 @@ function SpeciesCard({ record, index, setRecordState }) {
           sx={{ paddingInlineStart: '20px' }}
         >
           {Object.keys(drCounts).map((key) => (
-            // <Chip
-            //   avatar={<Avatar>{drCounts[key]}</Avatar>}
-            //   label={key}
-            //   size="small"
-            //   // color="success"
-            // />
             <li color="textSecondary" key={key}>
               {key}
               <StyledBadge

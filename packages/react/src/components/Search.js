@@ -36,8 +36,11 @@ const facetFields = [
   'country',
   'stateProvince',
   'biome',
-  'speciesListUid',
-  'dynamicProperties_ncbi_refseq_category',
+  // 'speciesListUid',
+  'countryConservation',
+  'stateConservation',
+  // 'stateInvasive',
+  // 'dynamicProperties_ncbi_refseq_category',
   'dynamicProperties_ncbi_genome_rep',
   'dynamicProperties_ncbi_assembly_level',
   'dynamicProperties_bpa_resource_permissions',
@@ -128,21 +131,6 @@ function Search() {
   const defaultTabIndex = 1 // which tab is shown on first page load (zero-indexed array)
   const [tabValue, setTabValue] = useState(defaultTabIndex)
   const handleTabChange = (event, newValue) => {
-    // if (newValue === 0) {
-    //   setPageState((old) => ({
-    //     ...old,
-    //     groupResults: false,
-    //     page: 1,
-    //     pageSize: 25,
-    //   }))
-    // } else if (newValue === 1) {
-    //   setPageState((old) => ({
-    //     ...old,
-    //     groupResults: true,
-    //     page: 1,
-    //     pageSize: 24,
-    //   }))
-    // }
     setTabValue(newValue)
   }
 

@@ -15,8 +15,11 @@ import { startCase, replace } from 'lodash'
 
 const labelReplaceRegex = {
   dynamicProperties_ncbi_: '',
+  dynamicProperties_ncbi_genome_rep: 'NCBI genome representation',
   dynamicProperties_bpa_resource_permissions: 'BPA access permissions',
-  dataResourceName: 'dataset',
+  dataResourceName: 'data source',
+  countryConservation: 'EPBC Conservation status',
+  stateConservation: 'State Conservation status',
   matchType: 'Taxon match type',
   speciesListUid: 'conservation status',
 }
@@ -28,16 +31,17 @@ const labelReplaceRegex = {
  * @returns formatted label
  */
 function formatLabels(label) {
-  const replacements = Object.keys(labelReplaceRegex).reduce(
-    (combined, searchString) => {
+  const replacements = Object.keys(labelReplaceRegex)
+    .map((searchString) => {
       const re = new RegExp(searchString, 'g')
       const newLabel = replace(label, re, labelReplaceRegex[searchString])
-      return `${combined}${newLabel !== label ? newLabel : ''}`
-    },
-    ''
-  )
-  const returnString = replacements.length > 0 ? replacements : label
-
+      return newLabel !== label ? newLabel : null
+    })
+    .filter((a) => a)
+  // Note that there can be multiple substitutions that match, so place the
+  // "best" match after an earlier one, for it to "win" (via `array.slice(-1)[0]`)
+  const returnString =
+    replacements.length > 0 ? replacements.slice(-1)[0] : label
   return startCase(returnString)
 }
 
