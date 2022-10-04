@@ -28,23 +28,33 @@ import theme from './theme'
 const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
 const defaultQuery = '*:*'
 // const defaultSort = 'vernacularName'
-const facetFields = [
-  'dataResourceName',
-  'speciesGroup',
-  'speciesSubgroup',
-  'matchType',
-  'country',
-  'stateProvince',
-  'biome',
-  // 'speciesListUid',
-  'countryConservation',
-  'stateConservation',
-  // 'stateInvasive',
-  // 'dynamicProperties_ncbi_refseq_category',
-  'dynamicProperties_ncbi_genome_rep',
-  'dynamicProperties_ncbi_assembly_level',
-  'dynamicProperties_bpa_resource_permissions',
-]
+const facetFields = {
+  dataResourceName: { tag: 'dr', label: 'data source' },
+  speciesGroup: { tag: 'sg', label: null },
+  speciesSubgroup: { tag: 'ss', label: null },
+  matchType: { tag: 'mt', label: null },
+  country: { tag: 'co', label: null },
+  stateProvince: { tag: 'sp', label: null },
+  biome: { tag: 'bi', label: null },
+  //  speciesListUid: {tag: '', label: null},
+  countryConservation: { tag: 'cc', label: 'EPBC Conservation status' },
+  stateConservation: { tag: 'sc', label: 'State Conservation status' },
+  //  stateInvasive: {tag: '', label: null},
+  //  dynamicProperties_ncbi_refseq_category: {tag: '', label: null},
+  dynamicProperties_ncbi_genome_rep: {
+    tag: 'gr',
+    label: 'NCBI genome representation',
+  },
+  dynamicProperties_ncbi_assembly_level: {
+    tag: 'al',
+    label: 'NCBI assembly level',
+  },
+  dynamicProperties_bpa_resource_permissions: {
+    tag: 'rp',
+    label: 'BPA access permissions',
+  },
+}
+
 const muiColourCategories = [
   'default',
   'primary',
@@ -54,6 +64,7 @@ const muiColourCategories = [
   'success',
   'warning',
 ]
+
 const additionalFields = ['taxonConceptID', 'matchType']
 
 function getColourForValue(input) {
@@ -151,6 +162,45 @@ function Search() {
     e.stopPropagation()
     e.preventDefault()
   }, [])
+
+  /**
+   * Build string for SOLR `fq` params
+   *  input  => {"dataResourceName":["NCBI Genome Genbank","NCBI Genome RefSeq"],"country":["Australia"]}
+   *  output => fq={!tag=co}country:%22Australia%22&fq={!tag=dr}dataResourceName:%22NCBI%20Genome%20RefSeq%22+OR+dataResourceName:%22NCBI%20Genome%20Genbank%22
+   */
+  const buildFqList = useCallback(() => {
+    const fqParamList = []
+
+    Object.keys(fqState).forEach((key) => {
+      const tag = facetFields[key]?.tag ? `{!tag=${facetFields[key].tag}}` : ''
+      // const numberOfDupeKeys = fqState.indexOf(key)
+      if (fqState[key].length > 0) {
+        // array in object value
+        fqParamList.push(
+          `${tag}${key}:%22${fqState[key].join(`%22+OR+${key}:%22`)}%22`
+        )
+      } else {
+        // empty value in object ()
+        fqParamList.push(`${tag}${key}:%22${fqState[key]}%22`)
+      }
+    })
+
+    return fqParamList.join('&fq=')
+  }, [fqState])
+
+  /**
+   * Build string for SOLR `facet.field` params.
+   */
+  const buildFacetList = useCallback(() => {
+    const facetList = []
+    Object.keys(facetFields).forEach((field) => {
+      const tag = facetFields[field]?.tag
+        ? `{!ex=${facetFields[field].tag}}`
+        : ''
+      facetList.push(`${tag}${field}`)
+    })
+    return facetList
+  }, [facetFields])
 
   // DataGrid column def
   const columns = useMemo(
@@ -327,27 +377,14 @@ function Search() {
       // calculate SOLR startIndex param
       const startIndex =
         pageState.page * pageState.pageSize - pageState.pageSize
-      // Build `fq` params
-      const fqParamList = []
-      Object.keys(fqState).forEach((key) => {
-        if (fqState[key].length > 0) {
-          // array in object value
-          fqState[key].forEach((val) => {
-            fqParamList.push(`${key}:%22${val}%22`)
-          })
-        } else {
-          // empty value in object ()
-          fqParamList.push(key)
-        }
-      })
       const groupParams = pageState.groupResults
         ? '&group=true&group.field=scientificName&group.limit=99'
         : ''
       const url = `${serverUrlPrefix}/select?q=${
         pageState.q || defaultQuery
-      }&fq=${fqParamList.join('&fq=')}&fl=${columnDataFields.join(
+      }&fq=${buildFqList()}&fl=${columnDataFields.join(
         ','
-      )}&facet=true&facet.field=${facetFields.join(
+      )}&facet=true&facet.field=${buildFacetList().join(
         '&facet.field='
       )}&facet.mincount=1&&rows=${
         pageState.pageSize
@@ -599,6 +636,7 @@ function Search() {
                   fqState={fqState}
                   setFqState={setFqState}
                   setRecordState={setRecordState}
+                  facetFields={facetFields}
                 />
               </Box>
             </TabPanel>
