@@ -125,6 +125,7 @@ function MapDataLayer({
   setDrawerState,
   fqState,
   setFqState,
+  facetFields,
 }) {
   const map = useMap()
   // const geoJsonLayerRef = useRef(null)
@@ -196,10 +197,16 @@ function MapDataLayer({
       setMapDataState((old) => ({ ...old, isLoading: true }))
       const fqParamList = []
       Object.keys(fqState).forEach((key) => {
+        const tag = facetFields[key]?.tag
+          ? `{!tag=${facetFields[key].tag}}`
+          : ''
         if (fqState[key].length > 0) {
-          fqState[key].forEach((val) => {
-            fqParamList.push(`${key}:%22${val}%22`)
-          })
+          // fqState[key].forEach((val) => {
+          //   fqParamList.push(`${key}:%22${val}%22`)
+          // })
+          fqParamList.push(
+            `${tag}${key}:%22${fqState[key].join(`%22+OR+${key}:%22`)}%22`
+          )
         } else {
           // empty value in object ()
           fqParamList.push(key)

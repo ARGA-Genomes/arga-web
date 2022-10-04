@@ -16,6 +16,7 @@ function MapView({
   fqState,
   setFqState,
   setRecordState,
+  facetFields,
 }) {
   return (
     <MapContainer
@@ -39,6 +40,7 @@ function MapView({
             fqState={fqState}
             setFqState={setFqState}
             setRecordState={setRecordState}
+            facetFields={facetFields}
           />
         </Pane>
       </LayersControl>
