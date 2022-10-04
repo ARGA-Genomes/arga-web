@@ -16,6 +16,7 @@ import { startCase, replace } from 'lodash'
 const labelReplaceRegex = {
   dynamicProperties_ncbi_: '',
   dynamicProperties_ncbi_genome_rep: 'NCBI genome representation',
+  dynamicProperties_ncbi_assembly_level: 'NCBI assembly level',
   dynamicProperties_bpa_resource_permissions: 'BPA access permissions',
   dataResourceName: 'data source',
   countryConservation: 'EPBC Conservation status',
