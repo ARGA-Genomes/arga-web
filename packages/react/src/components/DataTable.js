@@ -50,7 +50,7 @@ function DataTable({ columns, pageState, setPageState, setRecordState }) {
       <GlobalStyles
         styles={{
           '#results-tabpanel-0 .MuiDataGrid-root': {
-            height: 'calc(100vh - 284px)',
+            height: 'calc(100vh - 330px)',
           },
           '.MuiDataGrid-footerContainer': {
             // backgroundColor: '#fff', // '#D6EFFE',

@@ -564,7 +564,7 @@ function Search() {
         <div
           style={{
             width: '100%',
-            height: 'calc(100vh - 284px)',
+            height: 'calc(100vh - 324px)',
             background: '#E0E0E0',
           }}
         >

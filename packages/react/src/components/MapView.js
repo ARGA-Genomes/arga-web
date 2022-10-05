@@ -22,7 +22,7 @@ function MapView({
     <MapContainer
       bounds={AusBounds}
       scrollWheelZoom={false}
-      style={{ height: 'calc(100vh - 284px)', width: '100%' }}
+      style={{ height: 'calc(100vh - 330px)', width: '100%' }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
