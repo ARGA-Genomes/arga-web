@@ -202,11 +202,6 @@ function MapDataLayer({
           ? `{!tag=${facetFields[key].tag}}`
           : ''
         if (fqState[key].length > 0) {
-          // fqState[key].forEach((val) => {
-          //   fqParamList.push(`${key}:%22${val}%22`)
-          // })
-          console.log('fqState', key, fqState[key])
-
           fqParamList.push(
             `${tag}${key}:%22${fqState[key].join(`%22+OR+${key}:%22`)}%22`
           )
