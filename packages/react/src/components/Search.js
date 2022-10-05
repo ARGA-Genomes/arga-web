@@ -19,15 +19,17 @@ import GridView from './GridView'
 import DataTable from './DataTable'
 import MapView from './MapView'
 import theme from './theme'
+import config from './config'
 
 /*
  * ToDo list
  * - Moved into https://github.com/ARGA-Genomes/arga-web/issues/4
  */
 
-const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
+const serverUrlPrefix = config.solr_uri
 const defaultQuery = '*:*'
 // const defaultSort = 'vernacularName'
+
 const facetFields = {
   dataResourceName: { tag: 'dr', label: 'data source' },
   speciesGroup: { tag: 'sg', label: null },
@@ -181,7 +183,7 @@ function Search() {
         )
       } else {
         // empty value in object ()
-        fqParamList.push(`${tag}${key}:%22${fqState[key]}%22`)
+        fqParamList.push(`${tag}${key}`)
       }
     })
 

@@ -11,9 +11,10 @@ import {
 import { darken } from '@mui/material/styles'
 import '../assets/leaflet/leaflet.draw.css'
 import MapGridPopup from './MapGridPopup'
+import config from './config'
 import theme from './theme'
 
-const serverUrlPrefix = 'https://nectar-arga-dev-1.ala.org.au/api'
+const serverUrlPrefix = config.solr_uri
 const solrGeoField = 'quad' // 'packedQuad'
 
 const getColourForCount = (count) => {
@@ -204,6 +205,8 @@ function MapDataLayer({
           // fqState[key].forEach((val) => {
           //   fqParamList.push(`${key}:%22${val}%22`)
           // })
+          console.log('fqState', key, fqState[key])
+
           fqParamList.push(
             `${tag}${key}:%22${fqState[key].join(`%22+OR+${key}:%22`)}%22`
           )

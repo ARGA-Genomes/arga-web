@@ -10,7 +10,6 @@ function AppContainer() {
     <Router>
       <Box sx={{ display: 'flex' }}>
         <ArgaToolbar />
-
         <Routes>
           <Route exact path="/" element={<Search />} />
           <Route path="/basket" element={<Basket />} />
