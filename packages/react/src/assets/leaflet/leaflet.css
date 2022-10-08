@@ -669,6 +669,20 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	border-radius: 5px;
 }
 
+.slider {
+	padding: 6px 0px 0px 6px;
+	/* font: 14px/16px Arial, Helvetica, sans-serif; */
+	background: white;
+	border-radius: 5px;
+	margin: 0 26px 224px 0;
+}
+
+.slider p {
+	color: #555;
+	font-size: 13px;
+	font-weight: 700;
+}
+
 .legend {
 	text-align: left;
 	color: #555;

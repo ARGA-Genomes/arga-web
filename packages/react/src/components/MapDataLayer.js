@@ -31,14 +31,6 @@ const getColourForCount = (count) => {
   return colour
 }
 
-const setLayerStyles = (setColour) => ({
-  color: darken(setColour, 0.2),
-  fillColor: setColour,
-  fillOpacity: 0.5,
-  weight: 1,
-  stroke: true,
-})
-
 const getSolrBboxPolygon = (bounds) => {
   // POLYGON((153 -28, 154 -28, 154 -27, 153 -27, 153 -28))
   const sw = bounds.getSouthWest().wrap()
@@ -127,6 +119,7 @@ function MapDataLayer({
   fqState,
   setFqState,
   facetFields,
+  fillOpacity,
 }) {
   const map = useMap()
   // const geoJsonLayerRef = useRef(null)
@@ -156,6 +149,14 @@ function MapDataLayer({
     moveend: () => {
       updateMapState(mapEvent)
     },
+  })
+
+  const setLayerStyles = (setColour) => ({
+    color: darken(setColour, 0.2),
+    fillColor: setColour,
+    fillOpacity, // 0.5
+    weight: fillOpacity,
+    stroke: true,
   })
 
   // const getSolrBboxFq = (bounds) => {

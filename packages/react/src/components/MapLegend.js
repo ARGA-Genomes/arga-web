@@ -13,8 +13,21 @@ import theme from './theme'
 //   250: '#2b8cbe',
 //   500: '#045a8d',
 // }
+/**
+ * convert CSS colour in rgb to rgba
+ *
+ * @param {*} rgbStr - e.g. `rgb(2, 54, 84)`
+ * @param {*} opacity - e.g `0.8`
+ * @returns csc rgba string value - e.g. `rgba(2, 54, 84, 0.8)`
+ */
+function rgbToRgba(rgbStr, opacity) {
+  const values = rgbStr.slice(4, -1) // remove the `rgb(` and `)`
+  const opacityChecked = opacity || 1
+  const correctedOpacity = opacityChecked + 0.5 <= 1 ? opacity + 0.5 : 1
+  return `rgba(${values}, ${correctedOpacity || 1})`
+}
 
-function Legend() {
+function Legend({ fillOpacity }) {
   const map = useMap()
   const legendRef = useRef(null)
   const colours = theme.palette.grids.coloursForCounts
@@ -33,7 +46,10 @@ function Legend() {
           const lower = Number(keysArray[index - 1] || 0) + 1
           const upper = keysArray.length === index + 1 ? ` +` : `– ${count}`
           entries.push(
-            `<i style="background:${colours[count]}"></i><span>${lower} ${upper}</span><br>`
+            `<i style="background-color:${rgbToRgba(
+              colours[count],
+              fillOpacity
+            )}"></i><span>${lower} ${upper}</span><br>`
           )
         })
         div.innerHTML = `${title}${entries.join('')}`
@@ -50,7 +66,7 @@ function Legend() {
         map.removeControl(legendRef.current)
       }
     }
-  }, [])
+  }, [fillOpacity])
 
   return null
 }

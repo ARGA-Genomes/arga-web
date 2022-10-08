@@ -87,7 +87,7 @@ export default function ArgaToolbar() {
             typography: { sm: 'h5', xs: 'h6' },
           }}
         >
-          <span style={{ fontWeight: 700 }}>Data Brwsr</span>{' '}
+          <span style={{ fontWeight: 700 }}>SeqBrwsr</span>{' '}
           <span style={{ fontWeight: 400 }}>Demo</span>
         </Typography>
         <Tooltip title="About ARGA">

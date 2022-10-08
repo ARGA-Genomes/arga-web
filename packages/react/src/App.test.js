@@ -3,6 +3,6 @@ import App from './App'
 
 test('renders Data Brwsr text', () => {
   render(<App />)
-  const linkElement = screen.getByText(/Data Brwsr/i)
+  const linkElement = screen.getByText(/SeqBrwsr/i)
   expect(linkElement).toBeInTheDocument()
 })
