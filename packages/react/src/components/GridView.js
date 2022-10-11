@@ -7,6 +7,7 @@ function GridView({ pageState, setPageState, setRecordState }) {
   useEffect(() => {
     setPageState((old) => ({ ...old, groupResults: true, pageSize: 24 }))
   }, [pageState.groupResults, pageState.pageState])
+  const defaultPageSize = 24
 
   return (
     <>
@@ -49,7 +50,7 @@ function GridView({ pageState, setPageState, setRecordState }) {
               rowsPerPageOptions={[12, 24, 48, 96]}
               // pagination
               page={pageState.page - 1}
-              rowsPerPage={pageState.pageSize}
+              rowsPerPage={pageState.pageSize || defaultPageSize}
               onPageChange={(event, newPage) =>
                 setPageState((old) => ({ ...old, page: newPage + 1 }))
               }
@@ -60,7 +61,9 @@ function GridView({ pageState, setPageState, setRecordState }) {
                   pageSize: parseInt(event.target.value, 10),
                 }))
               }
-              count={Math.ceil(pageState.total / pageState.pageSize)}
+              count={Math.ceil(
+                pageState.total / pageState.pageSize || defaultPageSize
+              )}
               // page={page}
               // onPageChange={handleChangePage}
               // rowsPerPage={rowsPerPage}

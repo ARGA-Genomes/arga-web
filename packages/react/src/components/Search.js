@@ -117,7 +117,7 @@ function Search() {
     species: [],
     total: 0,
     page: 1,
-    pageSize: 25,
+    // pageSize: 25,
     field: 'vernacularName', // sort
     sort: 'asc', // order
     q: '',

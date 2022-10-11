@@ -14,7 +14,6 @@ function onAddItem() {
 
 function App() {
   return (
-    // <Router>
     <ThemeProvider theme={theme}>
       <AuthProvider
         client_id={config.client_id}
@@ -31,7 +30,6 @@ function App() {
         </CartProvider>
       </AuthProvider>
     </ThemeProvider>
-    // </Router>
   )
 }
 

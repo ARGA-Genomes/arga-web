@@ -12,9 +12,9 @@ function MapOpacitySlider({ fillOpacity, setFillOpacity }) {
         <Typography>Grid opacity</Typography>
         <Box sx={{ width: 105 }}>
           <Slider
-            aria-label="Map data layer opacity slider (0-1)"
-            defaultValue={fillOpacity}
+            aria-label="Map data layer opacity slider"
             getAriaValueText={valuetext}
+            defaultValue={fillOpacity}
             valueLabelFormat={valuetext}
             step={0.1}
             onChange={(e, val) => setFillOpacity(val)}

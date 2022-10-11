@@ -23,7 +23,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useCart } from 'react-use-cart'
 
-const displayFields = {
+export const displayFields = {
   occurrenceID: 'Accession',
   dataResourceName: 'Dataset',
   scientificName: 'Scientific Name',
@@ -33,7 +33,7 @@ const displayFields = {
   eventDate: 'Date',
 }
 
-function formatObjectAsTable(outputObj) {
+function formatSavedSequence(outputObj) {
   return (
     <TableContainer>
       <Table
@@ -58,10 +58,11 @@ function formatObjectAsTable(outputObj) {
   )
 }
 
-function formatContent(record) {
+export function pruneSequenceObject(record) {
   if (!record.data) {
     return 'Error: no data found for {record.id}'
   }
+
   const outputObj = {}
   Object.keys(record.data).forEach((it) => {
     if (Object.keys(displayFields).includes(it)) {
@@ -76,7 +77,7 @@ function formatContent(record) {
     outputObj[displayFields.numberOfSequences] = 1
   }
 
-  return formatObjectAsTable(outputObj)
+  return outputObj
 }
 
 const buttonStyle = {
@@ -119,7 +120,7 @@ function BasketItems() {
           <ListItem key={item.id}>
             <ListItemText>
               <Paper sx={{ padding: 2 }}>
-                {formatContent(item)}
+                {formatSavedSequence(pruneSequenceObject(item))}
                 <Box sx={{ marginTop: 2 }}>
                   <Button
                     variant="outlined"
