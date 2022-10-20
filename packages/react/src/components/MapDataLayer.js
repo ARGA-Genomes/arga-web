@@ -14,8 +14,8 @@ import MapGridPopup from './MapGridPopup'
 import config from './config'
 import theme from './theme'
 
-const serverUrlPrefix = config.solr_uri
-const solrGeoField = 'quad' // 'packedQuad'
+const SERVER_URL_PREFIX = config.solr_uri
+const SOLR_GEO_FIELD = 'quad' // 'packedQuad'
 
 const getColourForCount = (count) => {
   let colour = theme.palette.grids.coloursForCounts[500] // '#045a8d'
@@ -212,11 +212,11 @@ function MapDataLayer({
         }
       })
       const resp = await fetch(
-        `${serverUrlPrefix}/select?q=${
+        `${SERVER_URL_PREFIX}/select?q=${
           pageState.q || '*:*'
         }&fq=${fqParamList.join(
           '&fq='
-        )}&facet=true&facet.heatmap=${solrGeoField}&facet.heatmap.geom=${getSolrBboxPolygon(
+        )}&facet=true&facet.heatmap=${SOLR_GEO_FIELD}&facet.heatmap.geom=${getSolrBboxPolygon(
           mapDataState.bbox
         )}&facet.heatmap.gridLevel=${getGridLevel()}&facet.mincount=1&rows=0&facet.limit=9999`
       )
@@ -224,7 +224,7 @@ function MapDataLayer({
       setMapDataState((old) => ({
         ...old,
         isLoading: false,
-        heatmap: json.facet_counts.facet_heatmaps[solrGeoField],
+        heatmap: json.facet_counts.facet_heatmaps[SOLR_GEO_FIELD],
       }))
     }
     fetchRecord().catch((error) => {

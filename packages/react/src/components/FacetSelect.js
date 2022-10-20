@@ -15,6 +15,7 @@ import { startCase, replace } from 'lodash'
 
 const labelReplaceRegex = {
   dynamicProperties_ncbi_: '',
+  dynamicProperties_bpa_: '',
   dynamicProperties_ncbi_genome_rep: 'NCBI genome representation',
   dynamicProperties_ncbi_assembly_level: 'NCBI assembly level',
   dynamicProperties_bpa_resource_permissions: 'BPA access permissions',
@@ -31,7 +32,7 @@ const labelReplaceRegex = {
  * @param {String} label SOLR field name
  * @returns formatted label
  */
-function formatLabels(label) {
+export function formatLabels(label) {
   const replacements = Object.keys(labelReplaceRegex)
     .map((searchString) => {
       const re = new RegExp(searchString, 'g')
@@ -46,6 +47,7 @@ function formatLabels(label) {
   return startCase(returnString)
 }
 
+// TODO move into main function and memoize it, as it depends on `useState` variable
 const removeFacet = (setFqState, newArray, field) => {
   if (newArray.length > 0) {
     // still other selected facets with same field present
@@ -61,7 +63,8 @@ const removeFacet = (setFqState, newArray, field) => {
   }
 }
 
-function getLabelForName(name, valueList) {
+export function getLabelForName(name, valueList) {
+  console.table(name, valueList)
   const item = valueList.find((val) => val.name === name)
   return item && item.label ? item.label : startCase(name)
 }

@@ -33,7 +33,7 @@ export const displayFields = {
   eventDate: 'Date',
 }
 
-function formatSavedSequence(outputObj) {
+export function formatSavedSequence(outputObj) {
   return (
     <TableContainer>
       <Table
@@ -46,8 +46,10 @@ function formatSavedSequence(outputObj) {
             .sort()
             .map((fieldname) => (
               <TableRow key={fieldname}>
-                <TableCell sx={{ width: '20%' }}>{fieldname}</TableCell>
-                <TableCell sx={{ width: '80%' }}>
+                <TableCell sx={{ width: '20%' }} data-test-id="fieldName">
+                  {fieldname}
+                </TableCell>
+                <TableCell sx={{ width: '80%' }} data-test-id="fieldValue">
                   {outputObj[fieldname]}
                 </TableCell>
               </TableRow>

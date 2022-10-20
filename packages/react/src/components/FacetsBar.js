@@ -15,51 +15,6 @@ import { useSearchParams } from 'react-router-dom'
 import FacetSelect from './FacetSelect'
 import theme from './theme'
 
-// TODO should go in config file or i18n properties
-const facetFieldsTransform = {
-  speciesListUid: {
-    dr656: 'EPBC National conservation status',
-    dr649: 'ACT conservation status',
-    dr650: 'NSW conservation status',
-    dr651: 'NT conservation status',
-    dr652: 'Qld conservation status',
-    dr653: 'SA conservation status',
-    dr654: 'Tas conservation status',
-    dr655: 'Vic conservation status',
-    dr2201: 'WA conservation status',
-  },
-}
-
-/**
- * Transform function that takes an array of objects (with `name` & `count` props) and
- * augments each object with an additional prop called `label`. This is used in the `Select`
- * component to show a custom label that differs from the select value. Labels are
- * provided by the `facetFieldsTransform` (config) object.
- *
- * @param {*} field
- * @param {*} values
- * @returns
- */
-function filterFacetValues(field, values) {
-  const returnValues = []
-
-  if (Object.keys(facetFieldsTransform).includes(field)) {
-    const thisFacetFilter = facetFieldsTransform[field]
-    const filteredValues = values.filter((val) =>
-      Object.keys(thisFacetFilter).includes(val.name)
-    )
-    filteredValues.forEach((valObj) => {
-      const thisValue = valObj
-      thisValue.label = thisFacetFilter[valObj.name]
-    })
-    returnValues.push(...filteredValues)
-  } else {
-    returnValues.push(...values)
-  }
-
-  return returnValues
-}
-
 /**
  * Component to output a "filter" bar for filtering search results
  *
@@ -276,7 +231,7 @@ export default function FacetsBar({
           >
             <FacetSelect
               field={field}
-              fieldValues={filterFacetValues(field, facetsDisplay[field])}
+              fieldValues={facetsDisplay[field]}
               fqState={fqState[field] || []}
               setFqState={setFqState}
             />
