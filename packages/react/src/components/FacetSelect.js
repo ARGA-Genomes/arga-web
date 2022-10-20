@@ -64,7 +64,6 @@ const removeFacet = (setFqState, newArray, field) => {
 }
 
 export function getLabelForName(name, valueList) {
-  console.table(name, valueList)
   const item = valueList.find((val) => val.name === name)
   return item && item.label ? item.label : startCase(name)
 }
