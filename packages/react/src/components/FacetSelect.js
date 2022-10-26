@@ -63,6 +63,14 @@ const removeFacet = (setFqState, newArray, field) => {
   }
 }
 
+/**
+ * Format label for `Chip` by checking for `label` attribute and falling
+ * back to `name` attribute with `startCase` formatting
+ *
+ * @param {*} name
+ * @param {*} valueList
+ * @returns
+ */
 export function getLabelForName(name, valueList) {
   const item = valueList.find((val) => val.name === name)
   return item && item.label ? item.label : startCase(name)

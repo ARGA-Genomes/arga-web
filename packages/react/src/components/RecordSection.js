@@ -12,6 +12,20 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import { startCase, words, replace, uniqueId } from 'lodash'
 import ReactMarkdown from 'react-markdown'
 
+// data resource UIDs
+const DR_REFSEQ = 'dr18509'
+const DR_GENBANK = 'dr18541'
+const DR_BPA = 'dr18544'
+// const DR_BOLD = 'dr375'
+
+// URLs
+const URL_BIE = 'https://bie.ala.org.au/species/'
+const URL_NCBI = 'https://www.ncbi.nlm.nih.gov'
+const URL_NCBI_GENOME = `${URL_NCBI}/data-hub/genome/`
+const URL_NCBI_BIOSAMPLE = `${URL_NCBI}/biosample/`
+const URL_NCBI_BIOPROJECT = `${URL_NCBI}/bioproject/`
+const URL_BPA = 'https://data.bioplatforms.com/dataset/'
+
 const fieldsToSkip = [
   'geospatialIssues',
   'speciesListUid',
@@ -49,35 +63,37 @@ const fixedWidthFields = [
   'dynamicProperties_bpa_tags',
   'dynamicProperties_bpa_spatial',
 ]
-const bieUrl = 'https://bie.ala.org.au/species/'
-const ncbiUrl = 'https://www.ncbi.nlm.nih.gov/data-hub/genome/'
-const bpaUrl = 'https://data.bioplatforms.com/dataset/'
+
 const fieldsToDecorate = {
   scientificName: {
-    prefix: bieUrl,
+    prefix: URL_BIE,
     valueField: 'taxonConceptID',
     decoration: 'italic',
   },
+  occurrenceID: {
+    prefix: 'ID', // dymanic lookup based on DR
+    valueField: 'dataResourceUid',
+  },
   raw_scientificName: { decoration: 'italic' },
   // occurrenceID: { prefix: ncbiUrl },
-  dynamicProperties_bpa_id: { prefix: bpaUrl },
+  dynamicProperties_bpa_id: { prefix: URL_BPA },
   dynamicProperties_ncbi_assembly_accession: {
-    prefix: ncbiUrl,
+    prefix: URL_NCBI_GENOME,
   },
   dynamicProperties_ncbi_bioproject: {
-    prefix: 'https://www.ncbi.nlm.nih.gov/bioproject/',
+    prefix: URL_NCBI_BIOPROJECT,
   },
   dynamicProperties_ncbi_biosample: {
-    prefix: 'https://www.ncbi.nlm.nih.gov/biosample/',
+    prefix: URL_NCBI_BIOSAMPLE,
   },
   dynamicProperties_bpa_organization_description: { decoration: 'md' },
-  kingdom: { prefix: bieUrl, valueField: 'kingdomID' },
-  phylum: { prefix: bieUrl, valueField: 'phylumID' },
-  class: { prefix: bieUrl, valueField: 'classID' },
-  order: { prefix: bieUrl, valueField: 'orderID' },
-  family: { prefix: bieUrl, valueField: 'familyID' },
-  genus: { prefix: bieUrl, valueField: 'genusID' },
-  species: { prefix: bieUrl, valueField: 'speciesID', decoration: 'italic' },
+  kingdom: { prefix: URL_BIE, valueField: 'kingdomID' },
+  phylum: { prefix: URL_BIE, valueField: 'phylumID' },
+  class: { prefix: URL_BIE, valueField: 'classID' },
+  order: { prefix: URL_BIE, valueField: 'orderID' },
+  family: { prefix: URL_BIE, valueField: 'familyID' },
+  genus: { prefix: URL_BIE, valueField: 'genusID' },
+  species: { prefix: URL_BIE, valueField: 'speciesID', decoration: 'italic' },
 }
 
 /**
@@ -157,7 +173,7 @@ function getFieldValue(field, data) {
     const helper = fieldsToDecorate[field]
     const suffix =
       'valueField' in helper ? data[helper.valueField] || '' : data[field] || ''
-    if ('prefix' in helper) {
+    if ('prefix' in helper && helper.prefix !== 'ID') {
       value = (
         <a href={`${helper.prefix}${suffix}`} target="partner">
           {'decoration' in helper &&
@@ -169,6 +185,25 @@ function getFieldValue(field, data) {
           )}
         </a>
       )
+    } else if ('prefix' in helper) {
+      // occurrenceID exception
+      let urlPrefix = ''
+      if (
+        data.dataResourceUid === DR_REFSEQ ||
+        data.dataResourceUid === DR_GENBANK
+      ) {
+        urlPrefix = URL_NCBI_GENOME
+      } else if (data.dataResourceUid === DR_BPA) {
+        urlPrefix = URL_BPA
+      }
+
+      if (urlPrefix) {
+        value = (
+          <a href={`${urlPrefix}${data.occurrenceID}`} target="partner">
+            {value}
+          </a>
+        )
+      }
     } else if ('decoration' in helper && helper.decoration === 'italic') {
       value = <em>{value}</em>
     } else if ('decoration' in helper && helper.decoration === 'md') {
