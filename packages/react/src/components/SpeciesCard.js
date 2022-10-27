@@ -273,7 +273,7 @@ function SpeciesCard({ record, index, setRecordState }) {
           View {record.doclist.docs.length}
         </Button>
       </CardActions>
-      {/* TODO Collapse is not being used - was disabled for simplicioty so code below can be deleted */}
+      {/* TODO: Collapse is not being used - was disabled for simplicioty so code below can be deleted */}
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent>
           <Typography component="h4" sx={{ borderBottom: '1px solid gray' }}>

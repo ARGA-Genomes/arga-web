@@ -6,17 +6,21 @@ import {
   TableCell,
   Collapse,
   Typography,
+  Tooltip,
+  Chip,
 } from '@mui/material'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload'
+import LockIcon from '@mui/icons-material/Lock'
 import { startCase, words, replace, uniqueId } from 'lodash'
 import ReactMarkdown from 'react-markdown'
 
-// data resource UIDs
+// data resource UIDs TODO: move into conf.
 const DR_REFSEQ = 'dr18509'
 const DR_GENBANK = 'dr18541'
 const DR_BPA = 'dr18544'
-// const DR_BOLD = 'dr375'
+const DR_BOLD = 'dr375'
 
 // URLs
 const URL_BIE = 'https://bie.ala.org.au/species/'
@@ -24,7 +28,11 @@ const URL_NCBI = 'https://www.ncbi.nlm.nih.gov'
 const URL_NCBI_GENOME = `${URL_NCBI}/data-hub/genome/`
 const URL_NCBI_BIOSAMPLE = `${URL_NCBI}/biosample/`
 const URL_NCBI_BIOPROJECT = `${URL_NCBI}/bioproject/`
+const URL_NCBI_DOWNLOAD = 'https://api.ncbi.nlm.nih.gov/datasets/v1'
 const URL_BPA = 'https://data.bioplatforms.com/dataset/'
+const URL_BOLD = 'https://www.boldsystems.org/index.php'
+const URL_BOLD_BIN = `${URL_BOLD}/Public_RecordView?processid=`
+const URL_BOLD_FASTA = `${URL_BOLD}/API_Public/sequence?ids=`
 
 const fieldsToSkip = [
   'geospatialIssues',
@@ -63,6 +71,7 @@ const fixedWidthFields = [
   'dynamicProperties_bpa_tags',
   'dynamicProperties_bpa_spatial',
 ]
+const derivedFields = ['sequenceDownload', 'sequenceType']
 
 const fieldsToDecorate = {
   scientificName: {
@@ -71,9 +80,13 @@ const fieldsToDecorate = {
     decoration: 'italic',
   },
   occurrenceID: {
-    prefix: 'ID', // dymanic lookup based on DR
+    prefix: true, // dymanic lookup based on DR
     valueField: 'dataResourceUid',
   },
+  // sequenceDownload: {
+  //   prefix: true, // dymanic lookup based on DR
+  //   valueField: 'dataResourceUid',
+  // },
   raw_scientificName: { decoration: 'italic' },
   // occurrenceID: { prefix: ncbiUrl },
   dynamicProperties_bpa_id: { prefix: URL_BPA },
@@ -116,10 +129,28 @@ function findValueForKey(obj, key) {
   return value
 }
 
-function getFieldValue(field, data) {
+function cleanupJsonAndParse(jsonString) {
+  const tagsJson = jsonString
+    .replace(/\s+None,/g, "'None',") // fix unquoted value in BPA data
+    .replace(/'/g, '"') // single to double quotes
+    .replace(/\b(True|False)\b/g, (m, v) => v.toLowerCase()) // fix capital case boolean values
+  try {
+    const tagObj = JSON.parse(tagsJson)
+    return tagObj
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.log('Error parsing JSON:', tagsJson)
+  }
+  return ''
+}
+
+function formatFieldValue(field, data) {
   let value = findValueForKey(data, field) || undefined
 
-  if (fieldsToSkip.includes(field) || !value) {
+  if (
+    fieldsToSkip.includes(field) ||
+    (!value && !derivedFields.includes(field))
+  ) {
     return ''
   }
 
@@ -134,7 +165,6 @@ function getFieldValue(field, data) {
       // skip lines with just a space
       if (rows[i].length > 1) {
         newRows.push(
-          // <React.Fragment>
           <Typography
             component="p"
             key={i}
@@ -147,7 +177,6 @@ function getFieldValue(field, data) {
           >
             {rows[i]}
           </Typography>
-          // </React.Fragment>
         )
       }
     }
@@ -165,6 +194,120 @@ function getFieldValue(field, data) {
   ) {
     // ISO date - show date portion only
     value = value.substring(0, 10)
+  } else if (field === 'sequenceDownload') {
+    // make it a download link
+    if (
+      data.dataResourceUid === DR_REFSEQ ||
+      data.dataResourceUid === DR_GENBANK
+    ) {
+      // https://api.ncbi.nlm.nih.gov/datasets/v1/genome/accession/GCA_022045225.1/download?include_annotation_type=GENOME_GFF,RNA_FASTA,CDS_FASTA,PROT_FASTA&filename=GCA_022045225.1.zip
+      const urlPathParams = `/genome/accession/${data.occurrenceID}/download?include_annotation_type=GENOME_GFF,RNA_FASTA,CDS_FASTA,PROT_FASTA&filename=${data.occurrenceID}.zip`
+      const url = `${URL_NCBI_DOWNLOAD}${urlPathParams}`
+      value = (
+        <Tooltip title="Download all available sequence files">
+          <Chip
+            label="ZIP archive"
+            color="primary"
+            variant="outlined"
+            size="small"
+            onClick={() => window.open(url, '_partner')}
+            onDelete={() => window.open(url, '_partner')}
+            deleteIcon={<CloudDownloadIcon />}
+          />
+        </Tooltip>
+      )
+    } else if (data.dataResourceUid === DR_BOLD) {
+      // http://www.boldsystems.org/index.php/API_Public/sequence?ids=EF581197 fieldNumber
+      const id = data.recordNumber || data.materialSampleID || data.fieldNumber
+      const url = `${URL_BOLD_FASTA}${id}`
+      if (id) {
+        value = (
+          <Tooltip title="Download sequence files (fasta format)">
+            <Chip
+              label="FASTA"
+              color="primary"
+              variant="outlined"
+              size="small"
+              onClick={() => window.open(url, '_partner')}
+              onDelete={() => window.open(url, '_partner')}
+              deleteIcon={<CloudDownloadIcon />}
+            />
+          </Tooltip>
+        )
+      }
+    } else if (data.dataResourceUid === DR_BPA) {
+      // is in associatedSequences field
+      const sequences = cleanupJsonAndParse(data.associatedSequences) || []
+      value = (
+        <>
+          {sequences.map((seq, i) => (
+            <Tooltip
+              title={`Download sequence files (${
+                seq.format || 'fasta'
+              } format)`}
+            >
+              <Chip
+                label={`${i + 1}. ${seq.format || 'FASTA'}`}
+                color="primary"
+                variant="outlined"
+                size="small"
+                style={{ marginRight: '.5rem' }}
+                onClick={() => window.open(seq.url, '_partner')}
+                onDelete={() => window.open(seq.url, '_partner')}
+                deleteIcon={<CloudDownloadIcon />}
+              />
+            </Tooltip>
+          ))}
+          {data.dynamicProperties_bpa_resource_permissions !== 'public' && (
+            <Chip
+              icon={<LockIcon />}
+              label={
+                data.dynamicProperties_bpa_resource_permissions.split(':')[0]
+              }
+              variant="outlined"
+              size="small"
+            />
+          )}
+        </>
+      )
+      // const tags = []
+      // sequences.forEach((seq) => {
+      //   const { url } = seq
+      //   if (url) {
+      //     const snip = (
+      //       <Tooltip title="Download sequence files (fasta format)">
+      //         <Chip
+      //           label="FASTA"
+      //           color="primary"
+      //           variant="outlined"
+      //           size="small"
+      //           onClick={() => window.open(url, '_partner')}
+      //           onDelete={() => window.open(url, '_partner')}
+      //           deleteIcon={<CloudDownloadIcon />}
+      //         />
+      //       </Tooltip>
+      //     )
+      //     tags.push(snip)
+      //   }
+      // })
+      // value = tags.join(' ')
+    }
+  } else if (field === 'sequenceType') {
+    if (
+      data.dataResourceUid === DR_REFSEQ ||
+      data.dataResourceUid === DR_GENBANK
+    ) {
+      // NCBI
+      value = data.dynamicProperties_MIXS_0000005
+    } else if (data.dataResourceUid === DR_BOLD) {
+      value = 'BOLD Barcode'
+    } else if (data.dataResourceUid === DR_BPA) {
+      const tagObj = cleanupJsonAndParse(data.dynamicProperties_bpa_tags)
+      if (typeof tagObj === 'object') {
+        // value = tagObj[0].display_name || tagObj[0].name
+        value = tagObj.map((el) => el.display_name || el.name).join(' - ')
+      }
+    }
   }
 
   // if (field.endsWith('scientificName') && words(value).length > 1) {
@@ -173,7 +316,7 @@ function getFieldValue(field, data) {
     const helper = fieldsToDecorate[field]
     const suffix =
       'valueField' in helper ? data[helper.valueField] || '' : data[field] || ''
-    if ('prefix' in helper && helper.prefix !== 'ID') {
+    if ('prefix' in helper && helper.prefix !== true) {
       value = (
         <a href={`${helper.prefix}${suffix}`} target="partner">
           {'decoration' in helper &&
@@ -188,6 +331,7 @@ function getFieldValue(field, data) {
     } else if ('prefix' in helper) {
       // occurrenceID exception
       let urlPrefix = ''
+      let urlSuffix = data.occurrenceID
       if (
         data.dataResourceUid === DR_REFSEQ ||
         data.dataResourceUid === DR_GENBANK
@@ -195,13 +339,19 @@ function getFieldValue(field, data) {
         urlPrefix = URL_NCBI_GENOME
       } else if (data.dataResourceUid === DR_BPA) {
         urlPrefix = URL_BPA
+      } else if (data.dataResourceUid === DR_BOLD) {
+        urlPrefix = URL_BOLD_BIN
+        urlSuffix =
+          data.recordNumber || data.materialSampleID || data.fieldNumber
       }
 
       if (urlPrefix) {
         value = (
-          <a href={`${urlPrefix}${data.occurrenceID}`} target="partner">
-            {value}
-          </a>
+          <Tooltip title="Visit original data source for this sequence">
+            <a href={`${urlPrefix}${urlSuffix}`} target="partner">
+              {value}
+            </a>
+          </Tooltip>
         )
       }
     } else if ('decoration' in helper && helper.decoration === 'italic') {
@@ -247,7 +397,7 @@ function getFieldValue(field, data) {
 }
 
 function mungeFieldName(field) {
-  // Fix this code so its performant and not code-smelly
+  // TODO: Fix this code so its performant and not code-smelly
   const field1 = replace(field, 'dynamicProperties_', '')
   const field2 = replace(field1, 'ncbi_', 'NCBI_')
   const field3 = replace(field2, 'bpa_', 'BPA_')
@@ -281,40 +431,41 @@ export default function RecordSection({ recordData, section, fieldList }) {
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Table aria-label="collapsible table" sx={{ tableLayout: 'fixed' }}>
               <TableBody>
-                {listOfFields.map((field) =>
-                  getFieldValue(field, recordData) ? (
-                    <TableRow
-                      key={uniqueId(field)}
-                      sx={{ ':last-child td': { borderBottom: 0 } }}
-                    >
-                      <TableCell
-                        style={{
-                          width: '30%',
-                          padding: 5,
-                          paddingLeft: 16,
-                          verticalAlign: 'top',
-                          opacity: 0.8,
-                        }}
-                        colSpan={6}
+                {listOfFields.map(
+                  (
+                    field // TODO: remove duplicate call to `formatFieldValue()` - extract into separate component
+                  ) =>
+                    formatFieldValue(field, recordData) && (
+                      <TableRow
+                        key={uniqueId(field)}
+                        sx={{ ':last-child td': { borderBottom: 0 } }}
                       >
-                        {startCase(mungeFieldName(field))}
-                      </TableCell>
-                      <TableCell
-                        style={{
-                          width: '70%',
-                          padding: 5,
-                          paddingLeft: 16,
-                          verticalAlign: 'top',
-                          wordBreak: 'break-all',
-                        }}
-                        colSpan={6}
-                      >
-                        {getFieldValue(field, recordData)}
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    <React.Fragment key={uniqueId(field)} />
-                  )
+                        <TableCell
+                          style={{
+                            width: '30%',
+                            padding: 5,
+                            paddingLeft: 16,
+                            verticalAlign: 'top',
+                            opacity: 0.8,
+                          }}
+                          colSpan={6}
+                        >
+                          {startCase(mungeFieldName(field))}
+                        </TableCell>
+                        <TableCell
+                          style={{
+                            width: '70%',
+                            padding: 5,
+                            paddingLeft: 16,
+                            verticalAlign: 'top',
+                            wordBreak: 'break-all',
+                          }}
+                          colSpan={6}
+                        >
+                          {formatFieldValue(field, recordData)}
+                        </TableCell>
+                      </TableRow>
+                    )
                 )}
               </TableBody>
             </Table>

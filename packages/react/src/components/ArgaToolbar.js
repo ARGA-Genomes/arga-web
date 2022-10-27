@@ -130,7 +130,7 @@ export default function ArgaToolbar() {
           <DialogTitle>About ARGA</DialogTitle>
           <DialogContent sx={{ padding: '0 24px 10px 24px' }}>
             <DialogContentText>
-              {/* TODO pull this content out of a MD file in a GH Wiki or from the static WP site */}
+              {/* TODO: pull this content out of a MD file in a GH Wiki or from the static WP site */}
               site ARGA is the Australian Reference Genome Atlas. It is an
               indexing service for aggregating, discovering, filtering and
               accessing complex life science data. ARGA is an NCRIS-enabled

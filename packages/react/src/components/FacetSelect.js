@@ -47,7 +47,7 @@ export function formatLabels(label) {
   return startCase(returnString)
 }
 
-// TODO move into main function and memoize it, as it depends on `useState` variable
+// TODO: move into main function and memoize it, as it depends on `useState` variable
 const removeFacet = (setFqState, newArray, field) => {
   if (newArray.length > 0) {
     // still other selected facets with same field present

@@ -195,7 +195,7 @@ function MapDataLayer({
 
   useEffect(() => {
     const fetchRecord = async () => {
-      // TODO code is duplicated in Search.js so needs to be shared in util file or done with React-query
+      // TODO: code is duplicated in Search.js so needs to be shared in util file or done with React-query
       setMapDataState((old) => ({ ...old, isLoading: true }))
       const fqParamList = []
       Object.keys(fqState).forEach((key) => {

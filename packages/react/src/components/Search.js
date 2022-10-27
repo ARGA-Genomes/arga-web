@@ -22,7 +22,7 @@ import theme from './theme'
 import config from './config'
 
 /*
- * ToDo list
+ * TODO: list
  * - Moved into https://github.com/ARGA-Genomes/arga-web/issues/4
  */
 
@@ -439,7 +439,7 @@ function Search() {
   ])
 
   // Fetch a single record - SOLR get
-  // ToDo move to RecordDrawer component along with state vars
+  // TODO: move to RecordDrawer component along with state vars
   useEffect(() => {
     if (recordState.id) {
       const fetchRecord = async () => {

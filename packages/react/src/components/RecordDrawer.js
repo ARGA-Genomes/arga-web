@@ -42,8 +42,9 @@ const fieldListMap = {
     'scientificName',
     'dataResourceName',
     'occurrenceID',
-    'basisOfRecord',
-    'eventDate',
+    // 'basisOfRecord',
+    'sequenceType',
+    'sequenceDownload',
   ],
   Record: [
     'dynamicProperties_ncbi_assembly_accession',
@@ -207,7 +208,7 @@ export default function RecordDrawer({
               sx={{ color: 'white', marginTop: '25px ' }}
             >
               {items.find((it) => it.id === recordState.data?.id)
-                ? 'Sequence record saved'
+                ? 'Sequence saved'
                 : 'Add to basket'}
             </Button>
           </Grid>
