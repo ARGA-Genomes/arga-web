@@ -47,9 +47,9 @@ const facetFields = {
     tag: 'gr',
     label: 'NCBI genome representation',
   },
-  dynamicProperties_ncbi_assembly_level: {
+  dynamicProperties_MIXS_0000005: {
     tag: 'al',
-    label: 'NCBI assembly level',
+    label: 'Assembly level',
   },
   dynamicProperties_bpa_resource_permissions: {
     tag: 'rp',
