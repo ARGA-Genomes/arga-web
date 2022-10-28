@@ -18,10 +18,11 @@ import {
 } from '@mui/material'
 // import CloudDownloadIcon from '@mui/icons-material/CloudDownload'
 import DeleteIcon from '@mui/icons-material/Delete'
-import FileDownloadIcon from '@mui/icons-material/FileDownload'
+// import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useCart } from 'react-use-cart'
+import SequenceDownload from './SequenceDownload'
 
 export const displayFields = {
   occurrenceID: 'Accession',
@@ -124,16 +125,8 @@ function BasketItems() {
               <Paper sx={{ padding: 2 }}>
                 {formatSavedSequence(pruneSequenceObject(item))}
                 <Box sx={{ marginTop: 2 }}>
-                  <Button
-                    variant="outlined"
-                    sx={buttonStyle}
-                    startIcon={<FileDownloadIcon />}
-                    onClick={() => {
-                      window.alert('Not yet implemented')
-                    }}
-                  >
-                    Download sequence files
-                  </Button>
+                  <SequenceDownload data={item.data} size="medium" />
+                  <br />
                   <Button
                     variant="outlined"
                     sx={buttonStyle}

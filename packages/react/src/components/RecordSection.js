@@ -5,34 +5,22 @@ import {
   TableRow,
   TableCell,
   Collapse,
+  Chip,
   Typography,
   Tooltip,
-  Chip,
 } from '@mui/material'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
-import CloudDownloadIcon from '@mui/icons-material/CloudDownload'
-import LockIcon from '@mui/icons-material/Lock'
 import { startCase, words, replace, uniqueId } from 'lodash'
 import ReactMarkdown from 'react-markdown'
+import config from './config'
+import cleanupJsonAndParse from '../utils/parseBpaJson'
+import SequenceDownload from './SequenceDownload'
 
-// data resource UIDs TODO: move into conf.
-const DR_REFSEQ = 'dr18509'
-const DR_GENBANK = 'dr18541'
-const DR_BPA = 'dr18544'
-const DR_BOLD = 'dr375'
+const DR_CODES = config.dr_codes
 
 // URLs
-const URL_BIE = 'https://bie.ala.org.au/species/'
-const URL_NCBI = 'https://www.ncbi.nlm.nih.gov'
-const URL_NCBI_GENOME = `${URL_NCBI}/data-hub/genome/`
-const URL_NCBI_BIOSAMPLE = `${URL_NCBI}/biosample/`
-const URL_NCBI_BIOPROJECT = `${URL_NCBI}/bioproject/`
-const URL_NCBI_DOWNLOAD = 'https://api.ncbi.nlm.nih.gov/datasets/v1'
-const URL_BPA = 'https://data.bioplatforms.com/dataset/'
-const URL_BOLD = 'https://www.boldsystems.org/index.php'
-const URL_BOLD_BIN = `${URL_BOLD}/Public_RecordView?processid=`
-const URL_BOLD_FASTA = `${URL_BOLD}/API_Public/sequence?ids=`
+const URLS = config.urls
 
 const fieldsToSkip = [
   'geospatialIssues',
@@ -75,7 +63,7 @@ const derivedFields = ['sequenceDownload', 'sequenceType']
 
 const fieldsToDecorate = {
   scientificName: {
-    prefix: URL_BIE,
+    prefix: URLS.BIE,
     valueField: 'taxonConceptID',
     decoration: 'italic',
   },
@@ -89,24 +77,24 @@ const fieldsToDecorate = {
   // },
   raw_scientificName: { decoration: 'italic' },
   // occurrenceID: { prefix: ncbiUrl },
-  dynamicProperties_bpa_id: { prefix: URL_BPA },
+  dynamicProperties_bpa_id: { prefix: URLS.BPA },
   dynamicProperties_ncbi_assembly_accession: {
-    prefix: URL_NCBI_GENOME,
+    prefix: URLS.NCBI_GENOME,
   },
   dynamicProperties_ncbi_bioproject: {
-    prefix: URL_NCBI_BIOPROJECT,
+    prefix: URLS.NCBI_BIOPROJECT,
   },
   dynamicProperties_ncbi_biosample: {
-    prefix: URL_NCBI_BIOSAMPLE,
+    prefix: URLS.NCBI_BIOSAMPLE,
   },
   dynamicProperties_bpa_organization_description: { decoration: 'md' },
-  kingdom: { prefix: URL_BIE, valueField: 'kingdomID' },
-  phylum: { prefix: URL_BIE, valueField: 'phylumID' },
-  class: { prefix: URL_BIE, valueField: 'classID' },
-  order: { prefix: URL_BIE, valueField: 'orderID' },
-  family: { prefix: URL_BIE, valueField: 'familyID' },
-  genus: { prefix: URL_BIE, valueField: 'genusID' },
-  species: { prefix: URL_BIE, valueField: 'speciesID', decoration: 'italic' },
+  kingdom: { prefix: URLS.BIE, valueField: 'kingdomID' },
+  phylum: { prefix: URLS.BIE, valueField: 'phylumID' },
+  class: { prefix: URLS.BIE, valueField: 'classID' },
+  order: { prefix: URLS.BIE, valueField: 'orderID' },
+  family: { prefix: URLS.BIE, valueField: 'familyID' },
+  genus: { prefix: URLS.BIE, valueField: 'genusID' },
+  species: { prefix: URLS.BIE, valueField: 'speciesID', decoration: 'italic' },
 }
 
 /**
@@ -129,20 +117,7 @@ function findValueForKey(obj, key) {
   return value
 }
 
-function cleanupJsonAndParse(jsonString) {
-  const tagsJson = jsonString
-    .replace(/\s+None,/g, "'None',") // fix unquoted value in BPA data
-    .replace(/'/g, '"') // single to double quotes
-    .replace(/\b(True|False)\b/g, (m, v) => v.toLowerCase()) // fix capital case boolean values
-  try {
-    const tagObj = JSON.parse(tagsJson)
-    return tagObj
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.log('Error parsing JSON:', tagsJson)
-  }
-  return ''
-}
+const chipStyle = { padding: '0 4px', marginRight: '.5rem' }
 
 function formatFieldValue(field, data) {
   let value = findValueForKey(data, field) || undefined
@@ -195,117 +170,46 @@ function formatFieldValue(field, data) {
     // ISO date - show date portion only
     value = value.substring(0, 10)
   } else if (field === 'sequenceDownload') {
-    // make it a download link
-    if (
-      data.dataResourceUid === DR_REFSEQ ||
-      data.dataResourceUid === DR_GENBANK
-    ) {
-      // https://api.ncbi.nlm.nih.gov/datasets/v1/genome/accession/GCA_022045225.1/download?include_annotation_type=GENOME_GFF,RNA_FASTA,CDS_FASTA,PROT_FASTA&filename=GCA_022045225.1.zip
-      const urlPathParams = `/genome/accession/${data.occurrenceID}/download?include_annotation_type=GENOME_GFF,RNA_FASTA,CDS_FASTA,PROT_FASTA&filename=${data.occurrenceID}.zip`
-      const url = `${URL_NCBI_DOWNLOAD}${urlPathParams}`
-      value = (
-        <Tooltip title="Download all available sequence files">
-          <Chip
-            label="ZIP archive"
-            color="primary"
-            variant="outlined"
-            size="small"
-            onClick={() => window.open(url, '_partner')}
-            onDelete={() => window.open(url, '_partner')}
-            deleteIcon={<CloudDownloadIcon />}
-          />
-        </Tooltip>
-      )
-    } else if (data.dataResourceUid === DR_BOLD) {
-      // http://www.boldsystems.org/index.php/API_Public/sequence?ids=EF581197 fieldNumber
-      const id = data.recordNumber || data.materialSampleID || data.fieldNumber
-      const url = `${URL_BOLD_FASTA}${id}`
-      if (id) {
-        value = (
-          <Tooltip title="Download sequence files (fasta format)">
-            <Chip
-              label="FASTA"
-              color="primary"
-              variant="outlined"
-              size="small"
-              onClick={() => window.open(url, '_partner')}
-              onDelete={() => window.open(url, '_partner')}
-              deleteIcon={<CloudDownloadIcon />}
-            />
-          </Tooltip>
-        )
-      }
-    } else if (data.dataResourceUid === DR_BPA) {
-      // is in associatedSequences field
-      const sequences = cleanupJsonAndParse(data.associatedSequences) || []
-      value = (
-        <>
-          {sequences.map((seq, i) => (
-            <Tooltip
-              title={`Download sequence files (${
-                seq.format || 'fasta'
-              } format)`}
-            >
-              <Chip
-                label={`${i + 1}. ${seq.format || 'FASTA'}`}
-                color="primary"
-                variant="outlined"
-                size="small"
-                style={{ marginRight: '.5rem' }}
-                onClick={() => window.open(seq.url, '_partner')}
-                onDelete={() => window.open(seq.url, '_partner')}
-                deleteIcon={<CloudDownloadIcon />}
-              />
-            </Tooltip>
-          ))}
-          {data.dynamicProperties_bpa_resource_permissions !== 'public' && (
-            <Chip
-              icon={<LockIcon />}
-              label={
-                data.dynamicProperties_bpa_resource_permissions.split(':')[0]
-              }
-              variant="outlined"
-              size="small"
-            />
-          )}
-        </>
-      )
-      // const tags = []
-      // sequences.forEach((seq) => {
-      //   const { url } = seq
-      //   if (url) {
-      //     const snip = (
-      //       <Tooltip title="Download sequence files (fasta format)">
-      //         <Chip
-      //           label="FASTA"
-      //           color="primary"
-      //           variant="outlined"
-      //           size="small"
-      //           onClick={() => window.open(url, '_partner')}
-      //           onDelete={() => window.open(url, '_partner')}
-      //           deleteIcon={<CloudDownloadIcon />}
-      //         />
-      //       </Tooltip>
-      //     )
-      //     tags.push(snip)
-      //   }
-      // })
-      // value = tags.join(' ')
-    }
+    // show download buttons/links
+    value = <SequenceDownload data={data} size="small" />
   } else if (field === 'sequenceType') {
     if (
-      data.dataResourceUid === DR_REFSEQ ||
-      data.dataResourceUid === DR_GENBANK
+      data.dataResourceUid === DR_CODES.DR_REFSEQ ||
+      data.dataResourceUid === DR_CODES.DR_GENBANK
     ) {
       // NCBI
-      value = data.dynamicProperties_MIXS_0000005
-    } else if (data.dataResourceUid === DR_BOLD) {
-      value = 'BOLD Barcode'
-    } else if (data.dataResourceUid === DR_BPA) {
+      // value = data.dynamicProperties_MIXS_0000005
+      value = (
+        <Chip
+          label={data.dynamicProperties_MIXS_0000005}
+          variant="outlined"
+          size="small"
+          style={chipStyle}
+        />
+      )
+    } else if (data.dataResourceUid === DR_CODES.DR_BOLD) {
+      // value = 'BOLD Barcode'
+      value = (
+        <Chip
+          label="BOLD Barcode"
+          variant="outlined"
+          size="small"
+          style={chipStyle}
+        />
+      )
+    } else if (data.dataResourceUid === DR_CODES.DR_BPA) {
       const tagObj = cleanupJsonAndParse(data.dynamicProperties_bpa_tags)
       if (typeof tagObj === 'object') {
-        // value = tagObj[0].display_name || tagObj[0].name
-        value = tagObj.map((el) => el.display_name || el.name).join(' - ')
+        // value = tagObj.map((el) => el.display_name || el.name).join(' - ')
+        value = tagObj.map((el) => (
+          <Chip
+            label={el.display_name || el.name}
+            // color="primary"
+            variant="outlined"
+            size="small"
+            style={chipStyle}
+          />
+        ))
       }
     }
   }
@@ -333,14 +237,14 @@ function formatFieldValue(field, data) {
       let urlPrefix = ''
       let urlSuffix = data.occurrenceID
       if (
-        data.dataResourceUid === DR_REFSEQ ||
-        data.dataResourceUid === DR_GENBANK
+        data.dataResourceUid === DR_CODES.DR_REFSEQ ||
+        data.dataResourceUid === DR_CODES.DR_GENBANK
       ) {
-        urlPrefix = URL_NCBI_GENOME
-      } else if (data.dataResourceUid === DR_BPA) {
-        urlPrefix = URL_BPA
-      } else if (data.dataResourceUid === DR_BOLD) {
-        urlPrefix = URL_BOLD_BIN
+        urlPrefix = URLS.NCBI_GENOME
+      } else if (data.dataResourceUid === DR_CODES.DR_BPA) {
+        urlPrefix = URLS.BPA
+      } else if (data.dataResourceUid === DR_CODES.DR_BOLD) {
+        urlPrefix = URLS.BOLD_BIN
         urlSuffix =
           data.recordNumber || data.materialSampleID || data.fieldNumber
       }
