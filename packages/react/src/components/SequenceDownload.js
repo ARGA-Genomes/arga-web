@@ -55,7 +55,7 @@ export default function SequenceDownload({ data, size }) {
           <Button
             color="primary"
             variant="contained"
-            size={size || 'small'}
+            size={size}
             style={btnStyle}
             href={seq.url}
             // onClick={() => window.open(seq.url, '_partner')}
@@ -76,7 +76,7 @@ export default function SequenceDownload({ data, size }) {
               data.dynamicProperties_bpa_resource_permissions.split(':')[0]
             }`}
             variant="outlined"
-            size={size || 'small'}
+            size={size}
           />
         )}
     </>
