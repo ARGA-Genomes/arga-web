@@ -60,6 +60,7 @@ const fixedWidthFields = [
   'dynamicProperties_bpa_spatial',
 ]
 const derivedFields = ['sequenceDownload', 'sequenceType']
+const valuesToSkip = ['not applicable', 'none']
 
 const fieldsToDecorate = {
   scientificName: {
@@ -95,10 +96,22 @@ const fieldsToDecorate = {
   family: { prefix: URLS.BIE, valueField: 'familyID' },
   genus: { prefix: URLS.BIE, valueField: 'genusID' },
   species: { prefix: URLS.BIE, valueField: 'speciesID', decoration: 'italic' },
+  otherCatalogNumbers: { prefix: URLS.BIOCACHE_CAT_NO, decoration: 'quotes' },
+}
+
+function checkValueShouldIgnore(value) {
+  let isIgnored = false
+  const stringValue = Array.isArray(value) ? value[0] : value
+  if (valuesToSkip.includes(stringValue.toLowerCase())) {
+    isIgnored = true
+  }
+
+  return isIgnored
 }
 
 /**
  * Do a deep search for a key in a nested object (JSON doc)
+ * Recursive!
  *
  * @param {*} obj - nested object
  * @param {*} key - key to find value of (first instance found is returned)
@@ -119,18 +132,28 @@ function findValueForKey(obj, key) {
 
 const chipStyle = { padding: '0 4px', marginRight: '.5rem' }
 
+/**
+ * Ugly formatting function that marks-up special case
+ * fields in the record display section.
+ * TODO: extract into nicer code via its own component
+ *
+ * @param {*} field
+ * @param {*} data
+ * @returns value - formatted text/JSX value to display
+ */
 function formatFieldValue(field, data) {
   let value = findValueForKey(data, field) || undefined
 
   if (
     fieldsToSkip.includes(field) ||
-    (!value && !derivedFields.includes(field))
+    (!value && !derivedFields.includes(field)) ||
+    (value && checkValueShouldIgnore(value))
   ) {
-    return ''
+    return '' // normal field needing no special markup
   }
 
-  if (typeof value === 'object') {
-    // Misc properties - output as a formatted JSX elements
+  if (typeof value === 'object' && !(field in fieldsToDecorate)) {
+    // Misc properties - output as a fixed-width font formatted JSX elements
     value = replace(JSON.stringify(value, null, 1), /\{\s*|\s*\}|"/g, '')
     value = replace(value, /,*\n\s+/g, '\n')
     value = replace(value, /\]\s*$/g, '')
@@ -203,6 +226,7 @@ function formatFieldValue(field, data) {
         // value = tagObj.map((el) => el.display_name || el.name).join(' - ')
         value = tagObj.map((el) => (
           <Chip
+            id={el.display_name || el.name}
             label={el.display_name || el.name}
             // color="primary"
             variant="outlined"
@@ -214,22 +238,39 @@ function formatFieldValue(field, data) {
     }
   }
 
+  // second pass in case we need to have some common formatting for multiple
+  // cases from above...
+  // data-driven via Object lookup `fieldsToDecorate` (clunky)
+
   // if (field.endsWith('scientificName') && words(value).length > 1) {
   //   value = <em>{value}</em>
   if (field in fieldsToDecorate) {
     const helper = fieldsToDecorate[field]
-    const suffix =
+    let suffix =
       'valueField' in helper ? data[helper.valueField] || '' : data[field] || ''
     if ('prefix' in helper && helper.prefix !== true) {
+      let wrappedValue = <span>{value}</span>
+
+      if (
+        'decoration' in helper &&
+        helper.decoration === 'italic' &&
+        helper.decoration.length > 0 &&
+        words(value).length > 1
+      ) {
+        wrappedValue = <em>{value}</em>
+      } else if ('decoration' in helper && helper.decoration === 'quotes') {
+        // most likely `otherCatalogNumbers` field
+        const val = typeof value === 'object' ? value[0] : value
+        const query =
+          typeof val === 'string'
+            ? val.replace(/(^A-Za-z0-9)+\.(\d+)/, '$1')
+            : val
+        suffix = `catalogNumber:${query}*`
+      }
+      // console.log('decoration', wrappedValue)
       value = (
         <a href={`${helper.prefix}${suffix}`} target="partner">
-          {'decoration' in helper &&
-          helper.decoration.length > 0 &&
-          words(value).length > 1 ? (
-            <em>{value}</em>
-          ) : (
-            <span>{value}</span>
-          )}
+          {wrappedValue}
         </a>
       )
     } else if ('prefix' in helper) {

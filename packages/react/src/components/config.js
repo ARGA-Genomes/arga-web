@@ -1,6 +1,7 @@
 // URLs
 const externalUrls = {
   BIE: 'https://bie.ala.org.au/species/',
+  BIOCACHE: 'https://biocache.ala.org.au/occurrences/',
   NCBI: 'https://www.ncbi.nlm.nih.gov',
   NCBI_DOWNLOAD: 'https://api.ncbi.nlm.nih.gov/datasets/v1',
   BPA: 'https://data.bioplatforms.com/dataset/',
@@ -12,6 +13,7 @@ externalUrls.NCBI_BIOSAMPLE = `${externalUrls.NCBI}/biosample/`
 externalUrls.NCBI_BIOPROJECT = `${externalUrls.NCBI}/bioproject/`
 externalUrls.BOLD_BIN = `${externalUrls.BOLD}/Public_RecordView?processid=`
 externalUrls.BOLD_FASTA = `${externalUrls.BOLD}/API_Public/sequence?ids=`
+externalUrls.BIOCACHE_CAT_NO = `${externalUrls.BIOCACHE}search?q=`
 
 const config = {
   // authority: import.meta.env.VITE_OIDC_AUTHORITY,
