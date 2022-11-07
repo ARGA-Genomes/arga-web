@@ -1,8 +1,8 @@
 import { formatLabels, getLabelForName } from '../components/FacetSelect'
 
 test('formatLabels returns expected value', () => {
-  expect(formatLabels('dynamicProperties_ncbi_assembly_level')).toEqual(
-    'NCBI Assembly Level'
+  expect(formatLabels('dynamicProperties_MIXS_0000005')).toEqual(
+    'Genome Assembly Level'
   )
 })
 
