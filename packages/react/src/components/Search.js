@@ -28,6 +28,19 @@ import config from './config'
 
 const serverUrlPrefix = config.solr_uri
 const defaultQuery = '*:*'
+const queryFields = {
+  dynamicProperties_MIXS_0000005: '5.0',
+  scientificName: '20.0',
+  vernacularName: '10.0',
+}
+const boostFields = [
+  'kingdom:Animalia^8.0',
+  'dataResourceUid:dr18509^6.0',
+  'dataResourceUid:dr18540^4.0',
+  'dataResourceUid:dr18544^2.0',
+  'matchType:exactMatch^10.0',
+]
+
 // const defaultSort = 'vernacularName'
 
 const facetFields = {
@@ -118,8 +131,8 @@ function Search() {
     total: 0,
     page: 1,
     // pageSize: 25,
-    field: 'vernacularName', // sort
-    sort: 'asc', // order
+    field: '', // sort 'vernacularName'
+    sort: '', // order 'asc'
     q: '',
     // Note: `fq` is in its own state var below (`fqState`)
     groupResults: false,
@@ -335,14 +348,14 @@ function Search() {
           ),
       },
       {
-        field: 'dynamicProperties_ncbi_assembly_level', // values: "Contig", "Scaffold", "Complete Genome", "Chromosome"
+        field: 'dynamicProperties_MIXS_0000005', // values: "Contig", "Scaffold", "Complete Genome", "Chromosome"
         headerName: 'Assembly Level',
         width: 160,
         renderCell: (params) =>
           params.value && (
             <ValueTag
               value={params.value}
-              field="dynamicProperties_ncbi_assembly_level"
+              field="dynamicProperties_MIXS_0000005"
               fqUpdate={fqUpdate}
             />
           ),
@@ -373,8 +386,6 @@ function Search() {
       setPageState((old) => ({
         ...old,
         isLoading: true,
-        // data: [],
-        // species: [],
       }))
       // calculate SOLR startIndex param
       const startIndex =
@@ -390,9 +401,11 @@ function Search() {
         '&facet.field='
       )}&facet.mincount=1&&rows=${
         pageState.pageSize
-      }&start=${startIndex}&sort=${pageState.field}+${
-        pageState.sort
-      }${groupParams}`
+      }&start=${startIndex}&sort=${
+        pageState.field ? `${pageState.field}+${pageState.sort}` : ''
+      }${groupParams}&defType=edismax&qf=${Object.keys(queryFields)
+        .map((k) => `${k}^${queryFields[k]}`)
+        .join('+')}&bq=${boostFields.join('+')}`
 
       // Do HTTP fetch
       const response = await fetch(url, { signal: abortController.signal })
