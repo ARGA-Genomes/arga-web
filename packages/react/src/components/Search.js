@@ -29,8 +29,10 @@ import config from './config'
 const serverUrlPrefix = config.solr_uri
 const defaultQuery = '*:*'
 const queryFields = {
+  text: '1.5',
   dynamicProperties_MIXS_0000005: '5.0',
   scientificName: '20.0',
+  raw_scientificName: '1.0',
   vernacularName: '10.0',
 }
 const boostFields = [
@@ -393,9 +395,8 @@ function Search() {
       const groupParams = pageState.groupResults
         ? '&group=true&group.field=scientificName&group.limit=99'
         : ''
-      const url = `${serverUrlPrefix}/select?q=${
-        pageState.q || defaultQuery
-      }&fq=${buildFqList()}&fl=${columnDataFields.join(
+      const query = pageState.q || defaultQuery
+      const url = `${serverUrlPrefix}/select?q=${query}&fq=${buildFqList()}&fl=${columnDataFields.join(
         ','
       )}&facet=true&facet.field=${buildFacetList().join(
         '&facet.field='
