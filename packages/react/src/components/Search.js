@@ -41,6 +41,10 @@ const boostFields = [
   'dataResourceUid:dr18540^4.0',
   'dataResourceUid:dr18544^2.0',
   'matchType:exactMatch^10.0',
+  'dynamicProperties_MIXS_0000005:"Complete Genome"^6.0',
+  'dynamicProperties_MIXS_0000005:Chromosome^6.0',
+  'dynamicProperties_MIXS_0000005:Contig^4.0',
+  'dynamicProperties_MIXS_0000005:Scaffold^2.0',
 ]
 
 // const defaultSort = 'vernacularName'
@@ -404,7 +408,7 @@ function Search() {
         pageState.pageSize
       }&start=${startIndex}&sort=${
         pageState.field ? `${pageState.field}+${pageState.sort}` : ''
-      }${groupParams}&defType=edismax&qf=${Object.keys(queryFields)
+      }${groupParams}&defType=edismax&q.op=AND&qf=${Object.keys(queryFields)
         .map((k) => `${k}^${queryFields[k]}`)
         .join('+')}&bq=${boostFields.join('+')}`
 
