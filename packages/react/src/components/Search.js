@@ -21,34 +21,39 @@ import MapView from './MapView'
 import theme from './theme'
 import config from './config'
 
-/*
- * TODO: list
- * - Moved into https://github.com/ARGA-Genomes/arga-web/issues/4
- */
-
+// Config variables
+// TODO: move into `config.js` if likely needing to be tweaked
 const serverUrlPrefix = config.solr_uri
 const defaultQuery = '*:*'
-const defaultOperator = 'AND'
+const queryParser = 'edismax'
+// instead of `AND` being default operator, specify how many terms must match (minimum)
+const minMatch = '3' // fixes accession number searches (e.g. `GCF_002099425.1` which get tokenised into 3 parts)
+// fields used when no field is specified, similar to default field
 const queryFields = {
-  text: '1.5',
-  dynamicProperties_MIXS_0000005: '5.0',
-  scientificName: '20.0',
-  raw_scientificName: '1.0',
-  vernacularName: '10.0',
+  text: '1.0',
+  scientificName: '5.0',
+  raw_scientificName: '2.0',
+  vernacularName: '5.0',
+  dynamicProperties_ncbi_biosample_attributes_json: '1.0',
+  otherCatalogNumbers: '1.0',
 }
-const boostFields = [
-  'kingdom:Animalia^8.0',
-  'dataResourceUid:dr18509^6.0',
-  'dataResourceUid:dr18540^4.0',
-  'dataResourceUid:dr18544^2.0',
-  'matchType:exactMatch^10.0',
+// Boost (sub) queries for these field:value pairs with boost factor
+const boostQuery = [
+  'kingdom:Animalia^2.0', // prefer animals pver bacteria, etc. (normally appear first)
+  'class:Mammalia^2.0', // prefer mammals
+  'country:Australia^4.0',
+  'vernacularName:*^2.0', // docs with common names get boosted
+  'matchType:exactMatch^10.0', // results in ALA backbone taxa getting boosted
+  'dataResourceUid:dr18509^8.0', // NCBI refseq
+  'dataResourceUid:dr18540^6.0', // NCBI genome
+  'dataResourceUid:dr18544^4.0', // BPA
+  'dataResourceUid:dr375^1.0', // BOLD
+  // Assembly level boost
   'dynamicProperties_MIXS_0000005:"Complete Genome"^6.0',
   'dynamicProperties_MIXS_0000005:Chromosome^6.0',
   'dynamicProperties_MIXS_0000005:Contig^4.0',
   'dynamicProperties_MIXS_0000005:Scaffold^2.0',
 ]
-
-// const defaultSort = 'vernacularName'
 
 const facetFields = {
   dataResourceName: { tag: 'dr', label: 'data source' },
@@ -409,9 +414,9 @@ function Search() {
         pageState.pageSize
       }&start=${startIndex}&sort=${
         pageState.field ? `${pageState.field}+${pageState.sort}` : ''
-      }${groupParams}&defType=edismax&qf=${Object.keys(queryFields)
+      }${groupParams}&defType=${queryParser}&qf=${Object.keys(queryFields)
         .map((k) => `${k}^${queryFields[k]}`)
-        .join('+')}&bq=${boostFields.join('+')}&q.op=${defaultOperator}`
+        .join('+')}&bq=${boostQuery.join('+')}&mm=${minMatch}&debugQuery=true`
 
       // Do HTTP fetch
       const response = await fetch(url, { signal: abortController.signal })
