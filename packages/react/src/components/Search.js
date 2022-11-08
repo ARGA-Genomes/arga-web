@@ -28,6 +28,7 @@ import config from './config'
 
 const serverUrlPrefix = config.solr_uri
 const defaultQuery = '*:*'
+const defaultOperator = 'AND'
 const queryFields = {
   text: '1.5',
   dynamicProperties_MIXS_0000005: '5.0',
@@ -408,9 +409,9 @@ function Search() {
         pageState.pageSize
       }&start=${startIndex}&sort=${
         pageState.field ? `${pageState.field}+${pageState.sort}` : ''
-      }${groupParams}&defType=edismax&q.op=AND&qf=${Object.keys(queryFields)
+      }${groupParams}&defType=edismax&qf=${Object.keys(queryFields)
         .map((k) => `${k}^${queryFields[k]}`)
-        .join('+')}&bq=${boostFields.join('+')}`
+        .join('+')}&bq=${boostFields.join('+')}&q.op=${defaultOperator}`
 
       // Do HTTP fetch
       const response = await fetch(url, { signal: abortController.signal })
