@@ -1,18 +1,20 @@
-import { uniqueId } from 'lodash'
+// import { uniqueId } from 'lodash'
 import { useState, useEffect, useMemo } from 'react'
 import {
   LayerGroup,
   LayersControl,
-  Polygon,
+  Circle,
   Popup,
   useMap,
   useMapEvents,
 } from 'react-leaflet'
+import { centroid, polygon, distance, point } from '@turf/turf'
 import { darken } from '@mui/material/styles'
 import '../assets/leaflet/leaflet.draw.css'
 import MapGridPopup from './MapGridPopup'
 import config from './config'
 import theme from './theme'
+// import { max } from 'lodash'
 
 const SERVER_URL_PREFIX = config.solr_uri
 const SOLR_GEO_FIELD = 'quad' // 'packedQuad'
@@ -47,6 +49,32 @@ const getSolrBboxPolygon = (bounds) => {
   // } ${bounds.getNorth()}"]`
 }
 
+const calculateRadiusFactorMetres = (count) => {
+  let unitInterval = 0
+  switch (true) {
+    case count <= 10:
+      unitInterval = 0.4
+      break
+    case count <= 50:
+      unitInterval = 0.5
+      break
+    case count <= 100:
+      unitInterval = 0.6
+      break
+    case count <= 250:
+      unitInterval = 0.7
+      break
+    case count <= 500:
+      unitInterval = 0.9
+      break
+    default:
+      unitInterval = 1
+      break
+  }
+
+  return unitInterval * 1000
+}
+
 const getHeatmapFeatures = (heatmap) => {
   if (Object.keys(heatmap).length < 1 || !heatmap.counts_ints2D) {
     return []
@@ -79,16 +107,26 @@ const getHeatmapFeatures = (heatmap) => {
             [latN - latStep, lngN], // [-27, 146],
             [latN - latStep, lngN + lngStep], // [-27, 147],
             [latN, lngN + lngStep], // [-28, 147],
+            [latN, lngN],
           ]
+          const polyCentre = centroid(polygon([coords]))
+          // radius is in km
+          const maxRadius =
+            (Math.round(distance(point(coords[0]), point(coords[1]), {})) +
+              Math.round(distance(point(coords[1]), point(coords[2]), {}))) /
+            4 // average 2 values and then convert diameter to radius ==  divide by 2 twice
           const featureObj = {
             type: 'Feature',
             geometry: {
-              type: 'polygon',
+              type: 'circle',
               coordinates: [coords],
+              center: polyCentre.geometry.coordinates,
+              radius: maxRadius * calculateRadiusFactorMetres(rowCell),
             },
             properties: {
               count: rowCell,
-              color: getColourForCount(rowCell),
+              colors: getColourForCount(rowCell),
+              color: theme.palette.grids.main,
               geo: [latN, lngN],
               wkt: `POLYGON((${lngN} ${latN}, ${lngN} ${latN - latStep},${
                 lngN + lngStep
@@ -156,7 +194,7 @@ function MapDataLayer({
     fillColor: setColour,
     fillOpacity, // 0.5
     weight: fillOpacity,
-    stroke: true,
+    stroke: false,
   })
 
   // const getSolrBboxFq = (bounds) => {
@@ -251,10 +289,16 @@ function MapDataLayer({
       {heatmapFeatures.length > 0 && (
         <LayerGroup pane="dataPane">
           {heatmapFeatures.map((feature) => (
-            <Polygon
-              key={uniqueId('heatmap')}
+            // <Polygon
+            //   key={feature.geometry.coordinates.toString()}
+            //   pathOptions={setLayerStyles(feature.properties.color)}
+            //   positions={feature.geometry.coordinates}
+            // >
+            <Circle
+              key={feature.geometry.coordinates.toString()}
               pathOptions={setLayerStyles(feature.properties.color)}
-              positions={feature.geometry.coordinates}
+              center={feature.geometry.center}
+              radius={feature.geometry.radius}
             >
               <Popup pane="popupPane">
                 <MapGridPopup
@@ -266,7 +310,8 @@ function MapDataLayer({
                   setFqState={setFqState}
                 />
               </Popup>
-            </Polygon>
+            </Circle>
+            // </Polygon>
           ))}
         </LayerGroup>
       )}

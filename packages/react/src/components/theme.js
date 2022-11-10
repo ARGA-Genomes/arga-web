@@ -50,14 +50,14 @@ const theme = createTheme({
       primary: '#182a34',
     },
     grids: {
-      main: argaColours.grid, // from https://colorbrewer2.org/#type=sequential&scheme=PuBu&n=5
-      border: lighten(argaColours.grid, 0.7),
+      main: argaColours.secondary, // from https://colorbrewer2.org/#type=sequential&scheme=PuBu&n=5
+      border: lighten(argaColours.secondary, 0.7),
       coloursForCounts: {
-        10: lighten(argaColours.grid, 0.9),
-        50: lighten(argaColours.grid, 0.7),
-        100: lighten(argaColours.grid, 0.4),
-        250: lighten(argaColours.grid, 0.1),
-        500: darken(argaColours.grid, 0.4),
+        10: lighten(argaColours.secondary, 0.9),
+        50: lighten(argaColours.secondary, 0.7),
+        100: lighten(argaColours.secondary, 0.4),
+        250: lighten(argaColours.secondary, 0.1),
+        500: darken(argaColours.secondary, 0.4),
       },
     },
   },
