@@ -14,7 +14,7 @@ import {
 } from '@mui/material'
 import InfoOutlined from '@mui/icons-material/InfoOutlined'
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'
-import { Link } from 'react-router-dom'
+import { Link } from 'wouter'
 // import LoginOutlinedIcon from '@mui/icons-material/LoginOutlined'
 // import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
 import React, { useState, useCallback } from 'react'
