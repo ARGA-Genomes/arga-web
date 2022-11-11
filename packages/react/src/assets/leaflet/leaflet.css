@@ -677,6 +677,18 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	margin: 0 26px 224px 0;
 }
 
+@media (415px <= width <= 1024px) {
+	.slider {
+		margin: 0 26px 130px 0;
+	}
+}
+
+@media (width <= 414px) {
+	.slider {
+		margin: 0 154px -126px 0;
+	}
+}
+
 .slider p {
 	color: #555;
 	font-size: 13px;

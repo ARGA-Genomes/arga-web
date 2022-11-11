@@ -20,11 +20,21 @@ import theme from './theme'
  * @param {*} opacity - e.g `0.8`
  * @returns csc rgba string value - e.g. `rgba(2, 54, 84, 0.8)`
  */
-function rgbToRgba(rgbStr, opacity) {
-  const values = rgbStr.slice(4, -1) // remove the `rgb(` and `)`
-  const opacityChecked = opacity || 1
-  const correctedOpacity = opacityChecked + 0.5 <= 1 ? opacity + 0.5 : 1
-  return `rgba(${values}, ${correctedOpacity || 1})`
+function rgbToRgba(rgbStr, opacity = 1) {
+  let rgbaValue = ''
+  const correctedOpacity = opacity + 0.5 <= 1 ? opacity + 0.5 : 1
+
+  if (rgbStr.startsWith('rgb')) {
+    // rgb string (is output from lighten/darken functions)
+    const values = rgbStr.slice(4, -1) // remove the `rgb(` and `)`
+    rgbaValue = `rgba(${values}, ${correctedOpacity})`
+  } else {
+    // hex colour stirng
+    const [r, g, b] = rgbStr.match(/\w\w/g).map((x) => parseInt(x, 16))
+    rgbaValue = `rgba(${r},${g},${b},${correctedOpacity})`
+  }
+
+  return rgbaValue
 }
 
 function Legend({ fillOpacity }) {

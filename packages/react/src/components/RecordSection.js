@@ -226,6 +226,7 @@ function formatFieldValue(field, data) {
         // value = tagObj.map((el) => el.display_name || el.name).join(' - ')
         value = tagObj.map((el) => (
           <Chip
+            key={el.name}
             id={el.display_name || el.name}
             label={el.display_name || el.name}
             // color="primary"

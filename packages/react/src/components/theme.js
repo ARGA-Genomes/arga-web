@@ -1,5 +1,5 @@
 import { createTheme } from '@mui/material'
-import { lighten, darken } from '@mui/material/styles'
+import { lighten } from '@mui/material/styles'
 
 const light = 0.8
 const mid = 0.4
@@ -9,7 +9,8 @@ const argaColours = {
   warning: '#cb9f36', // yellow-mustard
   error: '#34A59D', // aqua blue
   success: '#80a253', // forest green
-  grid: '#045a8d', // dark blue similar to primary
+  // grid: '#045a8d', // dark blue similar to primary
+  grid: '#cb9f36', // dark blue similar to primary
 }
 
 const theme = createTheme({
@@ -50,14 +51,12 @@ const theme = createTheme({
       primary: '#182a34',
     },
     grids: {
-      main: argaColours.grid, // from https://colorbrewer2.org/#type=sequential&scheme=PuBu&n=5
-      border: lighten(argaColours.grid, 0.7),
       coloursForCounts: {
-        10: lighten(argaColours.grid, 0.9),
-        50: lighten(argaColours.grid, 0.7),
-        100: lighten(argaColours.grid, 0.4),
-        250: lighten(argaColours.grid, 0.1),
-        500: darken(argaColours.grid, 0.4),
+        10: '#CBC052', // '#ffffd4',
+        50: '#74A55A', // '#fed98e',
+        100: '#338264', // '#fe9929',
+        250: '#1B5B5E', // '#d95f0e',
+        500: '#233543', // '#993404',
       },
     },
   },

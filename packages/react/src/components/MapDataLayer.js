@@ -17,6 +17,7 @@ import theme from './theme'
 const SERVER_URL_PREFIX = config.solr_uri
 const SOLR_GEO_FIELD = 'quad' // 'packedQuad'
 
+// calculate colour "grouping"s from counts
 const getColourForCount = (count) => {
   let colour = theme.palette.grids.coloursForCounts[500] // '#045a8d'
 
@@ -31,20 +32,14 @@ const getColourForCount = (count) => {
   return colour
 }
 
+// generate SOLR/WKT polygon string for filtering on popup click
 const getSolrBboxPolygon = (bounds) => {
   // POLYGON((153 -28, 154 -28, 154 -27, 153 -27, 153 -28))
   const sw = bounds.getSouthWest().wrap()
   const se = bounds.getSouthEast().wrap()
   const ne = bounds.getNorthEast().wrap()
   const nw = bounds.getNorthWest().wrap()
-
   return `POLYGON((${sw.lng} ${sw.lat},${se.lng} ${se.lat},${ne.lng} ${ne.lat},${nw.lng} ${nw.lat},${sw.lng} ${sw.lat}))`
-
-  // const wrappedSw = bounds.getSouthWest().wrap()
-  // const wrappedNe = bounds.getNorthEast().wrap()
-  // return `["${wrappedSw.lng} ${bounds.getSouth()}" TO "${
-  //   wrappedNe.lng
-  // } ${bounds.getNorth()}"]`
 }
 
 const getHeatmapFeatures = (heatmap) => {
@@ -80,6 +75,9 @@ const getHeatmapFeatures = (heatmap) => {
             [latN - latStep, lngN + lngStep], // [-27, 147],
             [latN, lngN + lngStep], // [-28, 147],
           ]
+          // Note this geoJSON structure is no longer used (natively by Leaflet), after code was
+          // refactored to draw Leaflet shapes directly (due to not being able to attach click events
+          // geoJSON features). The values are pulled from this datastructure and added in JSX below.
           const featureObj = {
             type: 'Feature',
             geometry: {
@@ -159,22 +157,23 @@ function MapDataLayer({
     stroke: true,
   })
 
-  // const getSolrBboxFq = (bounds) => {
-  //   const wrappedSw = bounds.getSouthWest().wrap()
-  //   const wrappedNe = bounds.getNorthEast().wrap()
-  //   return `"Intersects(ENVELOPE(${wrappedSw.lng}, ${
-  //     wrappedNe.lng
-  //   }, ${bounds.getNorth()}, ${bounds.getSouth()}))"`
-  // }
-
+  /**
+   * Empiraclly determin a "grid level" value to send to SOLR for heatmap generation.
+   * `gridLevel` must be > 0 and <= 26
+   * Based on code in biocache-service:
+   * https://github.com/AtlasOfLivingAustralia/biocache-service/blob/develop/src/main/java/au/org/ala/biocache/dao/SearchDAOImpl.java#L2695
+   *
+   * @returns gridlevel value (Number)
+   */
   const getGridLevel = () => {
-    // Code from https://github.com/AtlasOfLivingAustralia/biocache-service/blob/develop/src/main/java/au/org/ala/biocache/dao/SearchDAOImpl.java#L2695
+    // taken from biocache-service
     const gridLevelsArray = [
       360, 180, 90, 45, 22.5, 11.25, 5.625, 2.8125, 1.40625, 0.703125,
       0.3515625, 0.17578125, 0.087890625, 0.0439453125, 0.02197265625,
       0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625,
       0.0006866455078125,
     ]
+    // We're not actually using tiles but biocache-service does, so kept same var names
     const tileWidth =
       map.getBounds().getNorthEast().lng - map.getBounds().getNorthWest().lng
     const tileHeight =
@@ -185,11 +184,7 @@ function MapDataLayer({
     const tileSizeHeightIndex = gridLevelsArray.filter(
       (it) => tileHeight < it
     ).length
-    const adjustFactor = 4 // was 5 (using Math.min()), based on 7 (max allowed) used in biocache-service, except that is for 256px tiles
-    // console.log('getGridLevel tile size', tileWidth, tileHeight)
-    // console.log('getGridLevel index', Math.min(tileSizeWidthIndex, tileSizeHeightIndex))
-    // gridLevel must be > 0 and <= 26
-
+    const adjustFactor = 5 // was 5 (using Math.min()), based on 7 (max allowed) used in biocache-service, except that is for 256px tiles
     return Math.max(tileSizeWidthIndex, tileSizeHeightIndex) + adjustFactor
   }
 
