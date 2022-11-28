@@ -29,6 +29,7 @@ const config = {
     DR_BPA: 'dr18544',
     DR_BOLD: 'dr375',
   },
+  defaultQuery: '*:*',
   urls: externalUrls,
 }
 
