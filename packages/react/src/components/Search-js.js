@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useQueryClient, useQuery } from '@tanstack/react-query'
 import {
   Box,
   Stack,
@@ -21,7 +20,6 @@ import DataTable from './DataTable'
 import MapView from './MapView'
 import theme from './theme'
 import config from './config'
-import fetchSequences from '../fetchers/sequences'
 
 // Config variables
 // TODO: move into `config.js` if likely needing to be tweaked
@@ -140,27 +138,17 @@ function TabPanel({ children, value, index }) {
 function Search() {
   const [pageState, setPageState] = useState({
     isLoading: false,
-    // data: [],
-    // species: [],
-    // total: 0,
+    data: [],
+    species: [],
+    total: 0,
     page: 1,
-    // pageSize: 25,
+    pageSize: 25,
     field: '', // sort 'vernacularName'
     sort: '', // order 'asc'
     q: '',
     // Note: `fq` is in its own state var below (`fqState`)
     groupResults: false,
-    // facetResults: [],
-  })
-
-  const queryClient = useQueryClient()
-  // const [page, setPage] = React.useState(0)
-
-  const { status, data, error, isFetching, isPreviousData } = useQuery({
-    queryKey: ['sequences', pageState],
-    queryFn: () => fetchSequences(pageState),
-    keepPreviousData: true,
-    staleTime: 5000,
+    facetResults: [],
   })
 
   const [fqState, setFqState] = useState({})
