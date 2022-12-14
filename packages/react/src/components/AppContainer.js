@@ -2,7 +2,7 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Box } from '@mui/material'
 import Basket from './Basket'
-import Search from './Search'
+import Search from './Search.tsx'
 import ArgaToolbar from './ArgaToolbar'
 
 function AppContainer() {

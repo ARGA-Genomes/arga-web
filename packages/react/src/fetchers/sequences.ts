@@ -20,7 +20,7 @@ const queryFields: Record<string, string> = {
   otherCatalogNumbers: '1.0',
 }
 
-const serverUrlPrefix = config.solr_uri
+const serverUrlPrefix: any = config.solr_uri
 const defaultQuery = '*:*'
 const queryParser = 'edismax'
 
@@ -118,7 +118,7 @@ export const fetchSequences = async (queryObj: SolrQuery, columnDataFields: Stri
     ? '&group=true&group.field=scientificName&group.limit=99'
     : ''
   const query = queryObj.q || defaultQuery
-  const url = `${config.serverUrlPrefix}/select?q=${query}&fq=${buildFqList(queryObj.facetQuery)}&fl=${columnDataFields.join(
+  const url = `${serverUrlPrefix}/select?q=${query}&fq=${buildFqList(queryObj.facetQuery)}&fl=${columnDataFields.join(
     ','
   )}&facet=true&facet.field=${buildFacetList().join(
     '&facet.field='
