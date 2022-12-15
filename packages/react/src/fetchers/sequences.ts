@@ -1,11 +1,11 @@
-import config from '../components/config';
+import config from '../components/config'
 
 interface SolrQuery {
-  [key: string]: any;
+  [key: string]: any
 }
 
 interface facetQuery {
-  [key: string]: any;
+  [key: string]: any
 }
 
 // instead of `AND` being default operator, specify how many terms must match (minimum)
@@ -110,7 +110,8 @@ const buildFacetList = () => {
   return facetList
 }
 
-export const fetchSequences = async (queryObj: SolrQuery, columnDataFields: String[]) => {
+// const fetchSequences = async (queryObj: SolrQuery, columnDataFields: String[]) => {
+async function fetchSequences(queryObj: SolrQuery, columnDataFields: String[], fqState: Record<string, any>) {
   console.log("Fetching sequences");
   const startIndex: number =
   queryObj.page * queryObj.pageSize - queryObj.pageSize
@@ -118,7 +119,7 @@ export const fetchSequences = async (queryObj: SolrQuery, columnDataFields: Stri
     ? '&group=true&group.field=scientificName&group.limit=99'
     : ''
   const query = queryObj.q || defaultQuery
-  const url = `${serverUrlPrefix}/select?q=${query}&fq=${buildFqList(queryObj.facetQuery)}&fl=${columnDataFields.join(
+  const url = `${serverUrlPrefix}/select?q=${query}&fq=${buildFqList(fqState)}&fl=${columnDataFields.join(
     ','
   )}&facet=true&facet.field=${buildFacetList().join(
     '&facet.field='
@@ -136,3 +137,5 @@ export const fetchSequences = async (queryObj: SolrQuery, columnDataFields: Stri
   const json = await response.json()
   return json
 }
+
+export default fetchSequences

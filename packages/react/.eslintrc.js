@@ -13,6 +13,10 @@ module.exports = {
     'plugin:react/recommended',
     'airbnb',
     'prettier',
+    'plugin:import/errors',
+    'plugin:import/warnings',
+    'plugin:import/javascript',
+    'plugin:import/typescript',
   ],
   parserOptions: {
     ecmaFeatures: {
@@ -29,6 +33,11 @@ module.exports = {
       1,
       { extensions: ['.ts', '.js', '.tsx', '.jsx'] },
     ],
+    'import/resolver': {
+      node: {
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+      },
+    },
     'react/react-in-jsx-scope': 'off',
     'react/prop-types': 0,
     'no-console': 'warn',

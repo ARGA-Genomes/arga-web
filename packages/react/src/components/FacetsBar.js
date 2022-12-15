@@ -68,7 +68,7 @@ export default function FacetsBar({
   }
 
   const facetsDisplay = {}
-  const facetFieldList = Object.keys(pageState.facetResults)
+  const facetFieldList = Object.keys(pageState.facetResults || {})
 
   if (facetFieldList.length > 0) {
     facetFieldList.forEach((field) => {

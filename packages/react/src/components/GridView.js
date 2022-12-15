@@ -12,7 +12,7 @@ function GridView({ pageState, setPageState, setRecordState }) {
   return (
     <>
       <Grid container spacing={2} sx={{}}>
-        {pageState.species.map((record, index) => (
+        {pageState.species?.map((record, index) => (
           <Grid
             item
             xs={12}

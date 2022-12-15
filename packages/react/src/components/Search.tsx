@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import {
   Box,
   Stack,
@@ -19,6 +20,7 @@ import GridView from './GridView'
 import DataTable from './DataTable'
 import MapView from './MapView'
 import theme from './theme'
+import fetchSequences from '../fetchers/sequences'
 import config from './config'
 
 /* tslint:disable */
@@ -129,7 +131,7 @@ function ValueTag({ value, label, field, fqUpdate }: ValueTagType) {
 }
 
 interface TabType {
-  value: any
+  value: string | number | undefined
   index: number
   children: React.ReactNode
 }
@@ -147,18 +149,18 @@ function TabPanel({ children, value, index }: TabType) {
   )
 }
 
-interface solrParams {
+interface SolrParams {
+  isLoading: boolean
   q: string
   page: number
   pageSize: number
-  total: number
-  field: string
-  sort: string
+  // total: number
+  field?: string
+  sort?: string
   groupResults: boolean
-  facetResults?: string[]
-  species: any
-  data: any
-  isLoading: boolean
+  // facetResults?: string[]
+  species?: any
+  data?: any
 }
 
 /**
@@ -167,19 +169,19 @@ interface solrParams {
  * @returns JSX
  */
 function Search() {
-  const [pageState, setPageState] = useState<solrParams>({
+  const [pageState, setPageState] = useState<SolrParams>({
     isLoading: false,
-    data: [],
-    species: [],
-    total: 0,
+    // data: [],
+    // species: [],
+    // total: 0,
     page: 1,
-    pageSize: 0,
+    pageSize: 25,
     field: '', // sort 'vernacularName'
     sort: '', // order 'asc'
     q: '',
     // Note: `fq` is in its own state var below (`fqState`)
     groupResults: false,
-    facetResults: [],
+    // facetResults: [],
   })
 
   const [fqState, setFqState] = useState<{ [key: string]: any }>({})
@@ -203,6 +205,16 @@ function Search() {
     setTabValue(newValue)
   }
 
+  // const [page, setPage] = React.useState(0)
+
+  const { status, data, error, isFetching, isPreviousData } = useQuery({
+    queryKey: ['sequences', pageState],
+    queryFn: () => fetchSequences(pageState, columnDataFields, fqState),
+    keepPreviousData: true,
+    staleTime: 5000,
+  })
+
+  console.log('query data', status, data, error, isFetching, isPreviousData)
   // const { search } = useLocation();
   const [searchParams] = useSearchParams()
 
