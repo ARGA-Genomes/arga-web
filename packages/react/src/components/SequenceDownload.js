@@ -1,7 +1,7 @@
 import { Button, Chip, Tooltip } from '@mui/material'
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload'
 import LockIcon from '@mui/icons-material/Lock'
-import config from './config'
+import config from '../config/global-conf'
 import cleanupJsonAndParse from '../utils/parseBpaJson'
 
 const DR_CODES = config.dr_codes

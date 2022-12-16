@@ -1,10 +1,10 @@
-import config from '../components/config'
+import config from '../config/global-conf'
 
 interface SolrQuery {
   [key: string]: any
 }
 
-interface facetQuery {
+interface FacetQuery {
   [key: string]: any
 }
 
@@ -74,7 +74,7 @@ const facetFields: Record<string, any> = {
    *  input  => {"dataResourceName":["NCBI Genome Genbank","NCBI Genome RefSeq"],"country":["Australia"]}
    *  output => fq={!tag=co}country:%22Australia%22&fq={!tag=dr}dataResourceName:%22NCBI%20Genome%20RefSeq%22+OR+dataResourceName:%22NCBI%20Genome%20Genbank%22
    */
- const buildFqList = (fqState: facetQuery) => {
+ const buildFqList = (fqState: FacetQuery) => {
   const fqParamList: any[] = [];
 
   Object.keys(fqState).forEach((key) => {

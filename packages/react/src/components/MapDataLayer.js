@@ -11,7 +11,7 @@ import {
 import { darken } from '@mui/material/styles'
 import '../assets/leaflet/leaflet.draw.css'
 import MapGridPopup from './MapGridPopup'
-import config from './config'
+import config from '../config/global-conf'
 import theme from './theme'
 
 const SERVER_URL_PREFIX = config.solr_uri

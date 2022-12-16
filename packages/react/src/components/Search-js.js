@@ -19,7 +19,7 @@ import GridView from './GridView'
 import DataTable from './DataTable'
 import MapView from './MapView'
 import theme from './theme'
-import config from './config'
+import config from '../config/global-conf'
 
 // Config variables
 // TODO: move into `config.js` if likely needing to be tweaked

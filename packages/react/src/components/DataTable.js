@@ -3,7 +3,13 @@ import { DataGrid } from '@mui/x-data-grid'
 import { GlobalStyles } from '@mui/material'
 import theme from './theme'
 
-function DataTable({ columns, pageState, setPageState, setRecordState }) {
+function DataTable({
+  columns,
+  solrData,
+  pageState,
+  setPageState,
+  setRecordState,
+}) {
   useEffect(() => {
     setPageState((old) => ({ ...old, groupResults: false, pageSize: 25 }))
   }, [pageState.groupResults, pageState.pageState])
@@ -21,8 +27,8 @@ function DataTable({ columns, pageState, setPageState, setRecordState }) {
         // ref={datagridRef}
         style={{ backgroundColor: 'white' }}
         columns={columns}
-        rows={pageState.data}
-        rowCount={pageState.total}
+        rows={solrData.docs}
+        rowCount={solrData.total}
         loading={pageState.isLoading}
         rowsPerPageOptions={[10, 25, 50, 70, 100]}
         // pagination

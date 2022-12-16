@@ -9,7 +9,7 @@ import {
   useQuery,
 } from '@tanstack/react-query'
 import './assets/App.css'
-import config from './components/config'
+import config from './config/global-conf'
 import theme from './components/theme'
 import AppContainer from './components/AppContainer'
 

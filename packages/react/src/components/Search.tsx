@@ -21,7 +21,7 @@ import DataTable from './DataTable'
 import MapView from './MapView'
 import theme from './theme'
 import fetchSequences from '../fetchers/sequences'
-import config from './config'
+import config from '../config/global-conf'
 
 /* tslint:disable */
 const FacetsBarT: any = FacetsBar // todo delete me after refactoring to TS
@@ -30,37 +30,39 @@ const FacetsBarT: any = FacetsBar // todo delete me after refactoring to TS
 // Config variables
 // TODO: move into `config.js` if likely needing to be tweaked
 const serverUrlPrefix: any = config.solr_uri
-const defaultQuery = '*:*'
-const queryParser = 'edismax'
-// instead of `AND` being default operator, specify how many terms must match (minimum)
-const minMatch = '3' // fixes accession number searches (e.g. `GCF_002099425.1` which get tokenised into 3 parts)
-// fields used when no field is specified, similar to default field
-const queryFields: Record<string, any> = {
-  text: '1.0',
-  scientificName: '5.0',
-  raw_scientificName: '2.0',
-  vernacularName: '5.0',
-  dynamicProperties_ncbi_biosample_attributes_json: '1.0',
-  otherCatalogNumbers: '1.0',
-}
-// Boost (sub) queries for these field:value pairs with boost factor
-const boostQuery: string[] = [
-  'kingdom:Animalia^2.0', // prefer animals pver bacteria, etc. (normally appear first)
-  'class:Mammalia^2.0', // prefer mammals
-  'country:Australia^4.0',
-  'vernacularName:*^2.0', // docs with common names get boosted
-  'matchType:exactMatch^10.0', // results in ALA backbone taxa getting boosted
-  'dataResourceUid:dr18509^8.0', // NCBI refseq
-  'dataResourceUid:dr18540^6.0', // NCBI genome
-  'dataResourceUid:dr18544^4.0', // BPA
-  'dataResourceUid:dr375^1.0', // BOLD
-  // Assembly level boost
-  'dynamicProperties_MIXS_0000005:"Complete Genome"^6.0',
-  'dynamicProperties_MIXS_0000005:Chromosome^6.0',
-  'dynamicProperties_MIXS_0000005:Contig^4.0',
-  'dynamicProperties_MIXS_0000005:Scaffold^2.0',
-]
+// const defaultQuery = '*:*'
+// const queryParser = 'edismax'
+// // instead of `AND` being default operator, specify how many terms must match (minimum)
+// const minMatch = '3' // fixes accession number searches (e.g. `GCF_002099425.1` which get tokenised into 3 parts)
+// // fields used when no field is specified, similar to default field
+// const queryFields: Record<string, any> = {
+//   text: '1.0',
+//   scientificName: '5.0',
+//   raw_scientificName: '2.0',
+//   vernacularName: '5.0',
+//   dynamicProperties_ncbi_biosample_attributes_json: '1.0',
+//   otherCatalogNumbers: '1.0',
+// }
+// // Boost (sub) queries for these field:value pairs with boost factor
+// const boostQuery: string[] = [
+//   'kingdom:Animalia^2.0', // prefer animals pver bacteria, etc. (normally appear first)
+//   'class:Mammalia^2.0', // prefer mammals
+//   'country:Australia^4.0',
+//   'vernacularName:*^2.0', // docs with common names get boosted
+//   'matchType:exactMatch^10.0', // results in ALA backbone taxa getting boosted
+//   'dataResourceUid:dr18509^8.0', // NCBI refseq
+//   'dataResourceUid:dr18540^6.0', // NCBI genome
+//   'dataResourceUid:dr18544^4.0', // BPA
+//   'dataResourceUid:dr375^1.0', // BOLD
+//   // Assembly level boost
+//   'dynamicProperties_MIXS_0000005:"Complete Genome"^6.0',
+//   'dynamicProperties_MIXS_0000005:Chromosome^6.0',
+//   'dynamicProperties_MIXS_0000005:Contig^4.0',
+//   'dynamicProperties_MIXS_0000005:Scaffold^2.0',
+// ]
 
+// Config Object for formatting filter drop-downs
+// TODO: Move into config file and refactor to be "less complex"
 const facetFields: Record<string, any> = {
   dataResourceName: { tag: 'dr', label: 'data source' },
   speciesGroup: { tag: 'sg', label: null },
@@ -175,12 +177,12 @@ function Search() {
     // species: [],
     // total: 0,
     page: 1,
-    pageSize: 25,
+    pageSize: 24,
     field: '', // sort 'vernacularName'
     sort: '', // order 'asc'
     q: '',
     // Note: `fq` is in its own state var below (`fqState`)
-    groupResults: false,
+    groupResults: true,
     // facetResults: [],
   })
 
@@ -207,14 +209,45 @@ function Search() {
 
   // const [page, setPage] = React.useState(0)
 
-  const { status, data, error, isFetching, isPreviousData } = useQuery({
+  interface SolrResults {
+    docs?: any | undefined
+    species?: any | undefined
+    total?: number
+    facetResults?: any | undefined
+  }
+
+  const solrData: SolrResults = {
+    total: 0,
+    docs: [],
+    species: [],
+  }
+
+  // const { status, data, error, isFetching, isPreviousData } = useQuery({
+  const query = useQuery({
     queryKey: ['sequences', pageState],
     queryFn: () => fetchSequences(pageState, columnDataFields, fqState),
     keepPreviousData: true,
     staleTime: 5000,
   })
 
-  console.log('query data', status, data, error, isFetching, isPreviousData)
+  // massage the data into either docs or species
+  if (query.data) {
+    if (query.data.response?.docs) {
+      solrData.docs = query.data.response.docs
+      solrData.total = query.data.response.numFound
+    } else if (query.data.grouped?.scientificName?.groups) {
+      solrData.species = query.data.grouped.scientificName.groups
+      solrData.total = query.data.grouped.scientificName.matches
+    }
+
+    if (query.data.facet_counts?.facet_fields) {
+      solrData.facetResults = query.data.facet_counts.facet_fields
+    }
+  }
+
+  console.log('query objext', query)
+  console.log('query data', query.data)
+  console.log('solrData', solrData)
   // const { search } = useLocation();
   const [searchParams] = useSearchParams()
 
@@ -238,41 +271,42 @@ function Search() {
    *  input  => {"dataResourceName":["NCBI Genome Genbank","NCBI Genome RefSeq"],"country":["Australia"]}
    *  output => fq={!tag=co}country:%22Australia%22&fq={!tag=dr}dataResourceName:%22NCBI%20Genome%20RefSeq%22+OR+dataResourceName:%22NCBI%20Genome%20Genbank%22
    */
-  const buildFqList = useCallback(() => {
-    const fqParamList: string[] = []
+  // const buildFqList = useCallback(() => {
+  //   const fqParamList: string[] = []
 
-    Object.keys(fqState).forEach((key) => {
-      const tag = facetFields[key]?.tag ? `{!tag=${facetFields[key].tag}}` : ''
-      // const numberOfDupeKeys = fqState.indexOf(key)
-      if (fqState[key].length > 0) {
-        // array in object value
-        fqParamList.push(
-          `${tag}${key}:%22${fqState[key].join(`%22+OR+${key}:%22`)}%22`
-        )
-      } else {
-        // empty value in object ()
-        fqParamList.push(`${tag}${key}`)
-      }
-    })
+  //   Object.keys(fqState).forEach((key) => {
+  //     const tag = facetFields[key]?.tag ? `{!tag=${facetFields[key].tag}}` : ''
+  //     // const numberOfDupeKeys = fqState.indexOf(key)
+  //     if (fqState[key].length > 0) {
+  //       // array in object value
+  //       fqParamList.push(
+  //         `${tag}${key}:%22${fqState[key].join(`%22+OR+${key}:%22`)}%22`
+  //       )
+  //     } else {
+  //       // empty value in object ()
+  //       fqParamList.push(`${tag}${key}`)
+  //     }
+  //   })
 
-    return fqParamList.join('&fq=')
-  }, [fqState])
+  //   return fqParamList.join('&fq=')
+  // }, [fqState])
 
   /**
    * Build string for SOLR `facet.field` params.
    */
-  const buildFacetList = useCallback(() => {
-    const facetList: string[] = []
-    Object.keys(facetFields).forEach((field) => {
-      const tag = facetFields[field]?.tag
-        ? `{!ex=${facetFields[field].tag}}`
-        : ''
-      facetList.push(`${tag}${field}`)
-    })
-    return facetList
-  }, [facetFields])
+  // const buildFacetList = useCallback(() => {
+  //   const facetList: string[] = []
+  //   Object.keys(facetFields).forEach((field) => {
+  //     const tag = facetFields[field]?.tag
+  //       ? `{!ex=${facetFields[field].tag}}`
+  //       : ''
+  //     facetList.push(`${tag}${field}`)
+  //   })
+  //   return facetList
+  // }, [facetFields])
 
   // DataGrid column def
+  // TODO: move into config file
   const columns = useMemo(
     () => [
       {
@@ -433,77 +467,77 @@ function Search() {
     [columns]
   )
 
-  // Fetch list of records - SOLR select
-  useEffect(() => {
-    const abortController = new AbortController() // if mulitple record requests - last one wins
+  // // Fetch list of records - SOLR select
+  // useEffect(() => {
+  //   const abortController = new AbortController() // if mulitple record requests - last one wins
 
-    const fetchData = async () => {
-      setPageState((old) => ({
-        ...old,
-        isLoading: true,
-      }))
-      // calculate SOLR startIndex param
-      const startIndex =
-        pageState.page * pageState.pageSize - pageState.pageSize
-      const groupParams = pageState.groupResults
-        ? '&group=true&group.field=scientificName&group.limit=99'
-        : ''
-      const query = pageState.q || defaultQuery
-      const url = `${serverUrlPrefix}/select?q=${query}&fq=${buildFqList()}&fl=${columnDataFields.join(
-        ','
-      )}&facet=true&facet.field=${buildFacetList().join(
-        '&facet.field='
-      )}&facet.mincount=1&&rows=${
-        pageState.pageSize
-      }&start=${startIndex}&sort=${
-        pageState.field ? `${pageState.field}+${pageState.sort}` : ''
-      }${groupParams}&defType=${queryParser}&qf=${Object.keys(queryFields)
-        .map((k) => `${k}^${queryFields[k]}`)
-        .join('+')}&bq=${boostQuery.join('+')}&mm=${minMatch}&debugQuery=true`
+  //   const fetchData = async () => {
+  //     setPageState((old) => ({
+  //       ...old,
+  //       isLoading: true,
+  //     }))
+  //     // calculate SOLR startIndex param
+  //     const startIndex =
+  //       pageState.page * pageState.pageSize - pageState.pageSize
+  //     const groupParams = pageState.groupResults
+  //       ? '&group=true&group.field=scientificName&group.limit=99'
+  //       : ''
+  //     const query = pageState.q || defaultQuery
+  //     const url = `${serverUrlPrefix}/select?q=${query}&fq=${buildFqList()}&fl=${columnDataFields.join(
+  //       ','
+  //     )}&facet=true&facet.field=${buildFacetList().join(
+  //       '&facet.field='
+  //     )}&facet.mincount=1&&rows=${
+  //       pageState.pageSize
+  //     }&start=${startIndex}&sort=${
+  //       pageState.field ? `${pageState.field}+${pageState.sort}` : ''
+  //     }${groupParams}&defType=${queryParser}&qf=${Object.keys(queryFields)
+  //       .map((k) => `${k}^${queryFields[k]}`)
+  //       .join('+')}&bq=${boostQuery.join('+')}&mm=${minMatch}&debugQuery=true`
 
-      // Do HTTP fetch
-      const response = await fetch(url, { signal: abortController.signal })
-      // wait for async response
-      const json = await response.json()
-      setPageState((old) => ({
-        ...old,
-        isLoading: false,
-        data: pageState.groupResults ? {} : json.response.docs,
-        species: pageState.groupResults
-          ? json.grouped.scientificName.groups
-          : [],
-        total: pageState.groupResults
-          ? json.grouped.scientificName.matches
-          : json.response.numFound,
-        facetResults: json.facet_counts.facet_fields,
-      }))
-      if (drawerState) {
-        // if drawer is open, reset record ID to be first in results
-        setRecordState((old) => ({ ...old, id: json.response.docs[0].id }))
-      }
-    }
-    fetchData().catch((error) => {
-      setPageState((old) => ({
-        ...old,
-        isLoading: false,
-      }))
-      const msg = `Oops something went wrong. ${error.message}`
-      setSnackState({ status: true, message: msg })
-    })
+  //     // Do HTTP fetch
+  //     const response = await fetch(url, { signal: abortController.signal })
+  //     // wait for async response
+  //     const json = await response.json()
+  //     setPageState((old) => ({
+  //       ...old,
+  //       isLoading: false,
+  //       data: pageState.groupResults ? {} : json.response.docs,
+  //       species: pageState.groupResults
+  //         ? json.grouped.scientificName.groups
+  //         : [],
+  //       total: pageState.groupResults
+  //         ? json.grouped.scientificName.matches
+  //         : json.response.numFound,
+  //       facetResults: json.facet_counts.facet_fields,
+  //     }))
+  //     if (drawerState) {
+  //       // if drawer is open, reset record ID to be first in results
+  //       setRecordState((old) => ({ ...old, id: json.response.docs[0].id }))
+  //     }
+  //   }
+  //   fetchData().catch((error) => {
+  //     setPageState((old) => ({
+  //       ...old,
+  //       isLoading: false,
+  //     }))
+  //     const msg = `Oops something went wrong. ${error.message}`
+  //     setSnackState({ status: true, message: msg })
+  //   })
 
-    return () => {
-      abortController.abort()
-    }
-  }, [
-    pageState.page,
-    pageState.pageSize,
-    pageState.field,
-    pageState.sort,
-    pageState.q,
-    pageState.groupResults,
-    fqState,
-    columnDataFields,
-  ])
+  //   return () => {
+  //     abortController.abort()
+  //   }
+  // }, [
+  //   pageState.page,
+  //   pageState.pageSize,
+  //   pageState.field,
+  //   pageState.sort,
+  //   pageState.q,
+  //   pageState.groupResults,
+  //   fqState,
+  //   columnDataFields,
+  // ])
 
   // Fetch a single record - SOLR get
   // TODO: move to RecordDrawer component along with state vars
@@ -671,6 +705,7 @@ function Search() {
             <TabPanel value={tabValue} index={0}>
               <DataTable
                 columns={columns}
+                solrData={solrData}
                 pageState={pageState}
                 setPageState={setPageState}
                 setRecordState={setRecordState}
@@ -686,6 +721,7 @@ function Search() {
               >
                 <GridView
                   pageState={pageState}
+                  solrData={solrData}
                   setPageState={setPageState}
                   setRecordState={setRecordState}
                 />

@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { Box, Grid, TablePagination } from '@mui/material'
 import SpeciesCard from './SpeciesCard'
 
-function GridView({ pageState, setPageState, setRecordState }) {
+function GridView({ pageState, solrData, setPageState, setRecordState }) {
   useEffect(() => {
     setPageState((old) => ({ ...old, groupResults: true, pageSize: 24 }))
   }, [pageState.groupResults, pageState.pageState])
@@ -12,7 +12,7 @@ function GridView({ pageState, setPageState, setRecordState }) {
   return (
     <>
       <Grid container spacing={2} sx={{}}>
-        {pageState.species?.map((record, index) => (
+        {solrData.species?.map((record, index) => (
           <Grid
             item
             xs={12}

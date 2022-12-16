@@ -13,7 +13,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import { startCase, words, replace, uniqueId } from 'lodash'
 import ReactMarkdown from 'react-markdown'
-import config from './config'
+import config from '../config/global-conf'
 import cleanupJsonAndParse from '../utils/parseBpaJson'
 import SequenceDownload from './SequenceDownload'
 
