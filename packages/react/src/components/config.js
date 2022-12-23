@@ -30,6 +30,14 @@ const config = {
     DR_BOLD: 'dr375',
   },
   urls: externalUrls,
+  solrParams: {
+    q: '*:*',
+    fq: [],
+    sortDirection: '',
+    sortField: '',
+    page: 1,
+    pageSize: 24,
+  },
 }
 
 export default config

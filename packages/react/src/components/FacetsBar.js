@@ -11,9 +11,11 @@ import {
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
-import { useSearchParams } from 'react-router-dom'
+// import { useSearchParams } from 'react-router-dom'
 import FacetSelect from './FacetSelect'
 import theme from './theme'
+import useUrlParams from '../hooks/UrlParams'
+// import config from './config'
 
 /**
  * Component to output a "filter" bar for filtering search results
@@ -26,27 +28,42 @@ import theme from './theme'
  */
 export default function FacetsBar({
   pageState,
-  setPageState,
+  // setPageState,
   fqState,
-  setFqState,
+  // setFqState,
 }) {
   // State for search input - bind it to `pageState.q`. I'm not using it directly due to it repeatedly calling
   // SOLR when the user is typing. User has to click search icon or hit enter to bind it to the `pageState.q`
-  const [inputState, setInputState] = useState('')
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [inputState, setInputState] = useState('') // search input field
+  const [solrParams, setSolrParams] = useUrlParams()
 
   useEffect(() => {
-    if ((!inputState && pageState.q) || inputState !== pageState.q) {
-      setInputState(pageState.q)
+    if ((!inputState && solrParams.q) || inputState !== solrParams.q) {
+      setInputState(solrParams.q)
     }
-  }, [pageState.q])
+  }, [solrParams.q])
 
+  // callback triggered by enter or clicking the search action button (magnifier icon)
   const searchClickEvent = () => {
-    setPageState((old) => ({
-      ...old,
-      q: inputState,
-    }))
-    setFqState({})
+    // setPageState((old) => ({
+    //   ...old,
+    //   q: inputState,
+    // }))
+    // setFqState({})
+    // console.log('searchClickEvent', inputState)
+    setSolrParams((old) => {
+      const copy = { ...old }
+      delete copy.fq
+      // copy.delete('fq') // q has changed so we reset any fq filters
+      copy.q = inputState // replace q value
+      return copy
+    })
+
+    // ({
+    //   ...old,
+    //   old.delete('fq'),
+    //   q: inputState,
+    // }))
   }
 
   const searchKeyPress = (e) => {
@@ -55,16 +72,15 @@ export default function FacetsBar({
     }
   }
 
+  // callback for the [x] on the search input text field
   const clearSearch = () => {
-    setPageState((old) => ({
-      ...old,
-      q: '',
-      page: 1,
-    }))
-    setFqState({})
     setInputState('')
-    searchParams.delete('q')
-    setSearchParams(searchParams)
+    setSolrParams((old) => {
+      const copy = { ...old }
+      delete copy.q // remove from URL
+      delete copy.fq // q has changed so we remove any fq params too
+      return copy
+    })
   }
 
   const facetsDisplay = {}
@@ -118,12 +134,11 @@ export default function FacetsBar({
     return content
   }
 
-  const handleDelete = (fqName) => () => {
-    setFqState((current) => {
-      const copy = { ...current }
-      delete copy[fqName]
-      return copy
-    })
+  // callback for the [x] on any set facet filters
+  const removeFilter = (fqName) => () => {
+    const fqCopy = { ...solrParams.fq }
+    delete fqCopy[fqName]
+    setSolrParams((old) => ({ ...old, fq: fqCopy }))
   }
 
   return (
@@ -140,7 +155,7 @@ export default function FacetsBar({
           <TextField
             size="small"
             label="Search"
-            value={inputState}
+            value={inputState || ''}
             onChange={(e) => setInputState(e.target.value)}
             onKeyPress={searchKeyPress}
             sx={{
@@ -159,7 +174,7 @@ export default function FacetsBar({
                   {inputState && (
                     <IconButton
                       sx={{ padding: 1 }}
-                      aria-label="search"
+                      aria-label="clear search"
                       onClick={clearSearch}
                     >
                       <CloseIcon />
@@ -209,7 +224,7 @@ export default function FacetsBar({
                   },
                 }}
                 variant="outlined"
-                onClick={handleDelete(fqName)}
+                onClick={removeFilter(fqName)}
                 endIcon={<CloseIcon />}
               >
                 {formatFacetText(fqName)}
@@ -233,7 +248,7 @@ export default function FacetsBar({
               field={field}
               fieldValues={facetsDisplay[field]}
               fqState={fqState[field] || []}
-              setFqState={setFqState}
+              // setFqState={setFqState}
             />
           </Grid>
         ))}

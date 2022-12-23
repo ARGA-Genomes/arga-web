@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
-import { useSearchParams } from 'react-router-dom'
+// import { useSearchParams } from 'react-router-dom'
 import {
   Box,
   Stack,
@@ -17,14 +17,14 @@ import RecordDrawer from './RecordDrawer'
 import FacetsBar from './FacetsBar'
 import GridView from './GridView'
 import DataTable from './DataTable'
-import MapView from './MapView'
+// import MapView from './MapView'
 import theme from './theme'
 import config from './config'
+import useUrlParams from '../hooks/UrlParams'
 
 // Config variables
 // TODO: move into `config.js` if likely needing to be tweaked
 const serverUrlPrefix = config.solr_uri
-const defaultQuery = '*:*'
 const queryParser = 'edismax'
 // instead of `AND` being default operator, specify how many terms must match (minimum)
 const minMatch = '3' // fixes accession number searches (e.g. `GCF_002099425.1` which get tokenised into 3 parts)
@@ -136,24 +136,35 @@ function TabPanel({ children, value, index }) {
  * @returns JSX
  */
 function Search() {
+  // const { search } = useLocation();
+  // const [searchParams, setSearchParams] = useSearchParams()
+
+  // Object.keys(config.solrParams).forEach((field) => {
+  //   if (searchParams.get(field)) {
+  //     solrParams[field] = searchParams.get(field)
+  //   }
+  // })
+
+  const [solrParams, setSolrParams] = useUrlParams()
+
   const [pageState, setPageState] = useState({
     isLoading: false,
     data: [],
     species: [],
-    total: 0,
-    page: 1,
-    // pageSize: 25,
-    field: '', // sort 'vernacularName'
-    sort: '', // order 'asc'
-    q: '',
+    // total: 0,
+    // page: 1,
+    // // pageSize: 25,
+    // field: '', // sort 'vernacularName'
+    // sort: '', // order 'asc'
+    // q: '',
     // Note: `fq` is in its own state var below (`fqState`)
-    groupResults: false,
+    groupResults: false, // can derive this from the current
     facetResults: [],
   })
 
-  const [fqState, setFqState] = useState({})
+  // const [fqState, setFqState] = useState({})
   const fqRef = useRef()
-  fqRef.current = fqState // so `fqState` can be read in callbacks (normally `fqState` is always empty in `fqUpdate`)
+  fqRef.current = solrParams.fq // so `fqState` can be read in callbacks (normally `fqState` is always empty in `fqUpdate`)
 
   const [recordState, setRecordState] = useState({
     isLoading: false,
@@ -172,9 +183,6 @@ function Search() {
     setTabValue(newValue)
   }
 
-  // const { search } = useLocation();
-  const [searchParams] = useSearchParams()
-
   /**
    * Callback attached to Chip elements in the results table of datagrid.
    * Triggers new search with `fq` param added for given Chip.
@@ -185,7 +193,8 @@ function Search() {
     const existingValues =
       fqRef.current[fieldName]?.length > 0 ? fqRef.current[fieldName] : []
     const fq = { [fieldName]: [...existingValues, value] }
-    setFqState((old) => ({ ...old, ...fq }))
+    // setFqState((old) => ({ ...old, ...fq }))
+    setSolrParams((old) => ({ ...old, fq }))
     e.stopPropagation()
     e.preventDefault()
   }, [])
@@ -197,6 +206,7 @@ function Search() {
    */
   const buildFqList = useCallback(() => {
     const fqParamList = []
+    const fqState = solrParams.fq ?? []
 
     Object.keys(fqState).forEach((key) => {
       const tag = facetFields[key]?.tag ? `{!tag=${facetFields[key].tag}}` : ''
@@ -213,7 +223,7 @@ function Search() {
     })
 
     return fqParamList.join('&fq=')
-  }, [fqState])
+  }, [solrParams.fq])
 
   /**
    * Build string for SOLR `facet.field` params.
@@ -393,6 +403,8 @@ function Search() {
   // Fetch list of records - SOLR select
   useEffect(() => {
     const abortController = new AbortController() // if mulitple record requests - last one wins
+    const page = solrParams.page || config.solrParams.page
+    const pageSize = solrParams.pageSize || config.solrParams.pageSize
 
     const fetchData = async () => {
       setPageState((old) => ({
@@ -400,20 +412,19 @@ function Search() {
         isLoading: true,
       }))
       // calculate SOLR startIndex param
-      const startIndex =
-        pageState.page * pageState.pageSize - pageState.pageSize
+      const startIndex = page * pageSize - pageSize
       const groupParams = pageState.groupResults
         ? '&group=true&group.field=scientificName&group.limit=99'
         : ''
-      const query = pageState.q || defaultQuery
+      const query = solrParams.q || config.solrParams.q
       const url = `${serverUrlPrefix}/select?q=${query}&fq=${buildFqList()}&fl=${columnDataFields.join(
         ','
       )}&facet=true&facet.field=${buildFacetList().join(
         '&facet.field='
-      )}&facet.mincount=1&&rows=${
-        pageState.pageSize
-      }&start=${startIndex}&sort=${
-        pageState.field ? `${pageState.field}+${pageState.sort}` : ''
+      )}&facet.mincount=1&&rows=${pageSize}&start=${startIndex}&sort=${
+        solrParams.sortField
+          ? `${solrParams.sortField}+${solrParams.sortDirection}`
+          : ''
       }${groupParams}&defType=${queryParser}&qf=${Object.keys(queryFields)
         .map((k) => `${k}^${queryFields[k]}`)
         .join('+')}&bq=${boostQuery.join('+')}&mm=${minMatch}&debugQuery=true`
@@ -452,13 +463,13 @@ function Search() {
       abortController.abort()
     }
   }, [
-    pageState.page,
-    pageState.pageSize,
-    pageState.field,
-    pageState.sort,
-    pageState.q,
+    solrParams.page,
+    solrParams.pageSize,
+    solrParams.field,
+    solrParams.sort,
+    solrParams.q,
     pageState.groupResults,
-    fqState,
+    solrParams.fq,
     columnDataFields,
   ])
 
@@ -485,18 +496,19 @@ function Search() {
   }, [recordState.id])
 
   // Listen for `?q={query}` URL (linked search)
-  useEffect(() => {
-    if (searchParams.get('q')) {
-      setPageState((old) => ({ ...old, q: searchParams.get('q') }))
-    }
-  }, [searchParams])
+  // useEffect(() => {
+  //   if (searchParams.get('q')) {
+  //     setPageState((old) => ({ ...old, q: searchParams.get('q') }))
+  //   }
+  // }, [searchParams])
 
   // keeping this in for next refactor
   // eslint-disable-next-line
   const searchKeyPress = (e) => {
     if (e.key === 'Enter') {
-      setPageState((old) => ({ ...old, q: e.target.value, page: 1 }))
-      setFqState({})
+      // setPageState((old) => ({ ...old, q: e.target.value, page: 1 }))
+      setSolrParams({ q: e.target.value, page: 1, fq: [] })
+      // setFqState({})
       // datagridRef.current.focus()
       // e.preventDefault()
     }
@@ -597,7 +609,7 @@ function Search() {
             setPageState={setPageState}
             searchKeyPress={searchKeyPress}
             fqState={fqRef.current || {}}
-            setFqState={setFqState}
+            // setFqState={setFqState}
           />
           <Box sx={{ width: '100%', background: 'white' }}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -655,7 +667,7 @@ function Search() {
                   p: 2,
                 }}
               >
-                <MapView
+                {/* <MapView
                   pageState={pageState}
                   setPageState={setPageState}
                   setDrawerState={setDrawerState}
@@ -663,7 +675,7 @@ function Search() {
                   setFqState={setFqState}
                   setRecordState={setRecordState}
                   facetFields={facetFields}
-                />
+                /> */}
               </Box>
             </TabPanel>
           </Box>
