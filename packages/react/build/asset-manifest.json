@@ -1,18 +1,18 @@
 {
   "files": {
     "main.css": "/static/css/main.0477dffe.css",
-    "main.js": "/static/js/main.0961aafd.js",
+    "main.js": "/static/js/main.68d72b05.js",
     "static/js/496.f4e64772.chunk.js": "/static/js/496.f4e64772.chunk.js",
     "static/media/ARGA-logo-notext.png": "/static/media/ARGA-logo-notext.7b73acec692069555d65.png",
     "static/media/ARGA Logomark MONO REVERSED.png": "/static/media/ARGA Logomark MONO REVERSED.456008b2f65135eb7e13.png",
     "static/media/spritesheet.svg": "/static/media/spritesheet.a4e0eb7ad904a4858361.svg",
     "index.html": "/index.html",
     "main.0477dffe.css.map": "/static/css/main.0477dffe.css.map",
-    "main.0961aafd.js.map": "/static/js/main.0961aafd.js.map",
+    "main.68d72b05.js.map": "/static/js/main.68d72b05.js.map",
     "496.f4e64772.chunk.js.map": "/static/js/496.f4e64772.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.0477dffe.css",
-    "static/js/main.0961aafd.js"
+    "static/js/main.68d72b05.js"
   ]
 }
