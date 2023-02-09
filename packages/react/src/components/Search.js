@@ -55,14 +55,17 @@ const boostQuery = [
   'dynamicProperties_MIXS_0000005:Scaffold^2.0',
 ]
 
+// facets sent to SOLR and displayed above search results.
+// Note: `tag` is just a string sent to SOLR, similar to an alias var in SQL.
 const facetFields = {
   dataResourceName: { tag: 'dr', label: 'data source' },
+  presentInCountry: { tag: 'pc', label: null, default: true },
   speciesGroup: { tag: 'sg', label: null },
   speciesSubgroup: { tag: 'ss', label: null },
   matchType: { tag: 'mt', label: null },
   country: { tag: 'co', label: null },
   stateProvince: { tag: 'sp', label: null },
-  biome: { tag: 'bi', label: null },
+  //  biome: { tag: 'bi', label: null },
   //  speciesListUid: {tag: '', label: null},
   countryConservation: { tag: 'cc', label: 'EPBC Conservation status' },
   stateConservation: { tag: 'sc', label: 'State Conservation status' },
@@ -151,7 +154,10 @@ function Search() {
     facetResults: [],
   })
 
-  const [fqState, setFqState] = useState({})
+  const [fqState, setFqState] = useState({
+    presentInCountry: ['AUSTRALIA'],
+  })
+
   const fqRef = useRef()
   fqRef.current = fqState // so `fqState` can be read in callbacks (normally `fqState` is always empty in `fqUpdate`)
 
