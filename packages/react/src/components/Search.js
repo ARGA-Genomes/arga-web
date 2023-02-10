@@ -57,9 +57,10 @@ const boostQuery = [
 
 // facets sent to SOLR and displayed above search results.
 // Note: `tag` is just a string sent to SOLR, similar to an alias var in SQL.
+// Any default fields are specified in constuctor for `fqState` below.
 const facetFields = {
   dataResourceName: { tag: 'dr', label: 'data source' },
-  presentInCountry: { tag: 'pc', label: null, default: true },
+  presentInCountry: { tag: 'pc', label: null },
   speciesGroup: { tag: 'sg', label: null },
   speciesSubgroup: { tag: 'ss', label: null },
   matchType: { tag: 'mt', label: null },
