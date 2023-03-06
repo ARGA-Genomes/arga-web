@@ -257,6 +257,7 @@ function formatFieldValue(field, data) {
       'decoration' in helper &&
       helper.decoration === 'multivalue'
     ) {
+      // `decoration: 'multivalue'` fields that need links added (via `prefix`)
       const values = typeof value === 'object' ? value : [value]
       value = values.map((val) => (
         <Tooltip

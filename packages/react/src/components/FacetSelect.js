@@ -11,42 +11,8 @@ import {
   OutlinedInput,
   Typography,
 } from '@mui/material'
-import { startCase, replace } from 'lodash'
-
-const labelReplaceRegex = {
-  dynamicProperties_ncbi_: '',
-  dynamicProperties_bpa_: '',
-  dynamicProperties_ncbi_genome_rep: 'NCBI genome representation',
-  dynamicProperties_ncbi_assembly_level: 'NCBI assembly level',
-  dynamicProperties_MIXS_0000005: 'Genome assembly level',
-  dynamicProperties_bpa_resource_permissions: 'BPA access permissions',
-  dataResourceName: 'data source',
-  countryConservation: 'EPBC Conservation status',
-  stateConservation: 'State Conservation status',
-  matchType: 'Taxon match type',
-  speciesListUid: 'conservation status',
-}
-
-/**
- * Create a human readable label from a SOLR field name
- *
- * @param {String} label SOLR field name
- * @returns formatted label
- */
-export function formatLabels(label) {
-  const replacements = Object.keys(labelReplaceRegex)
-    .map((searchString) => {
-      const re = new RegExp(searchString, 'g')
-      const newLabel = replace(label, re, labelReplaceRegex[searchString])
-      return newLabel !== label ? newLabel : null
-    })
-    .filter((a) => a)
-  // Note that there can be multiple substitutions that match, so place the
-  // "best" match after an earlier one, for it to "win" (via `array.slice(-1)[0]`)
-  const returnString =
-    replacements.length > 0 ? replacements.slice(-1)[0] : label
-  return startCase(returnString)
-}
+import { startCase } from 'lodash'
+import { formatLabels, formatFacetValue } from '../utils/formatLabel'
 
 // TODO: move into main function and memoize it, as it depends on `useState` variable
 const removeFacet = (setFqState, newArray, field) => {
@@ -182,7 +148,7 @@ export default function FacetsSelect({
                   sx={{ fontSize: '14px', paddingRight: '0.5em' }}
                   component="span"
                 >
-                  {startCase(it.label) || startCase(it.name)}
+                  {formatFacetValue(field, it.label || it.name)}
                 </Typography>
               }
               // secondary={it.count}
