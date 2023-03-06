@@ -119,10 +119,7 @@ export default function FacetsSelect({
     <FormControl
       key={field}
       sx={{
-        // m: '10px 0 10px 10px',
-        // marginTop: 1,
         marginRight: 1,
-        // minWidth: 180,
         width: '100%',
         '*': { fontSize: '14px' },
         '& .MuiOutlinedInput-input': {
@@ -141,9 +138,6 @@ export default function FacetsSelect({
         multiple
         size="small"
         onChange={handleSelectChange}
-        // onClose={handleClose}
-        // onOpen={handleOpen}
-        // renderValue={(value) => value}
         input={<OutlinedInput id="select-multiple-chip" label="Chip" />}
         renderValue={(selected) => (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -177,7 +171,6 @@ export default function FacetsSelect({
             key={it.name}
             sx={{ padding: 0, paddingRight: 1 }}
           >
-            {/* {it.name} ({it.count}) checked={personName.indexOf(name) > -1} */}
             <Checkbox
               checked={thisFqState?.indexOf(it.name) > -1}
               sx={{ '& svg': { fontSize: '18px' } }}
@@ -188,8 +181,6 @@ export default function FacetsSelect({
                 <Typography
                   sx={{ fontSize: '14px', paddingRight: '0.5em' }}
                   component="span"
-                  // variant="span"
-                  // color="grey"
                 >
                   {startCase(it.label) || startCase(it.name)}
                 </Typography>
@@ -205,10 +196,6 @@ export default function FacetsSelect({
                   ({it.count})
                 </Typography>
               }
-              // sx={{
-              //   '& span': { fontSize: '14px' },
-              //   '& p': { fontSize: '12px' },
-              // }}
             />
           </MenuItem>
         ))}
