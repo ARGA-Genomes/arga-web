@@ -56,7 +56,7 @@ const boostQuery = [
 ]
 
 // facets sent to SOLR and displayed above search results.
-// Note: `tag` is just a string sent to SOLR, similar to an alias var in SQL.
+// Note: `tag` is just a (unique) string sent to SOLR, similar to an alias var in SQL.
 // Any default fields are specified in constuctor for `fqState` below.
 const facetFields = {
   dataResourceName: { tag: 'dr', label: 'data source' },

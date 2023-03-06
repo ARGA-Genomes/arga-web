@@ -97,6 +97,9 @@ const fieldsToDecorate = {
   genus: { prefix: URLS.BIE, valueField: 'genusID' },
   species: { prefix: URLS.BIE, valueField: 'speciesID', decoration: 'italic' },
   otherCatalogNumbers: { prefix: URLS.BIOCACHE_CAT_NO, decoration: 'quotes' },
+  fire_response: { prefix: URLS.AUS_TRAITS, decoration: 'multivalue' },
+  post_fire_recruitment: { prefix: URLS.AUS_TRAITS, decoration: 'multivalue' },
+  photosynthetic_pathway: { prefix: URLS.AUS_TRAITS, decoration: 'multivalue' },
 }
 
 function checkValueShouldIgnore(value) {
@@ -249,13 +252,28 @@ function formatFieldValue(field, data) {
     const helper = fieldsToDecorate[field]
     let suffix =
       'valueField' in helper ? data[helper.valueField] || '' : data[field] || ''
-    if ('prefix' in helper && helper.prefix !== true) {
+    if (
+      'prefix' in helper &&
+      'decoration' in helper &&
+      helper.decoration === 'multivalue'
+    ) {
+      const values = typeof value === 'object' ? value : [value]
+      value = values.map((val) => (
+        <Tooltip
+          title="Visit original data source"
+          style={{ paddingRight: 10, display: 'block' }}
+        >
+          <a href={`${helper.prefix}${field}`} target="partner">
+            {val}
+          </a>
+        </Tooltip>
+      ))
+    } else if ('prefix' in helper && helper.prefix !== true) {
       let wrappedValue = <span>{value}</span>
 
       if (
         'decoration' in helper &&
         helper.decoration === 'italic' &&
-        helper.decoration.length > 0 &&
         words(value).length > 1
       ) {
         wrappedValue = <em>{value}</em>

@@ -6,6 +6,8 @@ const externalUrls = {
   NCBI_DOWNLOAD: 'https://api.ncbi.nlm.nih.gov/datasets/v1',
   BPA: 'https://data.bioplatforms.com/dataset/',
   BOLD: 'https://www.boldsystems.org/index.php',
+  AUS_TRAITS:
+    'https://traitecoevo.github.io/austraits.build/articles/trait_definitions.html#',
 }
 
 externalUrls.NCBI_GENOME = `${externalUrls.NCBI}/data-hub/genome/`
