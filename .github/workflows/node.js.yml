@@ -32,3 +32,11 @@ jobs:
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
+    # Deploy to local repo
+    - name: Deploy
+      uses: s0/git-publish-subdir-action@develop
+      env:
+        REPO: self
+        BRANCH: builds
+        FOLDER: packages/react/build
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
