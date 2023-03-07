@@ -86,3 +86,18 @@ export function formatLabels(label) {
     replacements.length > 0 ? replacements.slice(-1)[0] : label
   return startCase(returnString)
 }
+
+/**
+ * Format label for `Chip` by checking for `label` attribute and falling
+ * back to `name` attribute with `startCase` formatting
+ *
+ * @param {*} name
+ * @param {*} valueList
+ * @returns
+ */
+export function getLabelForName(field, name, valueList) {
+  const item = valueList.find((val) => val.name === name)
+  // return item && item.label ? item.label : startCase(name)
+  const value = item && item.label ? item.label : name
+  return formatFacetValue(field, value)
+}

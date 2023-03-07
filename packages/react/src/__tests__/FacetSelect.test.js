@@ -1,5 +1,8 @@
-import { getLabelForName } from '../components/FacetSelect'
-import { formatLabels, formatFacetValue } from '../utils/formatLabel'
+import {
+  getLabelForName,
+  formatLabels,
+  formatFacetValue,
+} from '../utils/formatLabel'
 
 test('formatLabels returns expected value', () => {
   expect(formatLabels('dynamicProperties_MIXS_0000005')).toEqual(
@@ -32,7 +35,9 @@ const vl1 = [
 ]
 
 test('getLabelForName returns expected value', () => {
-  expect(getLabelForName('Endagered', vl1)).toEqual('Endagered')
+  expect(getLabelForName('countryConservation', 'Endangered', vl1)).toEqual(
+    'Endangered'
+  )
 })
 
 const vl2 = [
@@ -41,9 +46,13 @@ const vl2 = [
 ]
 
 test('getLabelForName returns expected value', () => {
-  expect(getLabelForName('organization_member', vl2)).toEqual(
-    'Organization Member'
-  )
+  expect(
+    getLabelForName(
+      'dynamicProperties_bpa_resource_permissions',
+      'organization_member',
+      vl2
+    )
+  ).toEqual('Organization member')
 })
 
 test('formatFacetValue returns expected value 1', () => {

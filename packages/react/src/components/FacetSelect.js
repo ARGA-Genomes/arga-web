@@ -11,8 +11,12 @@ import {
   OutlinedInput,
   Typography,
 } from '@mui/material'
-import { startCase } from 'lodash'
-import { formatLabels, formatFacetValue } from '../utils/formatLabel'
+// import { startCase } from 'lodash'
+import {
+  getLabelForName,
+  formatLabels,
+  formatFacetValue,
+} from '../utils/formatLabel'
 
 // TODO: move into main function and memoize it, as it depends on `useState` variable
 const removeFacet = (setFqState, newArray, field) => {
@@ -28,19 +32,6 @@ const removeFacet = (setFqState, newArray, field) => {
       return copy
     })
   }
-}
-
-/**
- * Format label for `Chip` by checking for `label` attribute and falling
- * back to `name` attribute with `startCase` formatting
- *
- * @param {*} name
- * @param {*} valueList
- * @returns
- */
-export function getLabelForName(name, valueList) {
-  const item = valueList.find((val) => val.name === name)
-  return item && item.label ? item.label : startCase(name)
 }
 
 /**
@@ -110,7 +101,7 @@ export default function FacetsSelect({
             {selected.map((value) => (
               <Chip
                 key={value}
-                label={getLabelForName(value, fieldValues)}
+                label={getLabelForName(field, value, fieldValues)}
                 size="small"
                 onMouseDown={(e) => {
                   e.stopPropagation()
