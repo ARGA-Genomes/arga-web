@@ -98,7 +98,12 @@ const muiColourCategories = [
   'warning',
 ]
 
-const additionalFields = ['taxonConceptID', 'matchType']
+const additionalFields = [
+  'taxonConceptID',
+  'matchType',
+  'taxonRank',
+  'taxonRankID',
+]
 
 function getColourForValue(input) {
   const hash =

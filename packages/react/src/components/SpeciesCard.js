@@ -179,9 +179,32 @@ function SpeciesCard({ record, index, setRecordState }) {
           height: '75px',
         }}
         title={
-          <Typography sx={{ fontWeight: 600, fontStyle: 'italic' }}>
-            {record.groupValue}
-          </Typography>
+          <>
+            <Grid container justifyContent="flex-end">
+              <Typography
+                sx={{
+                  fontWeight: 300,
+                  color: 'grey',
+                  fontSize: 12,
+                  lineHeight: '8px',
+                  textAlign: 'right',
+                  margin: 'right',
+                }}
+              >
+                {record.doclist.docs[0].taxonRank}
+              </Typography>
+            </Grid>
+            <Typography
+              // gutterBottom
+              sx={
+                record.doclist.docs[0].taxonRankID > 5000
+                  ? { fontWeight: 600, fontStyle: 'italic' }
+                  : { fontWeight: 600 }
+              }
+            >
+              {record.groupValue}
+            </Typography>
+          </>
         }
         // subheader={record?.groupValue[0]?.vernacularName}
         subheader={record.doclist.docs[0].vernacularName}
