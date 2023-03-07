@@ -1,4 +1,4 @@
-import { startCase, replace, toUpper, upperFirst, lowerCase } from 'lodash'
+import { startCase, replace, upperFirst, lowerCase } from 'lodash'
 
 const labelReplaceRegex = {
   dynamicProperties_ncbi_: '',
@@ -46,7 +46,7 @@ export function formatFacetValue(field, value) {
   if (specialFormatters[field]) {
     switch (specialFormatters[field]) {
       case FormatterType.Upper:
-        label = toUpper(value)
+        label = value.toUpperCase()
         break
       case FormatterType.UpperFirst:
         label = upperFirst(lowerCase(value))
