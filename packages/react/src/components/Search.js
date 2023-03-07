@@ -98,12 +98,7 @@ const muiColourCategories = [
   'warning',
 ]
 
-const additionalFields = [
-  'taxonConceptID',
-  'matchType',
-  'taxonRank',
-  'taxonRankID',
-]
+const additionalFields = ['taxonConceptID', 'matchType', 'taxonRankID']
 
 function getColourForValue(input) {
   const hash =
@@ -297,7 +292,6 @@ function Search() {
         field: 'scientificName',
         headerName: 'Matched Name',
         minWidth: 240,
-        hide: true,
         renderCell: (params) => (
           <span key={params.value}>
             {params.value?.trim().split(/\s+/).length > 1 ? (
@@ -309,6 +303,7 @@ function Search() {
         ),
       },
       { field: 'vernacularName', headerName: 'Vernacular Name', width: 190 },
+      { field: 'taxonRank', headerName: 'Taxon rank', hide: true, width: 110 },
       {
         field: 'speciesGroup',
         headerName: 'Species Groups',

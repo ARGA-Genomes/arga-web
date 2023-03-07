@@ -147,33 +147,9 @@ function SpeciesCard({ record, index, setRecordState }) {
     return accumulator
   }, {})
 
-  // console.log('drCounts', drCounts)
-
-  // const dataResourceArr = pageState.facetResults.dataResourceName
-  // const newValueArray = []
-  // for (let i = 0; i < dataResourceArr.length; i += 2) {
-  //   const name = dataResourceArr[i]
-  //   const count = dataResourceArr[i + 1]
-  //   newValueArray.push({ name, count })
-  // }
-
-  // const handleExpandClick = () => {
-  //   setExpanded(!expanded)
-  // }
-
-  // if (pageState.isLoading) {
-  //   return <CircularProgress />
-  // }
-
   return (
     <Card style={{}}>
       <CardHeader
-        // avatar={<Avatar aria-label="Species">S</Avatar>}
-        // action={
-        //   <IconButton aria-label="settings">
-        //     <MoreVertIcon />
-        //   </IconButton>
-        // }
         sx={{
           overflow: 'hidden',
           height: '75px',
@@ -296,7 +272,7 @@ function SpeciesCard({ record, index, setRecordState }) {
           View {record.doclist.docs.length}
         </Button>
       </CardActions>
-      {/* TODO: Collapse is not being used - was disabled for simplicioty so code below can be deleted */}
+      {/* TODO: Collapse is not being used - was disabled for simplicity so code below can be deleted */}
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent>
           <Typography component="h4" sx={{ borderBottom: '1px solid gray' }}>
