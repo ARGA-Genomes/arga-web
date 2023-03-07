@@ -55,7 +55,6 @@ export function formatFacetValue(field, value) {
         label = startCase(lowerCase(value))
         break
       case FormatterType.BPA:
-        console.log('Bpa: ', value)
         label = value.replaceAll('_', ' ')
         label = label.replaceAll(':', ' ')
         label = upperFirst(label)
