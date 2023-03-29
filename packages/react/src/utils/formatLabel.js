@@ -12,6 +12,7 @@ const labelReplaceRegex = {
   stateConservation: 'State Conservation status',
   matchType: 'Taxon match type',
   speciesListUid: 'conservation status',
+  stateProvince: 'state/territory',
 }
 
 // Enum for formatter types
@@ -30,7 +31,7 @@ const specialFormatters = {
   post_fire_recruitment: FormatterType.UpperFirst,
   photosynthetic_pathway: FormatterType.Upper,
   dynamicProperties_bpa_resource_permissions: FormatterType.BPA,
-  presentInCountry: FormatterType.UpperFirst,
+  taxonPresentInCountry: FormatterType.UpperFirst,
 }
 
 /**

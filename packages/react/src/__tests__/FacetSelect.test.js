@@ -56,7 +56,9 @@ test('getLabelForName returns expected value', () => {
 })
 
 test('formatFacetValue returns expected value 1', () => {
-  expect(formatFacetValue('presentInCountry', 'AUSTRALIA')).toEqual('Australia')
+  expect(formatFacetValue('taxonPresentInCountry', 'AUSTRALIA')).toEqual(
+    'Australia'
+  )
 })
 
 test('formatFacetValue returns expected value 2', () => {

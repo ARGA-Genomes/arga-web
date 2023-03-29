@@ -58,9 +58,10 @@ const boostQuery = [
 // facets sent to SOLR and displayed above search results.
 // Note: `tag` is just a (unique) string sent to SOLR, similar to an alias var in SQL.
 // Any default fields are specified in constuctor for `fqState` below.
+// 'label' is overriden in `formatLabels.js`, so not needed here any more?
 const facetFields = {
   dataResourceName: { tag: 'dr', label: 'data source' },
-  presentInCountry: { tag: 'pc', label: null },
+  taxonPresentInCountry: { tag: 'pc', label: null },
   speciesGroup: { tag: 'sg', label: null },
   speciesSubgroup: { tag: 'ss', label: null },
   matchType: { tag: 'mt', label: null },
@@ -158,7 +159,7 @@ function Search() {
   })
 
   const [fqState, setFqState] = useState({
-    presentInCountry: ['AUSTRALIA'],
+    taxonPresentInCountry: ['AUSTRALIA'],
   })
 
   const fqRef = useRef()
@@ -303,7 +304,7 @@ function Search() {
         ),
       },
       { field: 'vernacularName', headerName: 'Vernacular Name', width: 190 },
-      { field: 'taxonRank', headerName: 'Taxon rank', hide: true, width: 110 },
+      { field: 'taxonRank', headerName: 'Taxon rank', width: 110 },
       {
         field: 'speciesGroup',
         headerName: 'Species Groups',
