@@ -30,23 +30,28 @@ const queryParser = 'edismax'
 const minMatch = '3' // fixes accession number searches (e.g. `GCF_002099425.1` which get tokenised into 3 parts)
 // fields used when no field is specified, similar to default field
 const queryFields = {
-  text: '1.0',
-  scientificName: '5.0',
+  // text: '1.0',
+  scientificName: '2.0',
   raw_scientificName: '2.0',
-  vernacularName: '5.0',
-  dynamicProperties_ncbi_biosample_attributes_json: '1.0',
-  otherCatalogNumbers: '1.0',
+  vernacularName: '1.5',
+  // dynamicProperties_ncbi_biosample_attributes_json: '1.0',
+  otherCatalogNumbers: '1.1',
 }
 // Boost (sub) queries for these field:value pairs with boost factor
 const boostQuery = [
-  'kingdom:Animalia^2.0', // prefer animals pver bacteria, etc. (normally appear first)
-  'class:Mammalia^2.0', // prefer mammals
-  'country:Australia^4.0',
+  // 'kingdom:Animalia^3.0', // prefer animals pver bacteria, etc. (normally appear first)
+  // 'kingdom:Plantae^2.0', // prefer plants pver bacteria, etc. (normally appear first)
+  'kingdom:Bacteria^0.1',
+  // 'class:Mammalia^1.1', // prefer mammals
+  'countryConservation:*^2.0', // EPBC listed species
+  'speciesListUid:dr18717^2.0', // TSI 100 priority species list
+  // 'country:Australia^4.0',
+  'taxonPresentInCountry:AUSTRALIA^5.0',
   'vernacularName:*^2.0', // docs with common names get boosted
-  'matchType:exactMatch^10.0', // results in ALA backbone taxa getting boosted
-  'dataResourceUid:dr18509^8.0', // NCBI refseq
-  'dataResourceUid:dr18540^6.0', // NCBI genome
-  'dataResourceUid:dr18544^4.0', // BPA
+  'matchType:exactMatch^2.0', // results in ALA backbone taxa getting boosted
+  'dataResourceUid:dr18509^2.0', // NCBI refseq
+  'dataResourceUid:dr18540^1.8', // NCBI genome
+  'dataResourceUid:dr18544^1.2', // BPA
   'dataResourceUid:dr375^1.0', // BOLD
   // Assembly level boost
   'dynamicProperties_MIXS_0000005:"Complete Genome"^6.0',
@@ -71,7 +76,7 @@ const facetFields = {
   stateProvince: { tag: 'sp', label: null },
   //  biome: { tag: 'bi', label: null },
   countryConservation: { tag: 'cc', label: 'EPBC Conservation status' },
-  speciesListUid: { tag: '', label: null },
+  speciesListUid: { tag: 'sl', label: null },
   // stateConservation: { tag: 'sc', label: 'State Conservation status' },
   //  stateInvasive: {tag: '', label: null},
   //  dynamicProperties_ncbi_refseq_category: {tag: '', label: null},
