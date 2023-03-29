@@ -41,7 +41,7 @@ const queryFields = {
 const boostQuery = [
   // 'kingdom:Animalia^3.0', // prefer animals pver bacteria, etc. (normally appear first)
   // 'kingdom:Plantae^2.0', // prefer plants pver bacteria, etc. (normally appear first)
-  'kingdom:Bacteria^0.1',
+  // 'kingdom:Bacteria^0.1',
   // 'class:Mammalia^1.1', // prefer mammals
   'countryConservation:*^2.0', // EPBC listed species
   'speciesListUid:dr18717^2.0', // TSI 100 priority species list
@@ -54,10 +54,10 @@ const boostQuery = [
   'dataResourceUid:dr18544^1.2', // BPA
   'dataResourceUid:dr375^1.0', // BOLD
   // Assembly level boost
-  'dynamicProperties_MIXS_0000005:"Complete Genome"^6.0',
-  'dynamicProperties_MIXS_0000005:Chromosome^6.0',
-  'dynamicProperties_MIXS_0000005:Contig^4.0',
-  'dynamicProperties_MIXS_0000005:Scaffold^2.0',
+  'dynamicProperties_MIXS_0000005:"Complete Genome"^1.5',
+  'dynamicProperties_MIXS_0000005:Chromosome^1.4`',
+  'dynamicProperties_MIXS_0000005:Contig^1.2',
+  'dynamicProperties_MIXS_0000005:Scaffold^1.1',
 ]
 
 // facets sent to SOLR and displayed above search results.
