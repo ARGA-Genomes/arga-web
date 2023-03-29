@@ -45,7 +45,6 @@ function filterFacetValues(field, values) {
     returnValues.push(...values)
   }
 
-  console.log('returnValues', returnValues)
   return returnValues
 }
 /**
