@@ -11,7 +11,7 @@ const labelReplaceRegex = {
   countryConservation: 'EPBC Conservation status',
   stateConservation: 'State Conservation status',
   matchType: 'Taxon match type',
-  speciesListUid: 'conservation status',
+  speciesListUid: 'Priority threatened species',
   stateProvince: 'state/territory',
 }
 

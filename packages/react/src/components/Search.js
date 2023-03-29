@@ -70,8 +70,8 @@ const facetFields = {
   country: { tag: 'co', label: null },
   stateProvince: { tag: 'sp', label: null },
   //  biome: { tag: 'bi', label: null },
-  //  speciesListUid: {tag: '', label: null},
   countryConservation: { tag: 'cc', label: 'EPBC Conservation status' },
+  speciesListUid: { tag: '', label: null },
   // stateConservation: { tag: 'sc', label: 'State Conservation status' },
   //  stateInvasive: {tag: '', label: null},
   //  dynamicProperties_ncbi_refseq_category: {tag: '', label: null},
@@ -83,10 +83,10 @@ const facetFields = {
     tag: 'al',
     label: 'Assembly level',
   },
-  dynamicProperties_bpa_resource_permissions: {
-    tag: 'rp',
-    label: 'BPA access permissions',
-  },
+  // dynamicProperties_bpa_resource_permissions: {
+  //   tag: 'rp',
+  //   label: 'BPA access permissions',
+  // },
 }
 
 const muiColourCategories = [

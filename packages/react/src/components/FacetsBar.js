@@ -15,6 +15,39 @@ import { useSearchParams } from 'react-router-dom'
 import FacetSelect from './FacetSelect'
 import theme from './theme'
 
+const facetFieldsTransform = {
+  speciesListUid: {
+    dr18717: 'Top 100 priority species 2022',
+    // dr649: 'ACT conservation status',
+    // dr650: 'NSW conservation status',
+    // dr651: 'NT conservation status',
+    // dr652: 'Qld conservation status',
+    // dr653: 'SA conservation status',
+    // dr654: 'Tas conservation status',
+    // dr655: 'Vic conservation status',
+    // dr2201: 'WA conservation status',
+  },
+}
+
+function filterFacetValues(field, values) {
+  const returnValues = []
+
+  if (Object.keys(facetFieldsTransform).includes(field)) {
+    const thisFacetFilter = facetFieldsTransform[field]
+    const filteredValues = values.filter((val) =>
+      Object.keys(thisFacetFilter).includes(val.name)
+    )
+    filteredValues.forEach((valObj) => {
+      valObj.label = thisFacetFilter[valObj.name]
+    })
+    returnValues.push(...filteredValues)
+  } else {
+    returnValues.push(...values)
+  }
+
+  console.log('returnValues', returnValues)
+  return returnValues
+}
 /**
  * Component to output a "filter" bar for filtering search results
  *
@@ -231,7 +264,8 @@ export default function FacetsBar({
           >
             <FacetSelect
               field={field}
-              fieldValues={facetsDisplay[field]}
+              // fieldValues={facetsDisplay[field]}
+              fieldValues={filterFacetValues(field, facetsDisplay[field])}
               fqState={fqState[field] || []}
               setFqState={setFqState}
             />
