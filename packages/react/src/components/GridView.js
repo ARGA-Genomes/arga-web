@@ -61,9 +61,10 @@ function GridView({ pageState, setPageState, setRecordState }) {
                   pageSize: parseInt(event.target.value, 10),
                 }))
               }
-              count={Math.ceil(
-                pageState.total / pageState.pageSize || defaultPageSize
-              )}
+              // count={Math.ceil(
+              //   pageState.total / pageState.pageSize || defaultPageSize
+              // )}
+              count={pageState.total}
               // page={page}
               // onPageChange={handleChangePage}
               // rowsPerPage={rowsPerPage}

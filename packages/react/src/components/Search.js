@@ -418,7 +418,7 @@ function Search() {
       const startIndex =
         pageState.page * pageState.pageSize - pageState.pageSize
       const groupParams = pageState.groupResults
-        ? '&group=true&group.field=scientificName&group.limit=99'
+        ? '&group=true&group.field=scientificName&group.limit=99&group.ngroups=true'
         : ''
       const query = pageState.q || defaultQuery
       const url = `${serverUrlPrefix}/select?q=${query}&fq=${buildFqList()}&fl=${columnDataFields.join(
@@ -445,7 +445,7 @@ function Search() {
           ? json.grouped.scientificName.groups
           : [],
         total: pageState.groupResults
-          ? json.grouped.scientificName.matches
+          ? json.grouped.scientificName.ngroups
           : json.response.numFound,
         facetResults: json.facet_counts.facet_fields,
       }))
