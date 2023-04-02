@@ -15,7 +15,7 @@ export default function SequenceDownload({ data, size }) {
     data.dataResourceUid === DR_CODES.DR_GENBANK
   ) {
     // NCBI
-    const urlPathParams = `/genome/accession/${data.occurrenceID}/download?include_annotation_type=GENOME_GFF,RNA_FASTA,CDS_FASTA,PROT_FASTA&filename=${data.occurrenceID}.zip`
+    const urlPathParams = `/genome/accession/${data.occurrenceID}/download?include_annotation_type=GENOME_FASTA,GENOME_GFF,RNA_FASTA,CDS_FASTA,PROT_FASTA,SEQUENCE_REPORT&filename=${data.occurrenceID}.zip`
     sequenceList.push({
       url: `${URLS.NCBI_DOWNLOAD}${urlPathParams}`,
       title: 'Download all available sequence files',
