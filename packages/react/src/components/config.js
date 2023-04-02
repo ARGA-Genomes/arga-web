@@ -3,7 +3,7 @@ const externalUrls = {
   BIE: 'https://bie.ala.org.au/species/',
   BIOCACHE: 'https://biocache.ala.org.au/occurrences/',
   NCBI: 'https://www.ncbi.nlm.nih.gov',
-  NCBI_DOWNLOAD: 'https://api.ncbi.nlm.nih.gov/datasets/v1',
+  NCBI_DOWNLOAD: 'https://api.ncbi.nlm.nih.gov/datasets/v2alpha',
   BPA: 'https://data.bioplatforms.com/dataset/',
   BOLD: 'https://www.boldsystems.org/index.php',
   AUS_TRAITS:
