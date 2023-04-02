@@ -30,11 +30,11 @@ const queryParser = 'edismax'
 const minMatch = '3' // fixes accession number searches (e.g. `GCF_002099425.1` which get tokenised into 3 parts)
 // fields used when no field is specified, similar to default field
 const queryFields = {
-  // text: '1.0',
+  text: '1.0',
   scientificName: '2.0',
   raw_scientificName: '2.0',
   vernacularName: '1.5',
-  // dynamicProperties_ncbi_biosample_attributes_json: '1.0',
+  dynamicProperties_ncbi_biosample_attributes_json: '1.0',
   otherCatalogNumbers: '1.1',
 }
 // Boost (sub) queries for these field:value pairs with boost factor
